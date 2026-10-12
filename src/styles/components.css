@@ -787,6 +787,18 @@ a.stat-tile:hover {
   color: var(--info);
 }
 
+.resume-banner {
+  flex-wrap: wrap;
+  align-items: center;
+  margin: 0 0 var(--space-4);
+}
+.resume-banner > svg {
+  margin-top: 0;
+}
+.resume-banner__text {
+  flex: 1 1 260px;
+}
+
 /* ---------- Prose (rendered Markdown) ---------- */
 
 .prose {

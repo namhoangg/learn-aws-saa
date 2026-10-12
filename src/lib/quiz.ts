@@ -1,5 +1,5 @@
 import type { Course, Domain, QuizQuestion, WithSection } from '../content/types';
-import type { QuestionStats } from '../state/store';
+import type { QuestionStats, QuizSession } from '../state/store';
 
 export type Question = WithSection<QuizQuestion>;
 
@@ -14,6 +14,22 @@ export function isCorrect(q: QuizQuestion, chosen: string[]): boolean {
 
 export function selectCount(q: QuizQuestion): number {
   return q.type === 'multi' ? correctIds(q).length : 1;
+}
+
+/** A saved quiz's questions in order, or null when content changed and one no longer exists. */
+export function sessionQuestions(session: QuizSession, pool: Question[]): Question[] | null {
+  // Imported files are only checked at the top level, so treat a malformed session as absent.
+  const wellFormed =
+    Array.isArray(session.questionIds) &&
+    Number.isInteger(session.index) &&
+    Array.isArray(session.chosen) &&
+    Array.isArray(session.answers) &&
+    session.answers.every((a) => Array.isArray(a?.chosen));
+  if (!wellFormed) return null;
+  const byId = new Map(pool.map((q) => [q.id, q]));
+  const qs = session.questionIds.map((id) => byId.get(id));
+  if (!qs.length || session.index >= qs.length || qs.some((q) => !q)) return null;
+  return qs as Question[];
 }
 
 export function shuffle<T>(items: T[]): T[] {

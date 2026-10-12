@@ -36,8 +36,22 @@ export interface QuizAttempt {
   correct: number;
   /** Exam simulation only: approximate scaled score out of 1000. */
   scaled?: number;
+  /** A retry of the questions missed in the previous run; never a section's best score. */
+  retry?: boolean;
   durationSec: number;
   answers: AttemptAnswer[];
+}
+
+/** A practice quiz in progress, saved after every step so it survives leaving the page. */
+export interface QuizSession {
+  questionIds: string[];
+  index: number;
+  answers: AttemptAnswer[];
+  /** Options of the current question, kept only once checked so its feedback shows again. */
+  chosen: string[];
+  checked: boolean;
+  startedAt: string;
+  retry: boolean;
 }
 
 export interface ExamSession {
@@ -66,6 +80,8 @@ export interface ProgressState {
   cards: Record<string, SrsCard>;
   labs: Record<string, LabState>;
   exam?: ExamSession;
+  /** Practice quizzes in progress, keyed `section:<id>`, `mixed` or `weak`. */
+  quizzes: Record<string, QuizSession>;
   lastLocation?: { path: string; label: string; at: string };
   settings: {
     theme: Theme;
@@ -83,6 +99,7 @@ const empty = (): ProgressState => ({
   attempts: [],
   cards: {},
   labs: {},
+  quizzes: {},
   settings: { theme: 'system', shortcuts: true, labMode: 'console' },
 });
 
@@ -110,6 +127,7 @@ function normalize(value: unknown): ProgressState {
     attempts: Array.isArray(v.attempts) ? v.attempts : [],
     cards: v.cards ?? {},
     labs: v.labs ?? {},
+    quizzes: v.quizzes ?? {},
     settings: { ...base.settings, ...(v.settings ?? {}) },
   };
 }
@@ -215,6 +233,15 @@ export function setLabComplete(labId: string, complete: boolean) {
 
 export function setExam(exam: ExamSession | undefined) {
   update((s) => ({ ...s, exam }));
+}
+
+export function setQuizSession(key: string, session: QuizSession | undefined) {
+  update((s) => {
+    const quizzes = { ...s.quizzes };
+    if (session) quizzes[key] = session;
+    else delete quizzes[key];
+    return { ...s, quizzes };
+  });
 }
 
 export function setTheme(theme: Theme) {

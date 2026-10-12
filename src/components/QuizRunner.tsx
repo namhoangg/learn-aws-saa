@@ -1,8 +1,8 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowRight, Check, CircleQuestionMark, ListChecks, RotateCcw, SignalHigh, SignalLow, SignalMedium, X } from 'lucide-react';
-import { recordAnswer, saveAttempt, useProgress, type AttemptAnswer, type QuizMode } from '../state/store';
-import { correctIds, isCorrect, selectCount, type Question } from '../lib/quiz';
+import { ArrowRight, Check, CircleQuestionMark, History, ListChecks, Play, RotateCcw, SignalHigh, SignalLow, SignalMedium, X } from 'lucide-react';
+import { recordAnswer, saveAttempt, setQuizSession, useProgress, type AttemptAnswer, type QuizMode, type QuizSession } from '../state/store';
+import { correctIds, isCorrect, selectCount, sessionQuestions, type Question } from '../lib/quiz';
 import { course, sectionTitle } from '../content/load';
 import type { Difficulty } from '../content/types';
 import { InlineMarkdown } from './Markdown';
@@ -27,12 +27,16 @@ interface Props {
   mode: QuizMode;
   sectionIds: string[];
   title: string;
+  /** Where the quiz in progress is saved: `section:<id>`, `mixed` or `weak`. */
+  sessionKey: string;
+  /** A saved quiz to pick up where it stopped; its questions must all be in `questions`. */
+  resume?: QuizSession;
   startQuestionId?: string;
   showSection?: boolean;
 }
 
 /** Practice quiz: answer, check, read every option's explanation, move on. */
-export function QuizRunner({ questions: initial, mode, sectionIds, title, startQuestionId, showSection }: Props) {
+export function QuizRunner({ questions: initial, mode, sectionIds, title, sessionKey, resume, startQuestionId, showSection }: Props) {
   const progress = useProgress();
   const shortcuts = progress.settings.shortcuts !== false;
   const ordered = useMemo(() => {
@@ -40,13 +44,26 @@ export function QuizRunner({ questions: initial, mode, sectionIds, title, startQ
     const first = initial.find((q) => q.id === startQuestionId);
     return first ? [first, ...initial.filter((q) => q.id !== startQuestionId)] : initial;
   }, [initial, startQuestionId]);
-  const [questions, setQuestions] = useState(ordered);
-  const [index, setIndex] = useState(0);
-  const [chosen, setChosen] = useState<string[]>([]);
+  // Read once on mount: the saves this runner makes as it goes must not reset it.
+  const [restored] = useState(() => {
+    const qs = resume ? sessionQuestions(resume, initial) : null;
+    if (!resume || !qs) return null;
+    // Mark saved answers again against the current key, in case a question was corrected since.
+    const byId = new Map(qs.map((x) => [x.id, x]));
+    const answers = resume.answers.map((a) => {
+      const x = byId.get(a.questionId);
+      return x ? { ...a, correct: isCorrect(x, a.chosen) } : a;
+    });
+    return { ...resume, answers, questions: qs };
+  });
+  const [questions, setQuestions] = useState(restored?.questions ?? ordered);
+  const [index, setIndex] = useState(restored?.index ?? 0);
+  const [chosen, setChosen] = useState<string[]>(restored?.chosen ?? []);
   const [overLimit, setOverLimit] = useState(false);
-  const [checked, setChecked] = useState(false);
-  const [answers, setAnswers] = useState<AttemptAnswer[]>([]);
-  const [startedAt, setStartedAt] = useState(() => new Date().toISOString());
+  const [checked, setChecked] = useState(restored?.checked ?? false);
+  const [answers, setAnswers] = useState<AttemptAnswer[]>(restored?.answers ?? []);
+  const [startedAt, setStartedAt] = useState(() => restored?.startedAt ?? new Date().toISOString());
+  const [retry, setRetry] = useState(restored?.retry ?? false);
   const [finished, setFinished] = useState(false);
   const headingRef = useRef<HTMLHeadingElement>(null);
 
@@ -54,14 +71,27 @@ export function QuizRunner({ questions: initial, mode, sectionIds, title, startQ
   const need = q ? selectCount(q) : 1;
   const score = answers.filter((a) => a.correct).length;
 
-  const restart = (qs: Question[]) => {
+  // Saved on every step, not only at the end, so leaving the page or reloading resumes here.
+  const save = (step: Pick<QuizSession, 'index' | 'answers' | 'chosen' | 'checked'>) =>
+    setQuizSession(sessionKey, { questionIds: questions.map((x) => x.id), startedAt, retry, ...step });
+
+  const restart = (qs: Question[], isRetry: boolean) => {
+    const at = new Date().toISOString();
     setQuestions(qs);
     setIndex(0);
     setChosen([]);
     setChecked(false);
     setAnswers([]);
     setFinished(false);
-    setStartedAt(new Date().toISOString());
+    setStartedAt(at);
+    setRetry(isRetry);
+    setQuizSession(sessionKey, { questionIds: qs.map((x) => x.id), index: 0, answers: [], chosen: [], checked: false, startedAt: at, retry: isRetry });
+  };
+
+  const startOver = () => {
+    if (answers.length && !confirm('Start this quiz over? The answers so far will not count as an attempt.')) return;
+    restart(retry ? questions : ordered, retry);
+    headingRef.current?.focus();
   };
 
   const toggle = (optId: string) => {
@@ -87,9 +117,11 @@ export function QuizRunner({ questions: initial, mode, sectionIds, title, startQ
     if (!q || chosen.length !== need || checked) return;
     const ok = isCorrect(q, chosen);
     recordAnswer(q.id, ok);
-    setAnswers((a) => [...a, { questionId: q.id, sectionId: q.sectionId, chosen, correct: ok }]);
+    const nextAnswers = [...answers, { questionId: q.id, sectionId: q.sectionId, chosen, correct: ok }];
+    setAnswers(nextAnswers);
     setChecked(true);
     setOverLimit(false);
+    save({ index, answers: nextAnswers, chosen, checked: true });
   };
 
   const next = () => {
@@ -97,6 +129,7 @@ export function QuizRunner({ questions: initial, mode, sectionIds, title, startQ
       setIndex(index + 1);
       setChosen([]);
       setChecked(false);
+      save({ index: index + 1, answers, chosen: [], checked: false });
       headingRef.current?.focus();
       window.scrollTo({ top: 0, behavior: 'smooth' });
     } else {
@@ -109,9 +142,11 @@ export function QuizRunner({ questions: initial, mode, sectionIds, title, startQ
         finishedAt: finishedAt.toISOString(),
         total: answers.length,
         correct: answers.filter((a) => a.correct).length,
+        retry: retry || undefined,
         durationSec: Math.round((finishedAt.getTime() - new Date(startedAt).getTime()) / 1000),
         answers,
       });
+      setQuizSession(sessionKey, undefined);
       setFinished(true);
     }
   };
@@ -169,11 +204,11 @@ export function QuizRunner({ questions: initial, mode, sectionIds, title, startQ
         <p className="muted">{pass ? 'Above the ~72% the real exam needs.' : 'Below the ~72% the real exam needs; read the traps again and retry the ones you missed.'}</p>
         <div className="button-row">
           {wrong.length > 0 && (
-            <button type="button" className="btn btn--primary" onClick={() => restart(wrong)}>
+            <button type="button" className="btn btn--primary" onClick={() => restart(wrong, true)}>
               <RotateCcw size={18} aria-hidden /> Retry the {wrong.length} I missed
             </button>
           )}
-          <button type="button" className="btn btn--secondary" onClick={() => restart(ordered)}>
+          <button type="button" className="btn btn--secondary" onClick={() => restart(ordered, false)}>
             Retake all
           </button>
           <Link className="btn btn--ghost" to="/weak">
@@ -219,6 +254,11 @@ export function QuizRunner({ questions: initial, mode, sectionIds, title, startQ
         <span className="chip chip--neutral">
           <CircleQuestionMark size={14} strokeWidth={2} aria-hidden /> {MODE_LABEL[mode]}
         </span>
+        {(index > 0 || checked) && (
+          <button type="button" className="btn btn--ghost btn--sm" onClick={startOver}>
+            <RotateCcw size={16} aria-hidden /> Start over
+          </button>
+        )}
       </div>
 
       <div className="question-card">
@@ -335,6 +375,27 @@ export function QuizRunner({ questions: initial, mode, sectionIds, title, startQ
           )}
         </div>
       </div>
+    </div>
+  );
+}
+
+/** Offers a practice quiz saved part-way through: pick it up or throw it away. */
+export function ResumeBanner({ session, label, onResume, onDiscard }: { session: QuizSession; label: string; onResume: () => void; onDiscard: () => void }) {
+  const right = session.answers.filter((a) => a.correct).length;
+  return (
+    <div className="hint-box resume-banner">
+      <History size={18} aria-hidden />
+      <span className="resume-banner__text">
+        <strong>{label} in progress.</strong> You stopped at question {session.index + 1} of {session.questionIds.length}, with {right} of {session.answers.length} correct so far.
+      </span>
+      <span className="button-row">
+        <button type="button" className="btn btn--primary btn--sm" onClick={onResume}>
+          <Play size={16} aria-hidden /> Resume
+        </button>
+        <button type="button" className="btn btn--ghost btn--sm" onClick={() => confirm(`Discard this ${label.toLowerCase()}? The answers so far will not count as an attempt.`) && onDiscard()}>
+          Discard
+        </button>
+      </span>
     </div>
   );
 }

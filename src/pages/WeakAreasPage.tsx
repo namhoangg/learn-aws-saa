@@ -3,15 +3,15 @@ import { Link } from 'react-router-dom';
 import { CircleQuestionMark, Layers, Play, Target } from 'lucide-react';
 import { getSection, loadAllFlashcards, loadAllQuestions, sections, sectionTitle } from '../content/load';
 import type { Flashcard, WithSection } from '../content/types';
-import { useProgress, type ProgressState } from '../state/store';
-import { isWeakQuestion, weakScore, type Question } from '../lib/quiz';
+import { setQuizSession, useProgress, type ProgressState, type QuizSession } from '../state/store';
+import { isWeakQuestion, sessionQuestions, weakScore, type Question } from '../lib/quiz';
 import { isWeakCard } from '../lib/srs';
-import { QuizRunner } from '../components/QuizRunner';
+import { QuizRunner, ResumeBanner } from '../components/QuizRunner';
 import { FlashcardDeck } from '../components/FlashcardDeck';
 import { Sparkline } from '../components/Sparkline';
 import { Segmented } from '../components/Segmented';
 
-type View = { kind: 'overview' } | { kind: 'quiz'; questions: Question[] } | { kind: 'cards'; cards: WithSection<Flashcard>[] };
+type View = { kind: 'overview' } | { kind: 'quiz'; questions: Question[]; resume?: QuizSession } | { kind: 'cards'; cards: WithSection<Flashcard>[] };
 type Filter = 'all' | 'questions' | 'cards';
 type Sort = 'weakest' | 'missed' | 'order';
 
@@ -52,6 +52,8 @@ export function WeakAreasPage() {
     [questions, progress.questions],
   );
   const weakCards = useMemo(() => (cards ?? []).filter((c) => isWeakCard(progress.cards[c.id])), [cards, progress.cards]);
+  const saved = progress.quizzes.weak;
+  const savedQuestions = useMemo(() => (questions && saved ? sessionQuestions(saved, questions) : null), [questions, saved]);
 
   const groups = useMemo(() => {
     const m = new Map<string, { qs: Question[]; cards: WithSection<Flashcard>[] }>();
@@ -81,7 +83,15 @@ export function WeakAreasPage() {
             Back to weak areas
           </button>
         </header>
-        <QuizRunner questions={view.questions} mode="weak" sectionIds={[...new Set(view.questions.map((q) => q.sectionId))]} title="Weak areas" showSection />
+        <QuizRunner
+          questions={view.questions}
+          mode="weak"
+          sectionIds={[...new Set(view.questions.map((q) => q.sectionId))]}
+          title="Weak areas"
+          sessionKey="weak"
+          resume={view.resume}
+          showSection
+        />
       </div>
     );
   }
@@ -113,6 +123,15 @@ export function WeakAreasPage() {
           <Play size={18} aria-hidden /> Practice all questions ({weakQs.length})
         </button>
       </header>
+
+      {saved && savedQuestions && (
+        <ResumeBanner
+          session={saved}
+          label="Weak-area practice"
+          onResume={() => setView({ kind: 'quiz', questions: savedQuestions, resume: saved })}
+          onDiscard={() => setQuizSession('weak', undefined)}
+        />
+      )}
 
       {!questions || !cards ? (
         <p className="muted">Loading…</p>

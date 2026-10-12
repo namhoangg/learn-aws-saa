@@ -3,9 +3,9 @@ import { Link } from 'react-router-dom';
 import { ClipboardCheck, Target, Timer } from 'lucide-react';
 import { course, loadAllQuestions, sections } from '../content/load';
 import type { Domain } from '../content/types';
-import { useProgress } from '../state/store';
-import { DOMAIN_LABEL, shuffle, type Question } from '../lib/quiz';
-import { QuizRunner } from '../components/QuizRunner';
+import { setQuizSession, useProgress, type QuizSession } from '../state/store';
+import { DOMAIN_LABEL, sessionQuestions, shuffle, type Question } from '../lib/quiz';
+import { QuizRunner, ResumeBanner } from '../components/QuizRunner';
 import { Segmented } from '../components/Segmented';
 
 const SIZES = [10, 20, 30, 50];
@@ -19,7 +19,9 @@ export function PracticePage() {
   const [size, setSize] = useState(20);
   const [domain, setDomain] = useState<Domain | 'all'>('all');
   const [filter, setFilter] = useState<Filter>('all');
-  const [run, setRun] = useState<{ questions: Question[]; key: number } | null>(null);
+  const [run, setRun] = useState<{ questions: Question[]; key: number; resume?: QuizSession } | null>(null);
+  const saved = progress.quizzes.mixed;
+  const savedQuestions = useMemo(() => (pool && saved ? sessionQuestions(saved, pool) : null), [pool, saved]);
 
   useEffect(() => {
     loadAllQuestions().then((qs) => {
@@ -55,7 +57,16 @@ export function PracticePage() {
             Change settings
           </button>
         </header>
-        <QuizRunner key={run.key} questions={run.questions} mode="mixed" sectionIds={[...new Set(run.questions.map((q) => q.sectionId))]} title="Mixed review" showSection />
+        <QuizRunner
+          key={run.key}
+          questions={run.questions}
+          mode="mixed"
+          sectionIds={[...new Set(run.questions.map((q) => q.sectionId))]}
+          title="Mixed review"
+          sessionKey="mixed"
+          resume={run.resume}
+          showSection
+        />
       </div>
     );
   }
@@ -75,6 +86,15 @@ export function PracticePage() {
         <h1>Practice</h1>
         <p className="muted">Mix questions from any sections with instant feedback, or switch to the timed exam simulation.</p>
       </header>
+
+      {saved && savedQuestions && (
+        <ResumeBanner
+          session={saved}
+          label="Mixed review"
+          onResume={() => setRun({ questions: savedQuestions, key: Date.now(), resume: saved })}
+          onDiscard={() => setQuizSession('mixed', undefined)}
+        />
+      )}
 
       <div className="mode-cards">
         <div className="mode-card mode-card--active">

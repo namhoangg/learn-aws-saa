@@ -42,7 +42,7 @@ export interface SectionProgress {
 export function sectionProgress(id: string, p: ProgressState, counts: Counts | null): SectionProgress {
   const c = counts?.[id] ?? { cards: 0, questions: 0, labs: 0 };
   const read = !!p.lessons[id]?.readAt;
-  const quizAttempts = p.attempts.filter((a) => a.mode === 'section' && a.sectionIds.length === 1 && a.sectionIds[0] === id && a.total > 0);
+  const quizAttempts = p.attempts.filter((a) => a.mode === 'section' && !a.retry && a.sectionIds.length === 1 && a.sectionIds[0] === id && a.total > 0);
   const bestQuiz = quizAttempts.length ? Math.max(...quizAttempts.map((a) => a.correct / a.total)) : null;
   let cardsKnown = 0;
   for (const [cid, card] of Object.entries(p.cards)) if (sectionOfCard(cid) === id && card.lastRating === 'easy') cardsKnown++;

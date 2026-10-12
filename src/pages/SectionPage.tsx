@@ -198,7 +198,17 @@ export function SectionPage() {
           (cards ? <FlashcardDeck key={id} cards={cards} title={meta.title} startCardId={params.get('card') ?? undefined} /> : <p className="muted">Loading cards…</p>)}
         {tab === 'quiz' &&
           (questions ? (
-            <QuizRunner key={`${id}-${params.get('q') ?? ''}`} questions={questions} mode="section" sectionIds={[id]} title={`${meta.title} quiz`} startQuestionId={params.get('q') ?? undefined} />
+            <QuizRunner
+              key={`${id}-${params.get('q') ?? ''}`}
+              questions={questions}
+              mode="section"
+              sectionIds={[id]}
+              title={`${meta.title} quiz`}
+              sessionKey={`section:${id}`}
+              // A link to one question starts there; the saved quiz is replaced only once it is answered.
+              resume={params.get('q') ? undefined : progress.quizzes[`section:${id}`]}
+              startQuestionId={params.get('q') ?? undefined}
+            />
           ) : (
             <p className="muted">Loading questions…</p>
           ))}
