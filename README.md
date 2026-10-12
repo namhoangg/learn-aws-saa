@@ -1,11 +1,13 @@
-# SAA-C03 study site (local)
+# SAA-C03 study site
 
-A personal, local study website built from the AWS Certified Solutions Architect – Associate
+A personal study website built from the AWS Certified Solutions Architect – Associate
 course slides: lessons in my own words with Mermaid diagrams and comparison tables, exam tips
 and traps, spaced-repetition flashcards, scenario quizzes, a timed exam simulation, weak-area
 practice and hands-on labs with cleanup checklists.
 
-Local use only. The course material is for personal study and is never deployed or published.
+Deployed on Vercel from `main` (config in `vercel.json`). The course slides PDF and the
+`_extract/` folder are personal study material: `.gitignore` keeps them out of the repo, so
+they are never pushed or deployed.
 
 ## Run it
 
@@ -49,5 +51,7 @@ diagrams or Markdown after you edit content.
 
 ## Your progress
 
-Stored in this browser's localStorage (lessons read, quiz history, flashcard schedule, lab
-checklists). Use **Progress & settings → Export progress** to back it up.
+Stored in this browser's localStorage (lessons read, quiz history, quizzes in progress,
+flashcard schedule, lab checklists), separately for each address: progress on
+`localhost:5173` and on the Vercel site do not sync. Use **Progress & settings → Export
+progress** to back it up or move it, and **Import progress** on the other site.
