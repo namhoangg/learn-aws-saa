@@ -1,0 +1,233 @@
+{
+  "section": "26-cloudwatch-eventbridge",
+  "questions": [
+    {
+      "id": "26-cloudwatch-eventbridge-q01",
+      "type": "single",
+      "domain": "performant",
+      "difficulty": "easy",
+      "question": "A company runs a Java application on a fleet of Amazon EC2 instances. The application slows down when the instances run low on memory, but the operations team sees no memory data in Amazon CloudWatch. The team wants to graph memory utilization per instance and alarm when it exceeds 80%. What should a solutions architect do?",
+      "options": [
+        { "id": "A", "text": "Enable detailed monitoring on every instance so that CloudWatch collects memory metrics every minute.", "correct": false, "explanation": "Detailed monitoring only shortens the interval of the hypervisor-level metrics to one minute; it never adds RAM usage, which is only visible inside the guest OS." },
+        { "id": "B", "text": "Create an alarm on the CPUUtilization metric at 80%, because CPU and memory pressure always rise together.", "correct": false, "explanation": "CPU is not a reliable proxy for memory; a memory leak can exhaust RAM while CPU stays low, so the requirement to measure memory is not met." },
+        { "id": "C", "text": "Install the unified CloudWatch agent on the instances with an IAM role that allows it to publish metrics, collect mem_used_percent, and create an alarm on that custom metric.", "correct": true, "explanation": "The agent reads memory from inside the operating system and publishes it as a custom metric in the CWAgent namespace, which can then be graphed and alarmed on." },
+        { "id": "D", "text": "Turn on AWS CloudTrail data events for the instances and build a metric filter on the trail's log group.", "correct": false, "explanation": "CloudTrail records API calls, not operating-system resource usage, so no memory figures would ever appear in the trail." }
+      ],
+      "explanation": "Memory and disk-space usage live inside the guest OS; the unified CloudWatch agent is how they become CloudWatch custom metrics.",
+      "tags": ["cloudwatch-agent", "custom-metrics", "ec2"]
+    },
+    {
+      "id": "26-cloudwatch-eventbridge-q02",
+      "type": "single",
+      "domain": "performant",
+      "difficulty": "medium",
+      "question": "Dozens of AWS Lambda functions write their logs to Amazon CloudWatch Logs. The security team wants every log event indexed in an Amazon OpenSearch Service domain within a few minutes of being written, with as little custom code as possible. Which solution meets these requirements?",
+      "options": [
+        { "id": "A", "text": "Create a subscription filter on each log group that sends events to an Amazon Data Firehose stream configured to deliver to the OpenSearch Service domain.", "correct": true, "explanation": "Subscription filters forward log events continuously, and Firehose buffers and loads them into OpenSearch without servers or custom delivery code." },
+        { "id": "B", "text": "Schedule a CreateExportTask every hour to copy the log groups to Amazon S3, then load the files into OpenSearch Service.", "correct": false, "explanation": "Export tasks run as batch jobs, and recent events may not be eligible for export for as long as 12 hours, so the few-minutes requirement fails." },
+        { "id": "C", "text": "Run a CloudWatch Logs Insights query every minute from an EC2 cron job and post the results to OpenSearch Service.", "correct": false, "explanation": "Logs Insights is an interactive query engine billed per GB scanned; polling it every minute adds servers, code and cost and still is not a delivery pipeline." },
+        { "id": "D", "text": "Create a metric filter on each log group and point a CloudWatch alarm at the OpenSearch Service domain.", "correct": false, "explanation": "Metric filters only produce numeric metrics and alarms cannot target OpenSearch, so the log events themselves would never be indexed." }
+      ],
+      "explanation": "Near-real-time movement of log events to another service means a subscription filter (Lambda, Firehose, Kinesis Data Streams or OpenSearch), not an export task.",
+      "tags": ["cloudwatch-logs", "subscriptions", "opensearch"]
+    },
+    {
+      "id": "26-cloudwatch-eventbridge-q03",
+      "type": "single",
+      "domain": "secure",
+      "difficulty": "medium",
+      "question": "A company has 20 AWS accounts that run workloads in us-east-1 and eu-west-1. Compliance requires all application logs to be copied in near real time to a single Amazon S3 bucket in a dedicated logging account, where application teams cannot modify them. Which architecture meets the requirement with the least operational overhead?",
+      "options": [
+        { "id": "A", "text": "In each account, schedule a nightly CreateExportTask for every log group that writes directly to the logging account's bucket.", "correct": false, "explanation": "Nightly batch exports are not near real time and require scheduling and monitoring jobs for every log group in every account." },
+        { "id": "B", "text": "In the logging account, create a CloudWatch Logs destination in each Region that points to a Kinesis data stream feeding an Amazon Data Firehose stream that writes to S3; in each workload account, add subscription filters that target the destination.", "correct": true, "explanation": "This is the standard cross-account log aggregation pattern: destinations with access policies accept subscription data from the senders, and Kinesis plus Firehose deliver it continuously to the central bucket." },
+        { "id": "C", "text": "Install the CloudWatch agent on every resource in the logging account and configure it to read log files from the workload accounts.", "correct": false, "explanation": "The agent ships logs from the server it runs on; it cannot reach into other accounts' log groups, and serverless resources have no place to install it." },
+        { "id": "D", "text": "Enable AWS CloudTrail organization trails and rely on the trail's S3 delivery for the application logs.", "correct": false, "explanation": "CloudTrail records API activity, not application log output, so the application logs would not reach the bucket." }
+      ],
+      "explanation": "Subscription filters in sender accounts plus a cross-account CloudWatch Logs destination, Kinesis Data Streams and Firehose form the classic central-logging pipeline. The newer CloudWatch Logs centralization rules copy logs into central log groups, not into an S3 bucket.",
+      "tags": ["cloudwatch-logs", "cross-account", "kinesis-data-streams", "data-firehose"]
+    },
+    {
+      "id": "26-cloudwatch-eventbridge-q04",
+      "type": "single",
+      "domain": "resilient",
+      "difficulty": "easy",
+      "question": "An operations team has two CloudWatch alarms for a web tier: one on high CPU and one on high request latency. Each alarm alone fires many times a day during harmless spikes, and on-call engineers are suffering from alert fatigue. They want to be paged only when both alarms are in ALARM at the same time. What should they do?",
+      "options": [
+        { "id": "A", "text": "Increase the evaluation periods on both alarms to 24 hours.", "correct": false, "explanation": "Very long evaluation windows delay every alert by up to a day and still page on each condition separately instead of on the combination." },
+        { "id": "B", "text": "Create an Amazon EventBridge rule that forwards every alarm state change to an SNS topic.", "correct": false, "explanation": "Forwarding every state change keeps all the noisy single-condition notifications and adds no logic to require both conditions." },
+        { "id": "C", "text": "Replace both alarms with a single alarm on the sum of CPU and latency using metric math.", "correct": false, "explanation": "Adding a percentage to milliseconds gives a meaningless number, and a big value in one metric alone could still trigger the page." },
+        { "id": "D", "text": "Remove the notification actions from both alarms and create a composite alarm with the rule ALARM(cpu-high) AND ALARM(latency-high) that notifies the on-call SNS topic.", "correct": true, "explanation": "Composite alarms evaluate the states of other alarms with AND/OR/NOT, so only the meaningful combination pages the team while the child alarms stay silent." }
+      ],
+      "explanation": "Composite alarms exist to reduce alarm noise by combining the states of several alarms.",
+      "tags": ["cloudwatch-alarms", "composite-alarms"]
+    },
+    {
+      "id": "26-cloudwatch-eventbridge-q05",
+      "type": "single",
+      "domain": "resilient",
+      "difficulty": "medium",
+      "question": "A licensing server runs on a single Amazon EC2 instance (t3.large, EBS-backed). Its license is tied to the instance's private IP address and Elastic IP address, so it cannot run in an Auto Scaling group. The company wants the instance to come back automatically, with the same IP addresses, if the underlying AWS hardware fails. What should a solutions architect configure?",
+      "options": [
+        { "id": "A", "text": "A CloudWatch alarm on StatusCheckFailed_Instance with the EC2 recover action.", "correct": false, "explanation": "The recover action is not supported on the instance status check metric; instance check failures point to OS problems that a reboot or manual fix addresses." },
+        { "id": "B", "text": "A CloudWatch alarm on StatusCheckFailed_System with the EC2 recover action and an SNS notification.", "correct": true, "explanation": "System status check failures indicate host problems; the recover action migrates the instance to new hardware and keeps its instance ID, private IP, Elastic IP, metadata and placement group. Simplified automatic recovery may already be on by default for a t3 instance, but the alarm adds the SNS notification and a faster, configurable recovery attempt." },
+        { "id": "C", "text": "An Auto Scaling group with minimum, maximum and desired capacity of 1 using the same launch template.", "correct": false, "explanation": "The group would replace a failed instance with a new one that has a new instance ID and a different private IP, breaking the license, and the scenario rules out Auto Scaling." },
+        { "id": "D", "text": "A CloudWatch alarm on CPUUtilization below 1% with the EC2 reboot action.", "correct": false, "explanation": "A reboot keeps the instance on the same failed host and low CPU is not a reliable signal of hardware failure." }
+      ],
+      "explanation": "Hardware or host failure shows up as StatusCheckFailed_System; the alarm's recover action keeps the instance's identity and IP addresses.",
+      "tags": ["ec2", "recovery", "cloudwatch-alarms"]
+    },
+    {
+      "id": "26-cloudwatch-eventbridge-q06",
+      "type": "multi",
+      "domain": "secure",
+      "difficulty": "medium",
+      "question": "A security team wants to receive an email within minutes whenever anyone signs in to the AWS Management Console as the account root user. AWS CloudTrail is already enabled. Which combination of steps meets this requirement with the least operational effort? (Select TWO.)",
+      "options": [
+        { "id": "A", "text": "Create an Amazon EventBridge rule whose event pattern matches console sign-in events recorded by CloudTrail where the user identity type is Root.", "correct": true, "explanation": "CloudTrail-recorded events reach EventBridge, and an event pattern can match the root sign-in event the moment it arrives." },
+        { "id": "B", "text": "Set an Amazon SNS topic with an email subscription for the security team as the rule's target.", "correct": true, "explanation": "SNS turns the matched event into an email to every confirmed subscriber, completing the notification path without code." },
+        { "id": "C", "text": "Schedule a daily CloudWatch Logs export of the CloudTrail log group to Amazon S3 and review it.", "correct": false, "explanation": "A daily batch export and manual review does not deliver an alert within minutes." },
+        { "id": "D", "text": "Enable detailed monitoring on all EC2 instances in the account.", "correct": false, "explanation": "EC2 detailed monitoring changes metric intervals for instances and has nothing to do with console sign-ins." },
+        { "id": "E", "text": "Create a CloudWatch Contributor Insights rule on the CloudTrail log group.", "correct": false, "explanation": "Contributor Insights ranks top contributors over time; it does not send an immediate notification for a single event." }
+      ],
+      "explanation": "Reacting to something that happened in AWS, such as an API call or sign-in captured by CloudTrail, is an EventBridge rule with an SNS (or Lambda) target.",
+      "tags": ["eventbridge", "cloudtrail", "sns"]
+    },
+    {
+      "id": "26-cloudwatch-eventbridge-q07",
+      "type": "single",
+      "domain": "cost",
+      "difficulty": "medium",
+      "question": "A company's CloudWatch Logs bill grows every month. All log groups use the Standard class with the default retention. Engineers query logs for troubleshooting only within the first 30 days, but auditors require the logs to be kept for 1 year at the lowest possible cost. What should a solutions architect do?",
+      "options": [
+        { "id": "A", "text": "Change the existing log groups to the Infrequent Access log class and keep the default retention.", "correct": false, "explanation": "A log group's class cannot be changed after creation, Infrequent Access lowers only the ingestion price, and never-expire retention keeps storage growing." },
+        { "id": "B", "text": "Create field indexes on the log groups so that Logs Insights scans less data.", "correct": false, "explanation": "Field indexes reduce query scan costs but do nothing about the ever-growing stored data that drives the bill." },
+        { "id": "C", "text": "Create metric filters for every log group and delete the log groups each month.", "correct": false, "explanation": "Metric filters keep only numbers, so deleting the log groups destroys the log content auditors must keep for a year." },
+        { "id": "D", "text": "Set each log group's retention to 30 days and add a subscription filter that streams events through Amazon Data Firehose to an S3 bucket with a lifecycle rule that moves objects to S3 Glacier Deep Archive and expires them after 1 year.", "correct": true, "explanation": "CloudWatch keeps only the 30 days engineers query, while a continuous copy in S3 with lifecycle rules meets the 1-year requirement at archive-tier prices." }
+      ],
+      "explanation": "New log groups never expire by default; set retention and archive to S3 through a subscription for cheap long-term storage.",
+      "tags": ["cloudwatch-logs", "retention", "cost"]
+    },
+    {
+      "id": "26-cloudwatch-eventbridge-q08",
+      "type": "single",
+      "domain": "performant",
+      "difficulty": "medium",
+      "question": "VPC Flow Logs for a production VPC are delivered to CloudWatch Logs. The network team wants a continuously updated graph of the 10 source IP addresses responsible for the most rejected connections, without building any data pipeline. Which CloudWatch feature should they use?",
+      "options": [
+        { "id": "A", "text": "CloudWatch Contributor Insights with a rule on the flow log group that groups rejected records by source address.", "correct": true, "explanation": "Contributor Insights analyses log events in real time and produces top-N contributor time series, exactly the 'top 10 talkers' view required." },
+        { "id": "B", "text": "CloudWatch Application Insights for the VPC.", "correct": false, "explanation": "Application Insights builds problem dashboards for application stacks; it does not rank IP addresses from flow logs." },
+        { "id": "C", "text": "A CloudWatch Metric Stream filtered to the AWS/VPC namespace.", "correct": false, "explanation": "Metric streams export metrics to other tools; flow log records are log data, and no pipeline was wanted." },
+        { "id": "D", "text": "CloudWatch Network Synthetic Monitor probes from the VPC.", "correct": false, "explanation": "Network Synthetic Monitor measures latency and packet loss to on-premises destinations; it does not analyse who is sending traffic." }
+      ],
+      "explanation": "Top-N contributors such as heaviest IP addresses or most error-prone URLs is the signature use case for Contributor Insights.",
+      "tags": ["contributor-insights", "vpc-flow-logs"]
+    },
+    {
+      "id": "26-cloudwatch-eventbridge-q09",
+      "type": "single",
+      "domain": "resilient",
+      "difficulty": "medium",
+      "question": "An order service publishes events to a custom Amazon EventBridge event bus that has an archive covering all events. A bug in the Lambda function targeted by one rule processed every order incorrectly for six hours, although all invocations succeeded. The bug is now fixed. How can the team reprocess the affected orders with the least effort?",
+      "options": [
+        { "id": "A", "text": "Redrive the messages from the rule's SQS dead-letter queue back to the Lambda function.", "correct": false, "explanation": "Every invocation succeeded, so no events were sent to a dead-letter queue and there is nothing to redrive." },
+        { "id": "B", "text": "Query the Lambda function's logs with CloudWatch Logs Insights and republish each order manually.", "correct": false, "explanation": "Rebuilding events from logs is slow, error-prone manual work when EventBridge already has the original events archived." },
+        { "id": "C", "text": "Start an EventBridge replay from the archive for the six-hour window, sending the events to the affected rule on the same bus.", "correct": true, "explanation": "Replay re-sends archived events from a chosen time range to the source bus, optionally to specific rules, so the fixed function processes them again." },
+        { "id": "D", "text": "Enable schema discovery on the bus and generate code bindings to rebuild the events.", "correct": false, "explanation": "Schema discovery describes event structure; it does not store or resend the events themselves." }
+      ],
+      "explanation": "EventBridge archive and replay lets you resend past events to the same bus after fixing a consumer.",
+      "tags": ["eventbridge", "archive-replay"]
+    },
+    {
+      "id": "26-cloudwatch-eventbridge-q10",
+      "type": "multi",
+      "domain": "secure",
+      "difficulty": "hard",
+      "question": "A company uses AWS Organizations with 40 member accounts. The security team wants all Amazon GuardDuty finding events from every account delivered to an event bus named central-security in a dedicated security account, where its own rules route them. Which combination of actions will meet these requirements? (Select TWO.)",
+      "options": [
+        { "id": "A", "text": "Create an IAM user in the security account for each member account and share its access keys with the account owners.", "correct": false, "explanation": "Long-term user keys are unnecessary and insecure; event bus permissions are granted with a resource-based policy, not IAM users." },
+        { "id": "B", "text": "Attach a resource-based policy to central-security that allows events:PutEvents from principals in the organization by using the aws:PrincipalOrgID condition.", "correct": true, "explanation": "The receiving bus must explicitly allow other accounts to put events, and scoping by organization ID covers all current and future member accounts." },
+        { "id": "C", "text": "Enable schema discovery on central-security so that it can accept events from other accounts.", "correct": false, "explanation": "Schema discovery infers event structure and grants no cross-account permissions." },
+        { "id": "D", "text": "In each member account, create a rule on the default event bus that matches GuardDuty findings and targets the central-security bus ARN, using an IAM role that allows events:PutEvents.", "correct": true, "explanation": "GuardDuty sends findings to each account's default bus; a forwarding rule with an IAM role is how the sender delivers them to the other account's bus." },
+        { "id": "E", "text": "Create a CloudWatch Logs destination in the security account and subscribe each member account's default event bus to it.", "correct": false, "explanation": "CloudWatch Logs destinations receive log subscription data, not EventBridge events, and event buses cannot subscribe to them." }
+      ],
+      "explanation": "Cross-account EventBridge needs both sides: a resource-based policy on the receiving bus and forwarding rules (with IAM roles) in the sending accounts.",
+      "tags": ["eventbridge", "cross-account", "organizations"]
+    },
+    {
+      "id": "26-cloudwatch-eventbridge-q11",
+      "type": "single",
+      "domain": "cost",
+      "difficulty": "easy",
+      "question": "A team needs to run a cleanup AWS Lambda function every night at 02:00 UTC. It wants no servers to manage and the lowest operational overhead. What should a solutions architect recommend?",
+      "options": [
+        { "id": "A", "text": "Create an Amazon EventBridge Scheduler schedule with a cron expression that invokes the Lambda function.", "correct": true, "explanation": "EventBridge Scheduler is serverless, supports cron expressions with time zones and retries, and invokes Lambda directly with nothing to patch." },
+        { "id": "B", "text": "Launch a t3.micro EC2 instance with a crontab entry that calls the Lambda Invoke API.", "correct": false, "explanation": "An always-on instance adds patching, monitoring and cost for a job that needs only a schedule." },
+        { "id": "C", "text": "Create a CloudWatch alarm that enters ALARM at 02:00 and invokes the function.", "correct": false, "explanation": "Alarms react to metric thresholds; they have no notion of a clock time to fire at." },
+        { "id": "D", "text": "Send a message to an SQS delay queue every day so that it reaches the function at 02:00.", "correct": false, "explanation": "Delay queues cap at 15 minutes and something would still have to send the message every day, so this is not a scheduler." }
+      ],
+      "explanation": "A serverless cron job is EventBridge Scheduler (or the legacy EventBridge scheduled rule) targeting Lambda.",
+      "tags": ["eventbridge", "scheduler", "lambda"]
+    },
+    {
+      "id": "26-cloudwatch-eventbridge-q12",
+      "type": "single",
+      "domain": "resilient",
+      "difficulty": "easy",
+      "question": "Before go-live, an operations team must confirm that a CloudWatch alarm correctly notifies an SNS topic that pages the on-call engineer. They must not generate artificial load on the production system. What is the simplest way to test the notification path?",
+      "options": [
+        { "id": "A", "text": "Lower the alarm threshold to 0 and wait for the next evaluation period.", "correct": false, "explanation": "Editing the production alarm risks forgetting to restore it and may page repeatedly; it changes configuration rather than testing it." },
+        { "id": "B", "text": "Run a CPU stress tool on a production instance until the alarm fires.", "correct": false, "explanation": "Generating real load on production is exactly what the team must avoid and can affect customers." },
+        { "id": "C", "text": "Delete and recreate the alarm, because new alarms always start in the ALARM state.", "correct": false, "explanation": "New alarms start in INSUFFICIENT_DATA, not ALARM, so recreating it triggers nothing." },
+        { "id": "D", "text": "Run aws cloudwatch set-alarm-state with --state-value ALARM for the alarm.", "correct": true, "explanation": "set-alarm-state temporarily forces the state, runs the configured actions such as the SNS notification, and the alarm returns to its real state at the next evaluation." }
+      ],
+      "explanation": "set-alarm-state is the built-in way to test alarm actions and notifications.",
+      "tags": ["cloudwatch-alarms", "testing"]
+    },
+    {
+      "id": "26-cloudwatch-eventbridge-q13",
+      "type": "multi",
+      "domain": "performant",
+      "difficulty": "medium",
+      "question": "An application runs microservices as Amazon ECS tasks on AWS Fargate and uses AWS Lambda functions for background jobs. The operations team needs per-task CPU and memory metrics for the containers and wants to see memory usage and cold starts for each Lambda function, using managed CloudWatch features. Which actions should a solutions architect take? (Select TWO.)",
+      "options": [
+        { "id": "A", "text": "Enable CloudWatch Container Insights for the ECS cluster.", "correct": true, "explanation": "Container Insights collects cluster, service and task-level CPU, memory, disk and network metrics for ECS, including tasks on Fargate." },
+        { "id": "B", "text": "Install the CloudWatch agent on the hosts that run the Fargate tasks.", "correct": false, "explanation": "Fargate is serverless; there are no hosts you can log in to and install software on." },
+        { "id": "C", "text": "Add the CloudWatch Lambda Insights extension layer to the Lambda functions.", "correct": true, "explanation": "Lambda Insights runs as a Lambda layer and records per-invocation memory, CPU time, network and cold-start diagnostics." },
+        { "id": "D", "text": "Create Contributor Insights rules on the Lambda log groups.", "correct": false, "explanation": "Contributor Insights ranks top contributors in logs; it does not provide system-level memory or cold-start metrics." },
+        { "id": "E", "text": "Create a Network Synthetic Monitor for the VPC that hosts the tasks.", "correct": false, "explanation": "Network Synthetic Monitor measures hybrid network latency and packet loss, not container or function resource usage." }
+      ],
+      "explanation": "Containers (ECS, EKS, Fargate) map to Container Insights; Lambda system metrics and cold starts map to Lambda Insights.",
+      "tags": ["container-insights", "lambda-insights"]
+    },
+    {
+      "id": "26-cloudwatch-eventbridge-q14",
+      "type": "single",
+      "domain": "resilient",
+      "difficulty": "medium",
+      "question": "A company connects its data center to a VPC through AWS Direct Connect with a Site-to-Site VPN as backup. Users report intermittent slowness, and the network team wants continuous latency and packet loss measurements from the VPC to on-premises servers, with CloudWatch alarms, without installing software on either side. What should they use?",
+      "options": [
+        { "id": "A", "text": "VPC Flow Logs with a CloudWatch Logs Insights query run every five minutes.", "correct": false, "explanation": "Flow logs record accepted and rejected connections, not round-trip latency or packet loss, and scheduled queries are not continuous measurement." },
+        { "id": "B", "text": "The unified CloudWatch agent on the on-premises servers, collecting netstat metrics.", "correct": false, "explanation": "This requires installing software on premises, and connection counts do not measure path latency or loss." },
+        { "id": "C", "text": "CloudWatch Network Synthetic Monitor with probes from a VPC subnet to the on-premises IP addresses.", "correct": true, "explanation": "Network Synthetic Monitor runs AWS-managed ICMP or TCP probes over Direct Connect or VPN and publishes latency and packet loss as CloudWatch metrics, with no agents." },
+        { "id": "D", "text": "Amazon EventBridge rules on Direct Connect connection state change events.", "correct": false, "explanation": "State change events show when a connection goes up or down, not gradual latency or packet loss degradation." }
+      ],
+      "explanation": "Agentless latency and packet-loss monitoring of hybrid links is CloudWatch Network Synthetic Monitor.",
+      "tags": ["network-synthetic-monitor", "hybrid", "direct-connect"]
+    },
+    {
+      "id": "26-cloudwatch-eventbridge-q15",
+      "type": "single",
+      "domain": "secure",
+      "difficulty": "medium",
+      "question": "An application on Amazon EC2 writes JSON log lines to CloudWatch Logs through the CloudWatch agent. Failed logins are logged as {\"event\":\"login_failed\",\"user\":\"...\"}. The security team wants an email when more than 20 failed logins occur within 5 minutes. Which solution requires the least effort?",
+      "options": [
+        { "id": "A", "text": "Export the log group to Amazon S3 every 5 minutes and count failures with Amazon Athena.", "correct": false, "explanation": "Export tasks are batch jobs with delays of up to 12 hours, so this cannot alert within 5 minutes and adds moving parts." },
+        { "id": "B", "text": "Create a metric filter with the pattern { $.event = \"login_failed\" } and value 1, then a CloudWatch alarm on the Sum over 5 minutes greater than 20 that notifies an SNS topic with an email subscription.", "correct": true, "explanation": "The metric filter turns each matching log line into a data point, and an alarm on that custom metric sends the email through SNS without any code." },
+        { "id": "C", "text": "Save a CloudWatch Logs Insights query that counts failures and add it to a dashboard.", "correct": false, "explanation": "A dashboard widget shows the count when someone looks at it, but Logs Insights does not send alerts by itself." },
+        { "id": "D", "text": "Turn on detailed monitoring for the instance and alarm on the NetworkIn metric.", "correct": false, "explanation": "Network traffic volume does not reveal failed logins, so the alarm would not reflect the security condition." }
+      ],
+      "explanation": "Alarming on log content means a metric filter feeding a CloudWatch alarm.",
+      "tags": ["metric-filters", "cloudwatch-alarms", "sns"]
+    }
+  ]
+}

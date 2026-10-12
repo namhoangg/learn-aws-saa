@@ -1,0 +1,367 @@
+{
+  "id": "16-storage-extras",
+  "order": 16,
+  "title": "AWS Storage Extras",
+  "courseSection": "AWS Storage Extras",
+  "slides": [
+    350,
+    374
+  ],
+  "estimatedMinutes": 55,
+  "summary": "The storage services beyond S3, EBS and EFS: Snowball Edge for offline transfer and edge computing (now closed to new customers), the four Amazon FSx file systems, Storage Gateway for hybrid access to S3, Transfer Family for managed SFTP/FTPS/FTP, and DataSync for scheduled online copies. Ends with a side-by-side comparison of every AWS storage option.",
+  "services": [
+    "snow-family",
+    "data-transfer-terminal",
+    "outposts",
+    "fsx",
+    "fsx-windows",
+    "fsx-lustre",
+    "fsx-ontap",
+    "fsx-openzfs",
+    "storage-gateway",
+    "transfer-family",
+    "datasync",
+    "s3",
+    "s3-glacier",
+    "ebs",
+    "ebs-snapshots",
+    "efs",
+    "instance-store",
+    "direct-connect",
+    "site-to-site-vpn",
+    "directory-service",
+    "route53",
+    "ec2",
+    "vmware-cloud"
+  ],
+  "relations": [
+    {
+      "from": "snow-family",
+      "to": "s3",
+      "label": "imports shipped data into"
+    },
+    {
+      "from": "s3",
+      "to": "s3-glacier",
+      "label": "moves imported objects by lifecycle rule to"
+    },
+    {
+      "from": "storage-gateway",
+      "to": "s3",
+      "label": "gives on-premises apps file, block and tape access to"
+    },
+    {
+      "from": "storage-gateway",
+      "to": "ebs-snapshots",
+      "label": "backs up Volume Gateway volumes as"
+    },
+    {
+      "from": "storage-gateway",
+      "to": "s3-glacier",
+      "label": "archives ejected virtual tapes in"
+    },
+    {
+      "from": "datasync",
+      "to": "s3",
+      "label": "copies files and metadata on a schedule into"
+    },
+    {
+      "from": "datasync",
+      "to": "efs",
+      "label": "synchronizes data with"
+    },
+    {
+      "from": "datasync",
+      "to": "fsx",
+      "label": "synchronizes data with"
+    },
+    {
+      "from": "transfer-family",
+      "to": "s3",
+      "label": "exposes over SFTP, FTPS and FTP"
+    },
+    {
+      "from": "transfer-family",
+      "to": "efs",
+      "label": "exposes over SFTP, FTPS and FTP"
+    },
+    {
+      "from": "fsx-lustre",
+      "to": "s3",
+      "label": "lazy-loads input from and exports results to"
+    },
+    {
+      "from": "fsx-windows",
+      "to": "directory-service",
+      "label": "authenticates SMB users through"
+    },
+    {
+      "from": "direct-connect",
+      "to": "fsx",
+      "label": "gives on-premises clients private access to"
+    },
+    {
+      "from": "data-transfer-terminal",
+      "to": "s3",
+      "label": "uploads customer-owned drives into"
+    }
+  ],
+  "examDomains": [
+    "performant",
+    "cost",
+    "resilient",
+    "secure"
+  ],
+  "lastVerified": "2026-10-04",
+  "sources": [
+    {
+      "title": "What is Snowball Edge?",
+      "url": "https://docs.aws.amazon.com/snowball/latest/developer-guide/whatisedge.html"
+    },
+    {
+      "title": "AWS Snowball Edge availability change",
+      "url": "https://docs.aws.amazon.com/snowball/latest/developer-guide/snowball-edge-availability-change.html"
+    },
+    {
+      "title": "AWS Snowball Edge device hardware information",
+      "url": "https://docs.aws.amazon.com/snowball/latest/developer-guide/device-differences.html"
+    },
+    {
+      "title": "AWS Storage Blog: AWS Snow device updates",
+      "url": "https://aws.amazon.com/blogs/storage/aws-snow-device-updates/"
+    },
+    {
+      "title": "Snowball Edge Developer Guide: document history (7 November 2025 availability change)",
+      "url": "https://docs.aws.amazon.com/snowball/latest/developer-guide/doc-history.html"
+    },
+    {
+      "title": "Understanding Snowball Edge jobs",
+      "url": "https://docs.aws.amazon.com/snowball/latest/developer-guide/jobs.html"
+    },
+    {
+      "title": "Using Amazon S3 compatible storage on Snowball Edge (clusters of 3 to 16 devices)",
+      "url": "https://docs.aws.amazon.com/snowball/latest/developer-guide/s3compatible-on-snow.html"
+    },
+    {
+      "title": "What is Data Transfer Terminal?",
+      "url": "https://docs.aws.amazon.com/datatransferterminal/latest/userguide/what-is-dtt.html"
+    },
+    {
+      "title": "Uploading an archive in Amazon Glacier (Snowball then lifecycle)",
+      "url": "https://docs.aws.amazon.com/amazonglacier/latest/dev/uploading-an-archive.html"
+    },
+    {
+      "title": "What is FSx for Windows File Server?",
+      "url": "https://docs.aws.amazon.com/fsx/latest/WindowsGuide/what-is.html"
+    },
+    {
+      "title": "FSx for Windows File Server performance",
+      "url": "https://docs.aws.amazon.com/fsx/latest/WindowsGuide/performance.html"
+    },
+    {
+      "title": "FSx for Windows File Server quotas",
+      "url": "https://docs.aws.amazon.com/fsx/latest/WindowsGuide/limits.html"
+    },
+    {
+      "title": "What is Amazon FSx for Lustre?",
+      "url": "https://docs.aws.amazon.com/fsx/latest/LustreGuide/what-is.html"
+    },
+    {
+      "title": "Deployment and storage class options for FSx for Lustre",
+      "url": "https://docs.aws.amazon.com/fsx/latest/LustreGuide/using-fsx-lustre.html"
+    },
+    {
+      "title": "What is Amazon FSx for NetApp ONTAP?",
+      "url": "https://docs.aws.amazon.com/fsx/latest/ONTAPGuide/what-is-fsx-ontap.html"
+    },
+    {
+      "title": "What is Amazon FSx for OpenZFS?",
+      "url": "https://docs.aws.amazon.com/fsx/latest/OpenZFSGuide/what-is-fsx.html"
+    },
+    {
+      "title": "What is Volume Gateway?",
+      "url": "https://docs.aws.amazon.com/storagegateway/latest/vgw/WhatIsStorageGateway.html"
+    },
+    {
+      "title": "Storage Gateway quotas (volumes)",
+      "url": "https://docs.aws.amazon.com/storagegateway/latest/vgw/resource-gateway-limits.html"
+    },
+    {
+      "title": "What is Tape Gateway?",
+      "url": "https://docs.aws.amazon.com/storagegateway/latest/tgw/WhatIsStorageGateway.html"
+    },
+    {
+      "title": "Storage Gateway quotas (tapes)",
+      "url": "https://docs.aws.amazon.com/storagegateway/latest/tgw/resource-gateway-limits.html"
+    },
+    {
+      "title": "What is Amazon S3 File Gateway",
+      "url": "https://docs.aws.amazon.com/filegateway/latest/files3/what-is-file-s3.html"
+    },
+    {
+      "title": "S3 File Gateway: using storage classes",
+      "url": "https://docs.aws.amazon.com/filegateway/latest/files3/storage-classes.html"
+    },
+    {
+      "title": "What is Amazon FSx File Gateway (availability notice)",
+      "url": "https://docs.aws.amazon.com/filegateway/latest/filefsxw/what-is-file-fsxw.html"
+    },
+    {
+      "title": "Using the AWS Storage Gateway Hardware Appliance (end of availability)",
+      "url": "https://docs.aws.amazon.com/filegateway/latest/files3/hardware-appliance.html"
+    },
+    {
+      "title": "Create and activate an Amazon S3 File Gateway",
+      "url": "https://docs.aws.amazon.com/filegateway/latest/files3/create-gateway-file.html"
+    },
+    {
+      "title": "Deploy a customized Amazon EC2 host for S3 File Gateway",
+      "url": "https://docs.aws.amazon.com/filegateway/latest/files3/ec2-gateway-file.html"
+    },
+    {
+      "title": "File Gateway setup requirements",
+      "url": "https://docs.aws.amazon.com/filegateway/latest/files3/Requirements.html"
+    },
+    {
+      "title": "Create an NFS file share with a custom configuration",
+      "url": "https://docs.aws.amazon.com/filegateway/latest/files3/CreatingAnNFSFileShare.html"
+    },
+    {
+      "title": "Mount your NFS file share on your client",
+      "url": "https://docs.aws.amazon.com/filegateway/latest/files3/GettingStartedAccessFileShare.html"
+    },
+    {
+      "title": "Getting an activation key for your gateway",
+      "url": "https://docs.aws.amazon.com/filegateway/latest/files3/get-activation-key.html"
+    },
+    {
+      "title": "Granting access to an Amazon S3 bucket (File Gateway)",
+      "url": "https://docs.aws.amazon.com/filegateway/latest/files3/grant-access-s3.html"
+    },
+    {
+      "title": "Refreshing Amazon S3 bucket object cache (File Gateway)",
+      "url": "https://docs.aws.amazon.com/filegateway/latest/files3/refresh-cache.html"
+    },
+    {
+      "title": "DataSync: monitoring transfers with CloudWatch Logs",
+      "url": "https://docs.aws.amazon.com/datasync/latest/userguide/configure-logging.html"
+    },
+    {
+      "title": "DataSync API: Options data type",
+      "url": "https://docs.aws.amazon.com/datasync/latest/userguide/API_Options.html"
+    },
+    {
+      "title": "AWS Storage Gateway pricing",
+      "url": "https://aws.amazon.com/storagegateway/pricing/"
+    },
+    {
+      "title": "What is AWS Transfer Family?",
+      "url": "https://docs.aws.amazon.com/transfer/latest/userguide/what-is-aws-transfer-family.html"
+    },
+    {
+      "title": "Create an FTP-enabled server (Transfer Family)",
+      "url": "https://docs.aws.amazon.com/transfer/latest/userguide/create-server-ftp.html"
+    },
+    {
+      "title": "Getting started with AWS Transfer Family server endpoints",
+      "url": "https://docs.aws.amazon.com/transfer/latest/userguide/getting-started.html"
+    },
+    {
+      "title": "Transfer Family: create an IAM role and policy",
+      "url": "https://docs.aws.amazon.com/transfer/latest/userguide/requirements-roles.html"
+    },
+    {
+      "title": "Transfer Family: edit server details (billing while stopped)",
+      "url": "https://docs.aws.amazon.com/transfer/latest/userguide/edit-server-config.html"
+    },
+    {
+      "title": "AWS Transfer Family pricing",
+      "url": "https://aws.amazon.com/aws-transfer-family/pricing/"
+    },
+    {
+      "title": "AWS Transfer Family FAQs",
+      "url": "https://aws.amazon.com/aws-transfer-family/faqs/"
+    },
+    {
+      "title": "What is AWS DataSync?",
+      "url": "https://docs.aws.amazon.com/datasync/latest/userguide/what-is-datasync.html"
+    },
+    {
+      "title": "Choosing a task mode for your DataSync transfer",
+      "url": "https://docs.aws.amazon.com/datasync/latest/userguide/choosing-task-mode.html"
+    },
+    {
+      "title": "Scheduling when your DataSync task runs",
+      "url": "https://docs.aws.amazon.com/datasync/latest/userguide/task-scheduling.html"
+    },
+    {
+      "title": "Configuring DataSync transfers with Amazon S3",
+      "url": "https://docs.aws.amazon.com/datasync/latest/userguide/create-s3-location.html"
+    },
+    {
+      "title": "Creating a DataSync task",
+      "url": "https://docs.aws.amazon.com/datasync/latest/userguide/create-task-how-to.html"
+    },
+    {
+      "title": "Starting a DataSync task",
+      "url": "https://docs.aws.amazon.com/datasync/latest/userguide/run-task.html"
+    },
+    {
+      "title": "DataSync: handling files, objects and metadata",
+      "url": "https://docs.aws.amazon.com/datasync/latest/userguide/configure-metadata.html"
+    },
+    {
+      "title": "AWS DataSync pricing",
+      "url": "https://aws.amazon.com/datasync/pricing/"
+    },
+    {
+      "title": "Amazon EC2 On-Demand price list (US East N. Virginia, Linux)",
+      "url": "https://b0.p.awsstatic.com/pricing/2.0/meteredUnitMaps/ec2/USD/current/ec2-ondemand-without-sec-sel/US%20East%20(N.%20Virginia)/Linux/index.json"
+    },
+    {
+      "title": "SAA-C03 in-scope AWS services",
+      "url": "https://docs.aws.amazon.com/aws-certification/latest/solutions-architect-associate-03/saa-03-in-scope-services.html"
+    },
+    {
+      "title": "Storage Gateway API Reference: Disk data type",
+      "url": "https://docs.aws.amazon.com/storagegateway/latest/APIReference/API_Disk.html"
+    },
+    {
+      "title": "AWS CLI reference: aws transfer wait",
+      "url": "https://docs.aws.amazon.com/cli/latest/reference/transfer/wait/index.html"
+    },
+    {
+      "title": "Track your Free Tier usage for Amazon EC2 (Free plan instance types)",
+      "url": "https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-free-tier-usage.html"
+    },
+    {
+      "title": "Explore AWS services with AWS Free Tier (Free and Paid account plans)",
+      "url": "https://docs.aws.amazon.com/awsaccountbilling/latest/aboutv2/free-tier.html"
+    },
+    {
+      "title": "Services in full shutdown (AWS Snowmobile: 14 March 2024)",
+      "url": "https://docs.aws.amazon.com/general/latest/gr/full_shutdown_services.html"
+    },
+    {
+      "title": "AWS Free Tier (service cards: DataSync and Storage Gateway Paid plan exclusive, Transfer Family on both plans)",
+      "url": "https://aws.amazon.com/free/"
+    },
+    {
+      "title": "Choosing a plan (Free account plan restrictions; the AWS Free Tier page lists eligible services)",
+      "url": "https://docs.aws.amazon.com/awsaccountbilling/latest/aboutv2/free-tier-plans.html"
+    },
+    {
+      "title": "Supported AWS services for Sign up for AWS (new)",
+      "url": "https://docs.aws.amazon.com/accounts/latest/reference/supported-services-sign-up-new.html"
+    },
+    {
+      "title": "Compare sign-up options (Sign up for AWS (new) versus advanced)",
+      "url": "https://docs.aws.amazon.com/accounts/latest/reference/sign-up-for-aws.html"
+    },
+    {
+      "title": "AWS Free Tier: free compute offers (Free plan eligible EC2 instance types)",
+      "url": "https://aws.amazon.com/free/compute/"
+    }
+  ],
+  "newServices": []
+}

@@ -1,0 +1,591 @@
+{
+  "section": "25-machine-learning",
+  "questions": [
+    {
+      "id": "25-machine-learning-q01",
+      "type": "single",
+      "domain": "performant",
+      "difficulty": "easy",
+      "question": "A photo-sharing startup stores user uploads in Amazon S3. It must automatically flag images that contain nudity or violence, publish clean images immediately, and send only the uncertain cases to a small team of human moderators. The team has no machine learning experience. Which solution meets these requirements with the LEAST development effort?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Train an image classifier in Amazon SageMaker AI on labelled examples of unsafe content and host it on a real-time endpoint.",
+          "correct": false,
+          "explanation": "This works technically but needs ML skills, labelled data, training and endpoint management, the opposite of least effort when a pre-trained moderation API exists."
+        },
+        {
+          "id": "B",
+          "text": "Run Amazon Textract on each image and block images whose extracted text contains offensive words.",
+          "correct": false,
+          "explanation": "Textract reads document text; it cannot judge whether a picture shows nudity or violence."
+        },
+        {
+          "id": "C",
+          "text": "Call Amazon Rekognition content moderation with a minimum confidence threshold and route borderline results to a human review workflow in Amazon Augmented AI.",
+          "correct": true,
+          "explanation": "Rekognition's pre-trained moderation labels flag unsafe content with confidence scores, the threshold controls what is flagged, and A2I adds the human-in-the-loop step for uncertain images."
+        },
+        {
+          "id": "D",
+          "text": "Send each image to Amazon Comprehend and reject images with negative sentiment.",
+          "correct": false,
+          "explanation": "Comprehend analyzes text, not images, and sentiment is not a measure of unsafe visual content."
+        }
+      ],
+      "explanation": "Unsafe image or video content → Rekognition content moderation; uncertain results → human review (A2I).",
+      "tags": [
+        "rekognition",
+        "moderation",
+        "a2i"
+      ],
+      "updated": "Amazon A2I is in maintenance and closed to new customers from 30 July 2026; the exam still treats it as the human review answer."
+    },
+    {
+      "id": "25-machine-learning-q02",
+      "type": "single",
+      "domain": "secure",
+      "difficulty": "medium",
+      "question": "A bank records customer service calls in English and stores the audio in Amazon S3. Analysts need text transcripts of every call, but the transcripts must never contain customers' names, card numbers or account numbers. Which approach meets the requirement with the LEAST operational overhead?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Start Amazon Transcribe batch jobs with PII redaction enabled and output only the redacted transcript to the analysts' bucket.",
+          "correct": true,
+          "explanation": "Transcribe converts the audio to text and its built-in redaction replaces identified PII with [PII] in the same managed job, so no extra processing step is needed."
+        },
+        {
+          "id": "B",
+          "text": "Use Amazon Polly to convert the recordings to text, then delete the original audio files.",
+          "correct": false,
+          "explanation": "Polly does the opposite conversion (text to speech) and does nothing to remove personal data."
+        },
+        {
+          "id": "C",
+          "text": "Transcribe the calls with Amazon Transcribe and ask analysts to manually delete personal data from each transcript.",
+          "correct": false,
+          "explanation": "Manual editing is slow, error-prone and exposes the PII to the analysts it is meant to be hidden from."
+        },
+        {
+          "id": "D",
+          "text": "Use Amazon Translate with profanity masking on the audio files.",
+          "correct": false,
+          "explanation": "Translate works on text, not audio, and profanity masking hides swear words, not personal data."
+        }
+      ],
+      "explanation": "Speech to text with personal data removed → Amazon Transcribe with PII redaction.",
+      "tags": [
+        "transcribe",
+        "pii"
+      ]
+    },
+    {
+      "id": "25-machine-learning-q03",
+      "type": "single",
+      "domain": "performant",
+      "difficulty": "medium",
+      "question": "A travel company wants a voice assistant for its kiosks: a traveller speaks in Spanish, the system works internally with English text, and the kiosk answers out loud in Spanish. Which combination of AWS services provides the speech and language steps?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Amazon Polly to understand the speech, Amazon Comprehend to translate, Amazon Transcribe to speak the answer.",
+          "correct": false,
+          "explanation": "The roles are reversed: Polly speaks and Transcribe listens, and Comprehend analyzes text rather than translating it."
+        },
+        {
+          "id": "B",
+          "text": "Amazon Rekognition to capture the speech, Amazon Translate to translate, Amazon Lex to speak the answer.",
+          "correct": false,
+          "explanation": "Rekognition analyzes images and video, not audio, and Lex is a conversational bot service rather than a speech synthesizer."
+        },
+        {
+          "id": "C",
+          "text": "Amazon Textract to convert speech to text, Amazon Translate to translate, Amazon Polly to speak the answer.",
+          "correct": false,
+          "explanation": "Textract extracts text from documents and images; it cannot process audio."
+        },
+        {
+          "id": "D",
+          "text": "Amazon Transcribe to convert speech to text, Amazon Translate to translate between Spanish and English, Amazon Polly to speak the Spanish answer.",
+          "correct": true,
+          "explanation": "Transcribe (speech to text), Translate (text to text) and Polly (text to speech) chain naturally to build speech-to-speech translation."
+        }
+      ],
+      "explanation": "Speech-to-speech translation pipeline: Transcribe → Translate → Polly.",
+      "tags": [
+        "transcribe",
+        "translate",
+        "polly"
+      ]
+    },
+    {
+      "id": "25-machine-learning-q04",
+      "type": "multi",
+      "domain": "performant",
+      "difficulty": "medium",
+      "question": "A chain of dental clinics wants patients to phone a single number at any time of day and book an appointment by talking naturally, without waiting for staff. Confirmed bookings must be written to the clinics' existing CRM system. Which AWS services should form the core of the solution? (Select TWO.)",
+      "options": [
+        {
+          "id": "A",
+          "text": "Amazon Connect to provide the phone number and call flow.",
+          "correct": true,
+          "explanation": "Connect is the cloud contact center: it receives the call and routes it through a flow that can hand the conversation to a bot."
+        },
+        {
+          "id": "B",
+          "text": "Amazon Kendra to understand what the caller wants.",
+          "correct": false,
+          "explanation": "Kendra searches documents to answer questions; it does not run a dialogue, collect slots or fulfil a booking."
+        },
+        {
+          "id": "C",
+          "text": "Amazon Lex to recognize the booking intent and collect date and time, with a Lambda function that writes to the CRM.",
+          "correct": true,
+          "explanation": "Lex combines speech recognition and natural language understanding to identify the intent and fill slots, then invokes Lambda for fulfillment against the CRM."
+        },
+        {
+          "id": "D",
+          "text": "Amazon Comprehend to hold the conversation with the caller.",
+          "correct": false,
+          "explanation": "Comprehend extracts insights such as sentiment and entities from text; it is not a conversational interface."
+        },
+        {
+          "id": "E",
+          "text": "Amazon Personalize to choose the appointment slot.",
+          "correct": false,
+          "explanation": "Personalize produces recommendations from interaction data; it does not converse with callers or book appointments."
+        }
+      ],
+      "explanation": "Phone self-service bot: Connect takes the call, Lex understands it, Lambda performs the action in the CRM.",
+      "tags": [
+        "connect",
+        "lex",
+        "lambda"
+      ],
+      "updated": "Amazon Connect is now named Amazon Connect Customer (2026)."
+    },
+    {
+      "id": "25-machine-learning-q05",
+      "type": "single",
+      "domain": "performant",
+      "difficulty": "medium",
+      "question": "An insurance company receives thousands of scanned claim forms each day as multi-page PDF files in Amazon S3. It needs the policy number, claim date and the table of damaged items from every form loaded into a database, keeping field names associated with their values. Which service should extract the data?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Amazon Rekognition text detection.",
+          "correct": false,
+          "explanation": "Rekognition reads short text in natural scenes such as signs; it does not return form key-value pairs or table structure and is not built for multi-page PDFs."
+        },
+        {
+          "id": "B",
+          "text": "Amazon Textract asynchronous document analysis with the FORMS and TABLES features.",
+          "correct": true,
+          "explanation": "Textract understands document structure, returning key-value pairs and table cells, and its asynchronous API processes multi-page PDFs stored in S3."
+        },
+        {
+          "id": "C",
+          "text": "Amazon Comprehend entity detection on the PDF files.",
+          "correct": false,
+          "explanation": "Comprehend analyzes text that has already been extracted; it cannot read scanned images of forms."
+        },
+        {
+          "id": "D",
+          "text": "Amazon Transcribe with custom vocabularies.",
+          "correct": false,
+          "explanation": "Transcribe converts audio to text and has nothing to do with scanned documents."
+        }
+      ],
+      "explanation": "Scanned forms and tables → Textract (AnalyzeDocument FORMS/TABLES; async for multi-page PDFs).",
+      "tags": [
+        "textract"
+      ]
+    },
+    {
+      "id": "25-machine-learning-q06",
+      "type": "single",
+      "domain": "performant",
+      "difficulty": "easy",
+      "question": "An electronics retailer collects 50,000 written product reviews per month. Managers want to know whether each review is positive or negative and which product features (battery, screen, price) customers mention. Which AWS service provides this with no model training?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Amazon Translate.",
+          "correct": false,
+          "explanation": "Translate converts text between languages but does not score sentiment or extract features."
+        },
+        {
+          "id": "B",
+          "text": "Amazon SageMaker AI with a custom sentiment model.",
+          "correct": false,
+          "explanation": "A custom model is possible but requires labelled data and training, which the question explicitly wants to avoid."
+        },
+        {
+          "id": "C",
+          "text": "Amazon Comprehend sentiment, targeted sentiment and key phrase detection.",
+          "correct": true,
+          "explanation": "Comprehend's pre-trained NLP returns overall sentiment, sentiment per entity and key phrases from raw text without any training."
+        },
+        {
+          "id": "D",
+          "text": "Amazon Polly with SSML.",
+          "correct": false,
+          "explanation": "Polly turns text into speech; SSML controls how it sounds, not what the text means."
+        }
+      ],
+      "explanation": "Meaning of text (sentiment, entities, key phrases) → Amazon Comprehend.",
+      "tags": [
+        "comprehend"
+      ]
+    },
+    {
+      "id": "25-machine-learning-q07",
+      "type": "single",
+      "domain": "secure",
+      "difficulty": "medium",
+      "question": "A hospital transcribes doctors' dictated notes into text files in Amazon S3. Before sharing the files with a research team, it must find medications, dosages and medical conditions, and identify protected health information (PHI) such as patient names and record numbers. Which service fits best?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Amazon Comprehend Medical with entity detection and DetectPHI.",
+          "correct": true,
+          "explanation": "Comprehend Medical is trained on clinical text, extracts medical entities such as medications and conditions, and DetectPHI locates protected health information."
+        },
+        {
+          "id": "B",
+          "text": "Amazon Comprehend custom classification.",
+          "correct": false,
+          "explanation": "A custom classifier assigns whole documents to your categories; it does not extract medications, dosages or PHI out of the box."
+        },
+        {
+          "id": "C",
+          "text": "Amazon Rekognition content moderation.",
+          "correct": false,
+          "explanation": "Rekognition moderates images and video; the input here is text."
+        },
+        {
+          "id": "D",
+          "text": "Amazon Kendra relevance tuning.",
+          "correct": false,
+          "explanation": "Kendra searches documents; it does not extract or label clinical entities or PHI."
+        }
+      ],
+      "explanation": "Clinical text and PHI → Comprehend Medical.",
+      "tags": [
+        "comprehend-medical",
+        "phi"
+      ]
+    },
+    {
+      "id": "25-machine-learning-q08",
+      "type": "single",
+      "domain": "performant",
+      "difficulty": "medium",
+      "question": "An e-learning company uses Amazon Polly to narrate 4,000 lessons. Polly reads the company's product name \"Qu1ckL3arn\" letter by letter, and the acronym \"SLA\" should be spoken as \"service level agreement\" everywhere. The fix must apply consistently to all lessons with the least change to the lesson texts. What should the company do?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Wrap every occurrence in each lesson in SSML sub tags.",
+          "correct": false,
+          "explanation": "SSML would work but requires editing thousands of lesson texts and keeping them consistent by hand."
+        },
+        {
+          "id": "B",
+          "text": "Switch all lessons to the generative engine.",
+          "correct": false,
+          "explanation": "A different engine changes voice quality, not how specific stylized words or acronyms are expanded."
+        },
+        {
+          "id": "C",
+          "text": "Run the lessons through Amazon Translate with custom terminology.",
+          "correct": false,
+          "explanation": "Translate's custom terminology controls translation output, not Polly's pronunciation of the source text."
+        },
+        {
+          "id": "D",
+          "text": "Upload a pronunciation lexicon with aliases for both terms and reference it in every SynthesizeSpeech request.",
+          "correct": true,
+          "explanation": "A lexicon maps each written form to an alias once, and Polly applies it to all text synthesized with that lexicon, so no lesson text changes."
+        }
+      ],
+      "explanation": "Consistent pronunciation of names and acronyms across all content → Polly pronunciation lexicon.",
+      "tags": [
+        "polly",
+        "lexicon"
+      ]
+    },
+    {
+      "id": "25-machine-learning-q09",
+      "type": "single",
+      "domain": "performant",
+      "difficulty": "hard",
+      "question": "A game studio uses Amazon Polly with a neural voice. A new script wraps a character's line in the SSML tag <amazon:effect name=\"whispered\">, and the SynthesizeSpeech request now fails with an error. What is the simplest fix that keeps the whisper?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Move the request to StartSpeechSynthesisTask so the output is written to Amazon S3.",
+          "correct": false,
+          "explanation": "The asynchronous task changes where audio is delivered and the length limit, not which SSML tags an engine supports."
+        },
+        {
+          "id": "B",
+          "text": "Synthesize that line with a standard-engine voice, which supports the whispered effect.",
+          "correct": true,
+          "explanation": "The whispered effect (like breathing and emphasis) is supported only by Polly's standard voices; the neural engine returns an error for it, so rendering that line with a standard voice keeps the whisper and fixes the request."
+        },
+        {
+          "id": "C",
+          "text": "Add a pronunciation lexicon that maps the line to a whispered phoneme.",
+          "correct": false,
+          "explanation": "Lexicons change how words are pronounced, not the voice effect, so they cannot produce a whisper."
+        },
+        {
+          "id": "D",
+          "text": "Wrap the line in <amazon:domain name=\"news\"> instead.",
+          "correct": false,
+          "explanation": "That tag applies the newscaster style on select neural voices; it does not whisper."
+        }
+      ],
+      "explanation": "SSML support depends on the Polly engine: whispering needs a standard voice; newscaster needs select neural voices.",
+      "tags": [
+        "polly",
+        "ssml"
+      ],
+      "updated": "Polly now has four engines (standard, neural, long-form, generative) with different SSML support."
+    },
+    {
+      "id": "25-machine-learning-q10",
+      "type": "single",
+      "domain": "cost",
+      "difficulty": "medium",
+      "question": "An online garden shop with two developers and no data scientists wants \"recommended for you\" products on its home page and in weekly emails, based on each customer's browsing and purchase history. It wants to launch within a couple of weeks and pay only for usage. Which solution is MOST appropriate?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Build a collaborative filtering model in Amazon SageMaker AI and deploy it to a real-time endpoint.",
+          "correct": false,
+          "explanation": "This requires ML expertise and ongoing endpoint management, which the team does not have and cannot build in two weeks."
+        },
+        {
+          "id": "B",
+          "text": "Use Amazon Kendra to search the catalogue for products similar to past purchases.",
+          "correct": false,
+          "explanation": "Kendra answers natural-language search queries over documents; it does not learn individual users' preferences to recommend products."
+        },
+        {
+          "id": "C",
+          "text": "Use Amazon Personalize with historical interactions imported from Amazon S3 and real-time events from the website.",
+          "correct": true,
+          "explanation": "Personalize is a fully managed recommendation service: it trains and hosts the models from your interaction data and returns per-user recommendations for web pages and emails."
+        },
+        {
+          "id": "D",
+          "text": "Use Amazon Comprehend to analyze product descriptions and show items with positive sentiment.",
+          "correct": false,
+          "explanation": "Sentiment of descriptions is the same for every customer, so it cannot personalize recommendations."
+        }
+      ],
+      "explanation": "Personalized recommendations without ML expertise → Amazon Personalize.",
+      "tags": [
+        "personalize"
+      ]
+    },
+    {
+      "id": "25-machine-learning-q11",
+      "type": "single",
+      "domain": "performant",
+      "difficulty": "hard",
+      "question": "A manufacturer wants to predict pump failures from five years of its own sensor readings. Its data scientists want to choose the algorithm, run training on managed GPU instances, tune hyperparameters automatically and host the model behind an endpoint that applications call. No AWS AI service offers pump-failure prediction. Which service should the company use?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Amazon SageMaker AI.",
+          "correct": true,
+          "explanation": "SageMaker AI is the managed platform for building, training, tuning and deploying custom models, exactly what a unique prediction problem on proprietary data requires."
+        },
+        {
+          "id": "B",
+          "text": "Amazon Rekognition Custom Labels.",
+          "correct": false,
+          "explanation": "Custom Labels trains image classifiers; sensor time-series data is not image data."
+        },
+        {
+          "id": "C",
+          "text": "Amazon Comprehend custom classification.",
+          "correct": false,
+          "explanation": "Comprehend custom classifiers categorize text documents, not numeric sensor readings."
+        },
+        {
+          "id": "D",
+          "text": "Amazon Personalize.",
+          "correct": false,
+          "explanation": "Personalize recommends items to users from interaction data; it is not a general prediction platform."
+        }
+      ],
+      "explanation": "Custom model on your own data with full control of algorithm and training → SageMaker AI.",
+      "tags": [
+        "sagemaker"
+      ]
+    },
+    {
+      "id": "25-machine-learning-q12",
+      "type": "multi",
+      "domain": "performant",
+      "difficulty": "hard",
+      "question": "A forum uses Amazon Rekognition DetectModerationLabels without setting MinConfidence. Moderators complain that many harmless beach and sports photos are flagged, while the company still wants questionable images checked by a person before removal. Which actions address both concerns? (Select TWO.)",
+      "options": [
+        {
+          "id": "A",
+          "text": "Lower MinConfidence to 20 so that the model is more certain.",
+          "correct": false,
+          "explanation": "A lower threshold returns more labels, including low-confidence ones, which increases false positives instead of reducing them."
+        },
+        {
+          "id": "B",
+          "text": "Raise MinConfidence above the default of 50 so that only higher-confidence unsafe labels are returned.",
+          "correct": true,
+          "explanation": "A higher threshold trades some recall for precision, cutting the number of harmless images that get flagged."
+        },
+        {
+          "id": "C",
+          "text": "Replace Rekognition with Amazon Textract for image moderation.",
+          "correct": false,
+          "explanation": "Textract extracts text from documents and has no notion of unsafe visual content."
+        },
+        {
+          "id": "D",
+          "text": "Define a human review workflow whose activation condition covers a borderline confidence range and pass it in HumanLoopConfig.",
+          "correct": true,
+          "explanation": "Rekognition's A2I integration starts a human loop only for results matching the condition, so people review the questionable images rather than everything."
+        },
+        {
+          "id": "E",
+          "text": "Run Amazon Comprehend sentiment analysis on the image file names.",
+          "correct": false,
+          "explanation": "File names say little about image content, and sentiment does not detect unsafe material."
+        }
+      ],
+      "explanation": "Tune precision with MinConfidence (higher = fewer false positives) and use a human review loop for the borderline band.",
+      "tags": [
+        "rekognition",
+        "moderation",
+        "a2i"
+      ],
+      "updated": "Amazon A2I is closed to new customers from 30 July 2026; existing users keep it."
+    },
+    {
+      "id": "25-machine-learning-q13",
+      "type": "single",
+      "domain": "performant",
+      "difficulty": "medium",
+      "question": "Employees of a large company waste time hunting through policy PDFs, Word files and FAQs stored in Amazon S3 and Microsoft SharePoint. The company wants a search box where staff type questions such as \"How many days of parental leave do I get?\" and receive the specific answer extracted from the documents, with results improving from user feedback. Which service is designed for this?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Amazon Comprehend key phrase extraction.",
+          "correct": false,
+          "explanation": "Comprehend can list key phrases in a document but provides no index, search box or extracted answers to questions."
+        },
+        {
+          "id": "B",
+          "text": "Amazon Textract queries.",
+          "correct": false,
+          "explanation": "Textract queries pull a field out of one scanned document you submit; they do not search across a corpus of repositories."
+        },
+        {
+          "id": "C",
+          "text": "Amazon Lex with a single intent per policy document.",
+          "correct": false,
+          "explanation": "Hand-building intents for every document does not scale and Lex has no document indexing or ranking of its own."
+        },
+        {
+          "id": "D",
+          "text": "Amazon Kendra with connectors for S3 and SharePoint.",
+          "correct": true,
+          "explanation": "Kendra indexes documents from many repositories, answers natural-language questions with extracted answers and learns from user interactions (incremental learning)."
+        }
+      ],
+      "explanation": "Natural-language enterprise document search → Amazon Kendra.",
+      "tags": [
+        "kendra"
+      ],
+      "updated": "Kendra is closed to new customers since 30 July 2026; AWS recommends Amazon Bedrock Knowledge Bases for new builds."
+    },
+    {
+      "id": "25-machine-learning-q14",
+      "type": "single",
+      "domain": "performant",
+      "difficulty": "medium",
+      "question": "A broadcaster has 20,000 hours of archived news video in Amazon S3. It wants subtitle files for every programme and a searchable index of what was said, so editors can find clips by spoken keywords. Which service produces the text?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Amazon Rekognition label detection on the video files.",
+          "correct": false,
+          "explanation": "Rekognition labels describe what appears on screen (objects, scenes), not the words spoken in the audio track."
+        },
+        {
+          "id": "B",
+          "text": "Amazon Transcribe batch jobs that output transcripts and WebVTT or SRT subtitles.",
+          "correct": true,
+          "explanation": "Transcribe converts the spoken audio to timestamped text and can generate subtitle files, giving both captions and searchable metadata."
+        },
+        {
+          "id": "C",
+          "text": "Amazon Polly speech marks.",
+          "correct": false,
+          "explanation": "Speech marks describe audio that Polly itself generates from text; they cannot transcribe existing recordings."
+        },
+        {
+          "id": "D",
+          "text": "Amazon Translate batch translation.",
+          "correct": false,
+          "explanation": "Translate needs text as input; it cannot extract speech from video."
+        }
+      ],
+      "explanation": "Subtitles and searchable archives from spoken audio → Amazon Transcribe.",
+      "tags": [
+        "transcribe"
+      ]
+    },
+    {
+      "id": "25-machine-learning-q15",
+      "type": "single",
+      "domain": "secure",
+      "difficulty": "hard",
+      "question": "A health insurer receives faxed clinical notes as TIFF images in an Amazon S3 bucket. Before the notes are shared with an analytics partner, the insurer must locate protected health information (PHI) such as patient names, ages and record numbers in each note. The team wants managed services only and no model training. Which solution meets these requirements?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Extract the text with Amazon Textract, then pass the text to Amazon Comprehend Medical DetectPHI.",
+          "correct": true,
+          "explanation": "Textract turns the scanned images into text, and Comprehend Medical's DetectPHI finds PHI in clinical text; both are pre-trained managed APIs."
+        },
+        {
+          "id": "B",
+          "text": "Call Amazon Comprehend Medical DetectPHI directly on the TIFF files in S3.",
+          "correct": false,
+          "explanation": "Comprehend Medical analyzes text only; it cannot read an image, so an OCR step is needed first."
+        },
+        {
+          "id": "C",
+          "text": "Run Amazon Rekognition DetectText on each image, then Amazon Comprehend sentiment analysis.",
+          "correct": false,
+          "explanation": "Rekognition text detection is meant for short text in scenes, not full documents, and sentiment analysis does not identify PHI."
+        },
+        {
+          "id": "D",
+          "text": "Transcribe the files with Amazon Transcribe Medical, then use Amazon Comprehend Medical.",
+          "correct": false,
+          "explanation": "Transcribe converts audio to text; it cannot process scanned images."
+        }
+      ],
+      "explanation": "Scanned document → Textract for text; clinical text → Comprehend Medical (DetectPHI for protected health information).",
+      "tags": [
+        "textract",
+        "comprehend-medical",
+        "phi"
+      ]
+    }
+  ]
+}

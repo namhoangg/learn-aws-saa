@@ -1,0 +1,272 @@
+{
+  "section": "03-ec2-basics",
+  "cards": [
+    {
+      "id": "03-ec2-basics-fc-01",
+      "front": "Which cloud service model is Amazon EC2, and what does that make *you* responsible for?",
+      "back": "**Infrastructure as a Service (IaaS).** AWS runs the hardware and hypervisor; you choose the AMI and manage the guest OS (patching), installed software, firewall rules and login keys.",
+      "tags": [
+        "ec2",
+        "shared-responsibility"
+      ]
+    },
+    {
+      "id": "03-ec2-basics-fc-02",
+      "front": "Name the main choices you make when you launch an EC2 instance.",
+      "back": "**AMI** (OS and software), **instance type** (vCPU, memory, network), **key pair**, **network settings** (VPC, subnet/AZ, public IP, security group), **storage** (root and extra volumes) and optional **user data** and IAM instance profile.",
+      "tags": [
+        "ec2",
+        "launch"
+      ]
+    },
+    {
+      "id": "03-ec2-basics-fc-03",
+      "front": "When does an EC2 user data script run by default, and as which user?",
+      "back": "**Once, during the first boot** of the instance, as **root** (so no `sudo` is needed). It does not rerun on later starts unless cloud-init is configured to run every boot.",
+      "tags": [
+        "user-data"
+      ]
+    },
+    {
+      "id": "03-ec2-basics-fc-04",
+      "front": "What is the size limit for EC2 user data?",
+      "back": "**16 KB** in raw form, **before** base64 encoding. The console and `aws ec2 run-instances` do the base64 encoding for you.",
+      "tags": [
+        "user-data",
+        "limits"
+      ]
+    },
+    {
+      "id": "03-ec2-basics-fc-05",
+      "front": "Where do you look on an Amazon Linux instance to debug a user data script that did not work?",
+      "back": "`/var/log/cloud-init-output.log`. From outside the instance you can also use **Actions → Monitor and troubleshoot → Get system log**.",
+      "tags": [
+        "user-data",
+        "troubleshooting"
+      ]
+    },
+    {
+      "id": "03-ec2-basics-fc-06",
+      "front": "Why should you never put a database password in EC2 user data?",
+      "back": "User data is **not encrypted or access-controlled** on the instance: any user or process on it can read it through the instance metadata service. Store secrets in **Secrets Manager** or **Parameter Store** and grant access with an **IAM role**.",
+      "tags": [
+        "user-data",
+        "security"
+      ]
+    },
+    {
+      "id": "03-ec2-basics-fc-07",
+      "front": "User data or a custom AMI: which one reduces instance boot time?",
+      "back": "A **custom (golden) AMI** with the software already installed. User data adds its install time to every launch; keep it for small per-instance configuration.",
+      "tags": [
+        "user-data",
+        "ami"
+      ]
+    },
+    {
+      "id": "03-ec2-basics-fc-08",
+      "front": "Break down the instance type name `c7gn.xlarge`.",
+      "back": "`c` = series (compute optimized), `7` = generation, `gn` = options (`g` Graviton processor, `n` network optimized), `xlarge` = size within the family.",
+      "tags": [
+        "instance-types",
+        "naming"
+      ],
+      "updated": "AWS now documents an 'options' part between generation and size; the slides show only class, generation and size."
+    },
+    {
+      "id": "03-ec2-basics-fc-09",
+      "front": "What do the option letters `a`, `g`, `i` and `d` mean in an instance type name such as `m7gd`?",
+      "back": "`a` = AMD processor, `g` = AWS Graviton (Arm) processor, `i` = Intel processor, `d` = local NVMe **instance store** disks included.",
+      "tags": [
+        "instance-types",
+        "naming"
+      ]
+    },
+    {
+      "id": "03-ec2-basics-fc-10",
+      "front": "Which instance family fits web servers, code repositories and other mixed workloads?",
+      "back": "**General purpose** (M and T series): a balanced mix of compute, memory and networking, about 4 GiB of memory per vCPU for M.",
+      "tags": [
+        "instance-types",
+        "general-purpose"
+      ]
+    },
+    {
+      "id": "03-ec2-basics-fc-11",
+      "front": "Which instance family fits batch processing, media transcoding, HPC and dedicated game servers?",
+      "back": "**Compute optimized** (C series): high-performance processors with more CPU per GiB of memory (about 2 GiB per vCPU).",
+      "tags": [
+        "instance-types",
+        "compute-optimized"
+      ]
+    },
+    {
+      "id": "03-ec2-basics-fc-12",
+      "front": "Which instance family fits an in-memory cache, a large relational database held in RAM or real-time big-data processing?",
+      "back": "**Memory optimized** (R, X, U and z series): 8 GiB or more of memory per vCPU.",
+      "tags": [
+        "instance-types",
+        "memory-optimized"
+      ]
+    },
+    {
+      "id": "03-ec2-basics-fc-13",
+      "front": "Which instance family fits high-frequency OLTP, NoSQL databases or distributed file systems that need very fast **local** disks?",
+      "back": "**Storage optimized** (I, D and H series): large NVMe or HDD instance store volumes with very high IOPS or throughput.",
+      "tags": [
+        "instance-types",
+        "storage-optimized"
+      ]
+    },
+    {
+      "id": "03-ec2-basics-fc-14",
+      "front": "Why is a burstable T instance (t3, t4g) a poor choice for a workload that runs at high CPU all day?",
+      "back": "It earns **CPU credits** only while below its baseline. Under sustained load the credits run out: **Unlimited** mode (the T3/T4g default) then bills surplus credits, and **Standard** mode throttles to the baseline. Use an M or C instance.",
+      "tags": [
+        "instance-types",
+        "burstable"
+      ]
+    },
+    {
+      "id": "03-ec2-basics-fc-15",
+      "front": "Which EC2 instance types are marked Free tier eligible for accounts created on or after 15 July 2025?",
+      "back": "The EC2 Free Tier page lists `t3.micro`, `t3.small`, `t4g.micro`, `t4g.small`, `c7i-flex.large` and `m7i-flex.large`, for 6 months or until credits run out. The September 2026 T8i launch adds `t8i.micro` and `t8i.small`. `t2.micro` applies only to older accounts.",
+      "tags": [
+        "instance-types",
+        "free-tier"
+      ],
+      "updated": "The slides use t2.micro, which is not Free tier eligible for accounts created on or after 15 July 2025.",
+      "verify": "Checked 2026-10-04: the burstable-instances page, the T8i product page and the T8i launch post (17 Sep 2026) call t8i.micro and t8i.small Free Tier, but the EC2 Free Tier usage table and aws.amazon.com/free/compute still list only the six other types. Confirm in your Region with the 'Free tier eligible' label or describe-instance-types --filters Name=free-tier-eligible,Values=true."
+    },
+    {
+      "id": "03-ec2-basics-fc-16",
+      "front": "What are the default rules of a newly created security group?",
+      "back": "**No inbound rules** (all inbound traffic blocked) and **one outbound rule allowing all traffic**.",
+      "tags": [
+        "security-groups"
+      ]
+    },
+    {
+      "id": "03-ec2-basics-fc-17",
+      "front": "Can a security group contain deny rules? How would you block a single malicious IP?",
+      "back": "**No, allow rules only.** To block a specific IP use a **network ACL** (subnet level) or **AWS WAF** (for web traffic).",
+      "tags": [
+        "security-groups",
+        "nacl"
+      ]
+    },
+    {
+      "id": "03-ec2-basics-fc-18",
+      "front": "What does it mean that security groups are *stateful*?",
+      "back": "Return traffic for an allowed connection is automatically allowed, whatever the rules in the other direction. Allow inbound 443 and the responses go out without an outbound rule.",
+      "tags": [
+        "security-groups"
+      ]
+    },
+    {
+      "id": "03-ec2-basics-fc-19",
+      "front": "What happens when a security group rule uses another security group as its source?",
+      "back": "Any instance whose network interface carries the referenced group may connect (over private IPs) on that port, no matter its IP address. Only membership is used; the referenced group's rules are not copied.",
+      "tags": [
+        "security-groups",
+        "referencing"
+      ]
+    },
+    {
+      "id": "03-ec2-basics-fc-20",
+      "front": "Your connection to an EC2 app **times out**. A colleague's gets **connection refused**. What does each suggest?",
+      "back": "**Timeout**: packets are dropped on the way, usually a **security group** (or NACL/route) issue. **Connection refused**: traffic reached the instance but the **application** is not running or not listening on that port.",
+      "tags": [
+        "security-groups",
+        "troubleshooting"
+      ]
+    },
+    {
+      "id": "03-ec2-basics-fc-21",
+      "front": "Default security group quotas: rules per group and groups per network interface?",
+      "back": "**60 inbound and 60 outbound** rules per group (IPv4 and IPv6 counted separately) and **5 groups per network interface** (adjustable to 16); rules x groups cannot exceed 1,000.",
+      "tags": [
+        "security-groups",
+        "limits"
+      ]
+    },
+    {
+      "id": "03-ec2-basics-fc-22",
+      "front": "Match the ports: 21, 22, 80, 443, 3389.",
+      "back": "**21** FTP, **22** SSH and SFTP, **80** HTTP, **443** HTTPS, **3389** RDP (Windows Remote Desktop).",
+      "tags": [
+        "ports"
+      ]
+    },
+    {
+      "id": "03-ec2-basics-fc-23",
+      "front": "Can a security group be used outside the VPC it was created in?",
+      "back": "Only within the **same Region**: you can associate it with other VPCs you own or that share subnets with you (Security Group VPC Associations), or share it with accounts in your Organization through AWS RAM. Default groups and default VPCs are excluded.",
+      "tags": [
+        "security-groups"
+      ],
+      "updated": "The slides say a group is locked to one Region/VPC; VPC associations and security group sharing arrived in October 2024."
+    },
+    {
+      "id": "03-ec2-basics-fc-24",
+      "front": "You get `WARNING: UNPROTECTED PRIVATE KEY FILE!` when running `ssh -i key.pem`. What is the fix on macOS or Linux?",
+      "back": "Restrict the file so only you can read it: `chmod 400 key.pem`. SSH ignores private keys that other users can read.",
+      "tags": [
+        "ssh",
+        "key-pairs"
+      ]
+    },
+    {
+      "id": "03-ec2-basics-fc-25",
+      "front": "Which username do you use to SSH into Amazon Linux, and which for Ubuntu?",
+      "back": "Amazon Linux: **`ec2-user`**. Ubuntu: **`ubuntu`**. (Debian uses `admin`.)",
+      "tags": [
+        "ssh"
+      ]
+    },
+    {
+      "id": "03-ec2-basics-fc-26",
+      "front": "Which private key formats does EC2 offer, and which tool needs which?",
+      "back": "**`.pem`** for OpenSSH (macOS, Linux, Windows 10+ built-in `ssh`) and **`.ppk`** for **PuTTY**. A `.pem` can be converted with PuTTYgen.",
+      "tags": [
+        "ssh",
+        "putty",
+        "key-pairs"
+      ]
+    },
+    {
+      "id": "03-ec2-basics-fc-27",
+      "front": "How does EC2 Instance Connect authenticate you without a downloaded key file?",
+      "back": "With your **IAM permission** (`ec2-instance-connect:SendSSHPublicKey`) it pushes a **one-time public key** to the instance metadata for **60 seconds**, then opens a normal SSH session on port 22.",
+      "tags": [
+        "ec2-instance-connect"
+      ]
+    },
+    {
+      "id": "03-ec2-basics-fc-28",
+      "front": "Browser-based EC2 Instance Connect fails, but SSH from your laptop works. The security group allows port 22 from **My IP** only. Why?",
+      "back": "The console session comes from the **EC2 Instance Connect service's IP range**, not your IP. Allow port 22 from the prefix list `com.amazonaws.<region>.ec2-instance-connect`.",
+      "tags": [
+        "ec2-instance-connect",
+        "security-groups"
+      ]
+    },
+    {
+      "id": "03-ec2-basics-fc-29",
+      "front": "What changes when you stop and then start an EBS-backed instance?",
+      "back": "It usually moves to a new host and gets a **new public IPv4 address**; the **private IP** and **EBS volumes** are kept; **instance store** data and RAM are lost. Compute billing stops while stopped (EBS is still billed).",
+      "tags": [
+        "lifecycle"
+      ]
+    },
+    {
+      "id": "03-ec2-basics-fc-30",
+      "front": "Which way to reach a private instance needs no public IP, no bastion host and **no inbound port** open?",
+      "back": "**AWS Systems Manager Session Manager** (needs the SSM Agent and an IAM instance profile). EC2 Instance Connect Endpoint also avoids public IPs and bastions but still uses port 22 from the endpoint.",
+      "tags": [
+        "session-manager",
+        "ec2-instance-connect"
+      ]
+    }
+  ]
+}

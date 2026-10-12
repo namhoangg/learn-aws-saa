@@ -1,0 +1,191 @@
+{
+  "section": "02-iam",
+  "cards": [
+    {
+      "id": "02-iam-fc-01",
+      "front": "Is IAM a regional or a global service, and what does it cost?",
+      "back": "**Global**: users, groups, roles and policies work in every Region (IAM ARNs have an empty Region field). IAM, IAM Identity Center and STS have **no additional charge**.",
+      "tags": ["iam"]
+    },
+    {
+      "id": "02-iam-fc-02",
+      "front": "What is the AWS account root user and how should you treat it?",
+      "back": "The identity made of the account's email + password, with unrestricted access. Protect it with **MFA** (now enforced) and a strong password, never create access keys for it, and use it only for root-only tasks.",
+      "tags": ["root-user"]
+    },
+    {
+      "id": "02-iam-fc-03",
+      "front": "Name three tasks that only the root user can perform.",
+      "back": "Any three of: change the root email/password of a standalone account, close a standalone account, restore permissions after the only admin locked themselves out, enable S3 MFA Delete, unlock an S3 bucket or SQS queue whose policy denies everyone, register as a Reserved Instance Marketplace seller.",
+      "tags": ["root-user"]
+    },
+    {
+      "id": "02-iam-fc-04",
+      "front": "Can an IAM group contain another group?",
+      "back": "**No.** Groups contain only users. To combine permissions, add the user to several groups (a user can belong to up to **10**).",
+      "tags": ["groups"]
+    },
+    {
+      "id": "02-iam-fc-05",
+      "front": "Can an IAM group be named as the Principal in a bucket policy or trust policy?",
+      "back": "**No.** A group is not an authenticated identity; it only bundles permissions. Principals can be accounts, users, roles, role sessions, federated users or AWS services.",
+      "tags": ["groups", "policies"]
+    },
+    {
+      "id": "02-iam-fc-06",
+      "front": "List the elements of an IAM policy statement.",
+      "back": "`Sid` (optional label), `Effect` (Allow/Deny), `Principal` (resource-based policies only), `Action`/`NotAction`, `Resource`/`NotResource`, `Condition` (optional). The document itself has `Version` (\"2012-10-17\"), optional `Id`, and `Statement`.",
+      "tags": ["policies"]
+    },
+    {
+      "id": "02-iam-fc-07",
+      "front": "Why should every policy include \"Version\": \"2012-10-17\"?",
+      "back": "It is the current policy language version. Without it (or with the old `2008-10-17`), newer features such as policy variables like `${aws:username}` are treated as literal text.",
+      "tags": ["policies"]
+    },
+    {
+      "id": "02-iam-fc-08",
+      "front": "In which kind of policy is the Principal element allowed?",
+      "back": "Only in **resource-based** policies (e.g. S3 bucket policies, SQS queue policies, KMS key policies and IAM role **trust policies**). Identity-based policies cannot contain it: the principal is the identity the policy is attached to.",
+      "tags": ["policies", "principal"]
+    },
+    {
+      "id": "02-iam-fc-09",
+      "front": "How does IAM decide between Allow and Deny when several policies apply?",
+      "back": "Default is **implicit deny**. An explicit **Allow** grants access, but an explicit **Deny** in any applicable policy always wins.",
+      "tags": ["policy-evaluation"]
+    },
+    {
+      "id": "02-iam-fc-10",
+      "front": "What is the principle of least privilege?",
+      "back": "Grant only the actions, on only the resources, that a task requires (e.g. `s3:GetObject` on one bucket instead of `s3:*` on `*`), then trim further using last accessed data or IAM Access Analyzer.",
+      "tags": ["least-privilege"]
+    },
+    {
+      "id": "02-iam-fc-11",
+      "front": "AWS managed vs customer managed vs inline policy: which is reusable and editable?",
+      "back": "**AWS managed**: reusable, not editable (AWS updates it). **Customer managed**: reusable and editable (up to 5 versions). **Inline**: editable but tied one-to-one to a single user, group or role and deleted with it.",
+      "tags": ["policies"]
+    },
+    {
+      "id": "02-iam-fc-12",
+      "front": "How many managed policies can you attach to a user, a group and a role (default quotas)?",
+      "back": "User **10** (adjustable to 20), group **10** (fixed), role **20** (adjustable to 25).",
+      "tags": ["quotas"]
+    },
+    {
+      "id": "02-iam-fc-13",
+      "front": "What can a custom IAM password policy enforce?",
+      "back": "Minimum length (6 to 128), required character types (upper, lower, digit, symbol), expiry (1 to 1,095 days), admin reset after expiry, letting users change their own password, and blocking reuse of the last 1 to 24 passwords.",
+      "tags": ["password-policy"]
+    },
+    {
+      "id": "02-iam-fc-14",
+      "front": "Does the IAM password policy apply to the root user or to access keys?",
+      "back": "**Neither.** It covers IAM user console passwords only. A user whose password expired can still use active access keys. IAM also has no failed-login lockout setting.",
+      "tags": ["password-policy"]
+    },
+    {
+      "id": "02-iam-fc-15",
+      "front": "What is the main benefit of MFA?",
+      "back": "A stolen or guessed password alone is not enough to sign in: the attacker also needs the device you own (passkey, security key, authenticator app or hardware token).",
+      "tags": ["mfa"]
+    },
+    {
+      "id": "02-iam-fc-16",
+      "front": "Which three MFA types does AWS support today, and which is recommended?",
+      "back": "**Passkeys and security keys** (FIDO2/WebAuthn, phishing-resistant, recommended), **virtual authenticator apps** (TOTP), **hardware TOTP tokens**. SMS MFA can no longer be enabled.",
+      "tags": ["mfa"],
+      "updated": "Slides list U2F keys and Gemalto/SurePassID fobs; U2F is deprecated in favour of WebAuthn, and hardware tokens now come from Thales (SafeNet) and Hypersecu (GovCloud)."
+    },
+    {
+      "id": "02-iam-fc-17",
+      "front": "How many MFA devices can a root user or IAM user register?",
+      "back": "Up to **8**, of any mix of types. Only one is needed to sign in, so register a backup device.",
+      "tags": ["mfa"],
+      "updated": "Not in the slides; current IAM docs allow up to eight MFA devices per root or IAM user."
+    },
+    {
+      "id": "02-iam-fc-18",
+      "front": "What are the three ways to access AWS and how does each authenticate?",
+      "back": "**Management Console**: password + MFA (or federated sign-in). **AWS CLI** and **AWS SDKs**: requests signed with access keys or, preferably, temporary credentials.",
+      "tags": ["access-methods"]
+    },
+    {
+      "id": "02-iam-fc-19",
+      "front": "What are the two parts of an access key and when can you see the secret?",
+      "back": "**Access key ID** (like a user name, starts with `AKIA`) and **secret access key** (like a password). The secret is shown **only at creation**; if lost, create a new key and delete the old one. Max **2** keys per user.",
+      "tags": ["access-keys"]
+    },
+    {
+      "id": "02-iam-fc-20",
+      "front": "What do the prefixes AKIA and ASIA mean on an access key ID?",
+      "back": "`AKIA` = long-term IAM user (or root) access key. `ASIA` = temporary credentials issued by AWS STS (role sessions, federation), which also need a session token.",
+      "tags": ["access-keys", "sts"]
+    },
+    {
+      "id": "02-iam-fc-21",
+      "front": "Where does the AWS CLI store credentials and settings set with aws configure?",
+      "back": "In your home folder: `~/.aws/credentials` (keys, plain text) and `~/.aws/config` (Region, output). Named profiles: `[dev]` in credentials, `[profile dev]` in config; select with `--profile dev`.",
+      "tags": ["cli"]
+    },
+    {
+      "id": "02-iam-fc-22",
+      "front": "How can you use the AWS CLI without creating long-term access keys?",
+      "back": "Use **AWS CloudShell** (already signed in), **`aws login`** (CLI 2.32.0+, console sign-in turned into auto-refreshed temporary credentials for up to 12 hours), **IAM Identity Center** with `aws configure sso`, or an IAM role.",
+      "tags": ["cli", "cloudshell"],
+      "updated": "aws login launched in November 2025."
+    },
+    {
+      "id": "02-iam-fc-23",
+      "front": "What is an AWS SDK and how does it find credentials?",
+      "back": "Language libraries (Python Boto3, Java, JavaScript, Go, .NET, Kotlin, Rust, Swift and more) embedded in your app to call AWS. Its credential chain checks environment variables, shared config/credentials files, then the role of the compute it runs on.",
+      "tags": ["sdk"]
+    },
+    {
+      "id": "02-iam-fc-24",
+      "front": "What is the status of AWS CLI version 1?",
+      "back": "In **maintenance mode** since 15 July 2026 (critical fixes only) and end of support on **15 July 2027**. Use AWS CLI v2.",
+      "tags": ["cli"],
+      "updated": "Announced January 2026, after the slides were made."
+    },
+    {
+      "id": "02-iam-fc-25",
+      "front": "How should an application on an EC2 instance get permission to read an S3 bucket?",
+      "back": "Attach an **IAM role** (via an instance profile) whose permissions policy allows the S3 reads. The SDK picks up auto-rotating **temporary credentials** from the instance metadata service; no access keys are stored on the instance.",
+      "tags": ["roles", "ec2"]
+    },
+    {
+      "id": "02-iam-fc-26",
+      "front": "What two policies does every IAM role have?",
+      "back": "A **trust policy** (resource-based: who may assume the role, e.g. `ec2.amazonaws.com`) and one or more **permissions policies** (what the role can do once assumed).",
+      "tags": ["roles"]
+    },
+    {
+      "id": "02-iam-fc-27",
+      "front": "What is an instance profile?",
+      "back": "A container that passes exactly **one** IAM role to an EC2 instance. The console creates it automatically with the same name as an EC2 role; with the CLI you create it and add the role yourself.",
+      "tags": ["roles", "ec2"]
+    },
+    {
+      "id": "02-iam-fc-28",
+      "front": "What does the IAM credential report contain?",
+      "back": "An account-wide **CSV**, one row per user plus root: password enabled/last used/last changed, next rotation, MFA active, and status, rotation and last use of the first two access keys. Regenerated at most every **4 hours**.",
+      "tags": ["credential-report"]
+    },
+    {
+      "id": "02-iam-fc-29",
+      "front": "What does last accessed data (formerly IAM Access Advisor) show?",
+      "back": "For one user, group, role or policy: the services its policies allow and when each was last used (at least 400 days of history), plus action-level data for some services. Use it to remove unused permissions.",
+      "tags": ["last-accessed"],
+      "updated": "Now shown on the Last Accessed tab; the slides use the older Access Advisor name."
+    },
+    {
+      "id": "02-iam-fc-30",
+      "front": "What does AWS now recommend for human users instead of one IAM user per person?",
+      "back": "**Federation with temporary credentials**, ideally through **IAM Identity Center** (or an external IdP). Keep IAM users for emergency access and tools that cannot use roles or federation.",
+      "tags": ["best-practices", "identity-center"],
+      "updated": "The slides recommend one IAM user per physical person; the current IAM best-practices page leads with federation."
+    }
+  ]
+}

@@ -1,0 +1,289 @@
+{
+  "id": "01-getting-started",
+  "order": 1,
+  "title": "Getting Started with AWS",
+  "courseSection": "Intro + Getting Started with AWS",
+  "slides": [
+    1,
+    23
+  ],
+  "estimatedMinutes": 40,
+  "summary": "What AWS is, how the SAA-C03 exam is built, and the global infrastructure every later lesson relies on: Regions, Availability Zones, edge points of presence, and extensions such as Local Zones, Wavelength and Outposts. Covers how to choose a Region, AZ names versus AZ IDs, which services are global and which are Regional, the IaaS/PaaS/FaaS/SaaS models, and a first tour of the AWS Management Console and CloudShell.",
+  "services": [
+    "regions-azs",
+    "edge-locations",
+    "local-zones",
+    "wavelength",
+    "outposts",
+    "console",
+    "cloudshell",
+    "cli-sdk",
+    "budgets",
+    "iam",
+    "route53",
+    "cloudfront",
+    "waf",
+    "acm",
+    "global-accelerator",
+    "ec2",
+    "vpc",
+    "elastic-beanstalk",
+    "lambda",
+    "rekognition",
+    "s3",
+    "global-view"
+  ],
+  "relations": [
+    {
+      "from": "ec2",
+      "to": "regions-azs",
+      "label": "launches each instance into one Availability Zone of"
+    },
+    {
+      "from": "cloudfront",
+      "to": "edge-locations",
+      "label": "caches and serves content from"
+    },
+    {
+      "from": "route53",
+      "to": "edge-locations",
+      "label": "answers public DNS queries from"
+    },
+    {
+      "from": "global-accelerator",
+      "to": "edge-locations",
+      "label": "brings user traffic onto the AWS network at"
+    },
+    {
+      "from": "waf",
+      "to": "cloudfront",
+      "label": "filters web requests at the edge for"
+    },
+    {
+      "from": "acm",
+      "to": "cloudfront",
+      "label": "provides certificates (requested in us-east-1) for"
+    },
+    {
+      "from": "local-zones",
+      "to": "regions-azs",
+      "label": "extend a parent Region toward a metro area from"
+    },
+    {
+      "from": "wavelength",
+      "to": "regions-azs",
+      "label": "place compute in 5G carrier networks, managed from"
+    },
+    {
+      "from": "outposts",
+      "to": "regions-azs",
+      "label": "extend an Availability Zone into your data center from"
+    },
+    {
+      "from": "iam",
+      "to": "console",
+      "label": "decides who can sign in to and act in"
+    },
+    {
+      "from": "console",
+      "to": "cloudshell",
+      "label": "opens a pre-authenticated browser shell in"
+    },
+    {
+      "from": "cloudshell",
+      "to": "cli-sdk",
+      "label": "comes with a preinstalled copy of"
+    },
+    {
+      "from": "budgets",
+      "to": "console",
+      "label": "sends cost alerts configured in"
+    }
+  ],
+  "examDomains": [
+    "resilient",
+    "performant",
+    "secure",
+    "cost"
+  ],
+  "lastVerified": "2026-10-04",
+  "sources": [
+    {
+      "title": "AWS Global Infrastructure (Regions, AZs, PoPs, Local Zones, Wavelength Zones counts)",
+      "url": "https://aws.amazon.com/about-aws/global-infrastructure/"
+    },
+    {
+      "title": "Regions and Availability Zones (AZ definition, 100 km separation, encrypted inter-AZ traffic)",
+      "url": "https://aws.amazon.com/about-aws/global-infrastructure/regions_az/"
+    },
+    {
+      "title": "AWS Regions (Region table, opt-in after 20 March 2019, account types)",
+      "url": "https://docs.aws.amazon.com/global-infrastructure/latest/regions/aws-regions.html"
+    },
+    {
+      "title": "AWS Availability Zones (minimum three per Region, AZ tables, constrained AZs)",
+      "url": "https://docs.aws.amazon.com/global-infrastructure/latest/regions/aws-availability-zones.html"
+    },
+    {
+      "title": "AZ IDs (independent mapping, change for accounts created from November 2025)",
+      "url": "https://docs.aws.amazon.com/global-infrastructure/latest/regions/az-ids.html"
+    },
+    {
+      "title": "Enable or disable AWS Regions in your account (opt-in Regions, Account page, processing times)",
+      "url": "https://docs.aws.amazon.com/accounts/latest/reference/manage-acct-regions.html"
+    },
+    {
+      "title": "Amazon CloudFront key features (750+ PoPs, 15 regional edge caches, embedded POPs)",
+      "url": "https://aws.amazon.com/cloudfront/features/"
+    },
+    {
+      "title": "AWS Fault Isolation Boundaries: Global services",
+      "url": "https://docs.aws.amazon.com/whitepapers/latest/aws-fault-isolation-boundaries/global-services.html"
+    },
+    {
+      "title": "Resources that you can protect with AWS WAF (global vs Regional protection packs)",
+      "url": "https://docs.aws.amazon.com/waf/latest/developerguide/how-aws-waf-works-resources.html"
+    },
+    {
+      "title": "AWS Services by Region (now points to AWS Capabilities by Region)",
+      "url": "https://aws.amazon.com/about-aws/global-infrastructure/regional-product-services/"
+    },
+    {
+      "title": "AWS announces a new Regional planning tool in Builder Center (November 2025)",
+      "url": "https://aws.amazon.com/about-aws/whats-new/2025/11/aws-regional-planning-tool-builder-center"
+    },
+    {
+      "title": "What is AWS Local Zones?",
+      "url": "https://docs.aws.amazon.com/local-zones/latest/ug/what-is-aws-local-zones.html"
+    },
+    {
+      "title": "What is AWS Wavelength?",
+      "url": "https://docs.aws.amazon.com/wavelength/latest/developerguide/what-is-wavelength.html"
+    },
+    {
+      "title": "What is AWS Outposts?",
+      "url": "https://docs.aws.amazon.com/outposts/latest/userguide/what-is-outposts.html"
+    },
+    {
+      "title": "Choosing your Region (AWS Management Console)",
+      "url": "https://docs.aws.amazon.com/awsconsolehelpdocs/latest/gsg/select-region.html"
+    },
+    {
+      "title": "Choosing a Region from the navigation bar",
+      "url": "https://docs.aws.amazon.com/awsconsolehelpdocs/latest/gsg/select-region-procedure.html"
+    },
+    {
+      "title": "Setting the default Region in the AWS Management Console",
+      "url": "https://docs.aws.amazon.com/awsconsolehelpdocs/latest/gsg/change-default-region.html"
+    },
+    {
+      "title": "Using the console navigation bar via Unified Navigation",
+      "url": "https://docs.aws.amazon.com/awsconsolehelpdocs/latest/gsg/unified-navigation.html"
+    },
+    {
+      "title": "Searching with Unified Search in the AWS Management Console",
+      "url": "https://docs.aws.amazon.com/awsconsolehelpdocs/latest/gsg/using-search.html"
+    },
+    {
+      "title": "Launching AWS CloudShell from the navigation bar",
+      "url": "https://docs.aws.amazon.com/awsconsolehelpdocs/latest/gsg/launch-cloudshell.html"
+    },
+    {
+      "title": "What is AWS CloudShell?",
+      "url": "https://docs.aws.amazon.com/cloudshell/latest/userguide/welcome.html"
+    },
+    {
+      "title": "Service quotas and restrictions for AWS CloudShell",
+      "url": "https://docs.aws.amazon.com/cloudshell/latest/userguide/limits.html"
+    },
+    {
+      "title": "Calling global infrastructure public parameters in Parameter Store",
+      "url": "https://docs.aws.amazon.com/systems-manager/latest/userguide/parameter-store-public-parameters-global-infrastructure.html"
+    },
+    {
+      "title": "Using a budget template (simplified)",
+      "url": "https://docs.aws.amazon.com/cost-management/latest/userguide/budget-templates.html"
+    },
+    {
+      "title": "Creating a cost budget",
+      "url": "https://docs.aws.amazon.com/cost-management/latest/userguide/create-cost-budget.html"
+    },
+    {
+      "title": "AWS CLI reference: budgets create-budget",
+      "url": "https://docs.aws.amazon.com/cli/latest/reference/budgets/create-budget.html"
+    },
+    {
+      "title": "AWS Budgets pricing",
+      "url": "https://aws.amazon.com/aws-cost-management/aws-budgets/pricing/"
+    },
+    {
+      "title": "Explore AWS services with AWS Free Tier (Free and Paid account plans)",
+      "url": "https://docs.aws.amazon.com/awsaccountbilling/latest/aboutv2/free-tier.html"
+    },
+    {
+      "title": "AWS Certified Solutions Architect - Associate (exam overview)",
+      "url": "https://aws.amazon.com/certification/certified-solutions-architect-associate/"
+    },
+    {
+      "title": "AWS Certified Solutions Architect - Associate (SAA-C03) exam guide",
+      "url": "https://docs.aws.amazon.com/aws-certification/latest/solutions-architect-associate-03/solutions-architect-associate-03.html"
+    },
+    {
+      "title": "About AWS (launched in 2006)",
+      "url": "https://aws.amazon.com/about-aws/"
+    },
+    {
+      "title": "Our Origins (AWS history)",
+      "url": "https://aws.amazon.com/about-aws/our-origins/"
+    },
+    {
+      "title": "Amazon.com Announces Fourth Quarter Results (AWS 2025 segment sales)",
+      "url": "https://www.businesswire.com/news/home/20260204777163/en/Amazon.com-Announces-Fourth-Quarter-Results"
+    },
+    {
+      "title": "Synergy Research Group: Q2 2026 cloud market shares",
+      "url": "https://www.srgresearch.com/articles/q2-cloud-market-passes-143-billion-highest-growth-rate-in-eight-years"
+    },
+    {
+      "title": "AWS named a Leader in the 2026 Gartner Magic Quadrant for Strategic Cloud Platform Services (16 years running)",
+      "url": "https://aws.amazon.com/blogs/migration-and-modernization/aws-named-a-leader-in-gartners-2026-strategic-cloud-platform-services-magic-quadrant-16-years-running/"
+    },
+    {
+      "title": "AWS launches AWS European Sovereign Cloud (GA 15 January 2026, first Region in Brandenburg)",
+      "url": "https://press.aboutamazon.com/aws/2026/1/aws-launches-aws-european-sovereign-cloud-and-announces-expansion-across-europe"
+    },
+    {
+      "title": "Adding email recipients to a budget notification (verification)",
+      "url": "https://docs.aws.amazon.com/cost-management/latest/userguide/budgets-email-recipients.html"
+    },
+    {
+      "title": "Tracking your AWS Free Tier usage (85% alerts, Billing preferences)",
+      "url": "https://docs.aws.amazon.com/awsaccountbilling/latest/aboutv2/tracking-free-tier-usage.html"
+    },
+    {
+      "title": "Setting up your AWS account: activate IAM access to billing",
+      "url": "https://docs.aws.amazon.com/IAM/latest/UserGuide/tutorial_billing.html"
+    },
+    {
+      "title": "What is AWS? (\"millions of customers\")",
+      "url": "https://aws.amazon.com/what-is-aws/"
+    },
+    {
+      "title": "Adding services to your favorites in the AWS Management Console",
+      "url": "https://docs.aws.amazon.com/awsconsolehelpdocs/latest/gsg/add-fave-services.html"
+    },
+    {
+      "title": "Searching for AWS products (Alt+S / Option+S opens the search bar)",
+      "url": "https://docs.aws.amazon.com/awsconsolehelpdocs/latest/gsg/unified-search-regular.html"
+    },
+    {
+      "title": "Accessing the Services menu in the AWS Management Console",
+      "url": "https://docs.aws.amazon.com/awsconsolehelpdocs/latest/gsg/service-menu.html"
+    },
+    {
+      "title": "Getting started with AWS CloudShell (Region fallback, Actions > Delete home directory)",
+      "url": "https://docs.aws.amazon.com/cloudshell/latest/userguide/getting-started.html"
+    }
+  ],
+  "newServices": []
+}

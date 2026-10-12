@@ -1,0 +1,218 @@
+{
+  "section": "03-ec2-basics",
+  "questions": [
+    {
+      "id": "03-ec2-basics-q01",
+      "type": "single",
+      "domain": "secure",
+      "difficulty": "easy",
+      "question": "A developer launches an Amazon Linux instance with a public IP address and installs a web server that listens on port 80. SSH from the developer's laptop works, but opening http://<public-ip> in a browser hangs and eventually times out. The web server process is running. What is the MOST likely cause?",
+      "options": [
+        { "id": "A", "text": "The web server is not started, so the operating system refuses the connection.", "correct": false, "explanation": "A stopped or missing process produces an immediate 'connection refused', not a timeout, and the question says the process is running." },
+        { "id": "B", "text": "The security group's outbound rules do not allow responses on port 80.", "correct": false, "explanation": "Security groups are stateful: responses to allowed inbound traffic leave automatically, and new groups allow all outbound traffic anyway." },
+        { "id": "C", "text": "The security group has no inbound rule allowing TCP port 80 from the internet.", "correct": true, "explanation": "SSH works, so the instance is reachable; a timeout on port 80 means packets are silently dropped, which is what a security group does when no inbound rule matches." },
+        { "id": "D", "text": "The instance needs an Elastic IP address before it can serve HTTP traffic.", "correct": false, "explanation": "Any public IPv4 address can serve HTTP; an Elastic IP only keeps the address stable across stop/start." }
+      ],
+      "explanation": "A timeout usually means a security group (or other network filter) is dropping the traffic; 'connection refused' means the packets arrived but nothing is listening.",
+      "tags": ["security-groups", "troubleshooting"]
+    },
+    {
+      "id": "03-ec2-basics-q02",
+      "type": "single",
+      "domain": "performant",
+      "difficulty": "medium",
+      "question": "An Auto Scaling group launches web servers from a stock Amazon Linux AMI. A user data script installs about 40 packages and the application on every launch, so new instances take 12 minutes to start serving traffic and the group reacts too slowly to traffic spikes. Which change MOST reduces the time to serve traffic?",
+      "options": [
+        { "id": "A", "text": "Build a custom AMI with the packages and application preinstalled, and keep only small per-instance settings in user data.", "correct": true, "explanation": "Baking the slow, unchanging setup into a golden AMI removes the install time from every launch; user data then only does quick configuration." },
+        { "id": "B", "text": "Move the same installation commands into the user data of a larger instance type.", "correct": false, "explanation": "A bigger instance may install slightly faster, but the work still runs at every boot and costs more per hour." },
+        { "id": "C", "text": "Configure cloud-init so the user data script runs on every boot instead of only the first boot.", "correct": false, "explanation": "Running the script more often adds work; it does nothing for the first boot of a new instance, which is the slow part." },
+        { "id": "D", "text": "Store the user data script in Amazon S3 and download it at boot.", "correct": false, "explanation": "Where the script lives does not matter; the 12 minutes are spent installing packages, which still happens on each launch." }
+      ],
+      "explanation": "User data is for configuration at launch; to make instances ready faster, pre-install software in a custom AMI.",
+      "tags": ["user-data", "ami"]
+    },
+    {
+      "id": "03-ec2-basics-q03",
+      "type": "single",
+      "domain": "secure",
+      "difficulty": "medium",
+      "question": "A MySQL database runs on an EC2 instance. Application servers run in an Auto Scaling group across two Availability Zones, and their private IP addresses change whenever instances are replaced. Only the application servers may connect to the database on port 3306. Which solution meets this requirement with the LEAST ongoing maintenance?",
+      "options": [
+        { "id": "A", "text": "Add an inbound rule to the database security group for each application server's private IP address, and update it after scaling events.", "correct": false, "explanation": "This works for a moment but breaks every time instances are replaced, so it needs constant manual updates." },
+        { "id": "B", "text": "Allow port 3306 from 0.0.0.0/0 in the database security group and rely on the MySQL password.", "correct": false, "explanation": "This exposes the database port to every address the network can route; a password alone is not network isolation." },
+        { "id": "C", "text": "Allow port 3306 from the VPC CIDR block in the database security group.", "correct": false, "explanation": "Every resource in the VPC, not just the application servers, could then reach the database, which violates the requirement." },
+        { "id": "D", "text": "Add an inbound rule to the database security group that allows port 3306 with the application servers' security group as the source.", "correct": true, "explanation": "A security group reference admits any instance that carries the application group, whatever its IP address, so scaling needs no rule changes." }
+      ],
+      "explanation": "Referencing a security group as the source ties access to group membership rather than IP addresses, which suits instances that come and go.",
+      "tags": ["security-groups", "referencing"]
+    },
+    {
+      "id": "03-ec2-basics-q04",
+      "type": "single",
+      "domain": "cost",
+      "difficulty": "easy",
+      "question": "A company self-manages an in-memory key-value cache on EC2. The working set is 450 GiB and must stay entirely in RAM; CPU usage is moderate and the cache does not use local disks. Which instance type meets these requirements MOST cost-effectively?",
+      "options": [
+        { "id": "A", "text": "c7i.16xlarge (compute optimized, 64 vCPU, 128 GiB)", "correct": false, "explanation": "Compute optimized instances have about 2 GiB per vCPU; 128 GiB cannot hold a 450 GiB working set." },
+        { "id": "B", "text": "r7i.16xlarge (memory optimized, 64 vCPU, 512 GiB)", "correct": true, "explanation": "Memory optimized instances give 8 GiB per vCPU; 512 GiB holds the 450 GiB working set with headroom, and you pay only for CPU and memory." },
+        { "id": "C", "text": "i4i.16xlarge (storage optimized, 64 vCPU, 512 GiB, 4 x 3,750 GB local NVMe SSDs)", "correct": false, "explanation": "It has the same 512 GiB of memory, but its hourly price also covers 15 TB of local NVMe storage the cache does not use, so it costs more than the memory optimized option." },
+        { "id": "D", "text": "t3.2xlarge (burstable general purpose, 8 vCPU, 32 GiB)", "correct": false, "explanation": "Far too little memory, and burstable instances are meant for low average CPU, not large in-memory data sets." }
+      ],
+      "explanation": "In-memory databases and caches point to the memory optimized families (R, X, U, z).",
+      "tags": ["instance-types", "memory-optimized"]
+    },
+    {
+      "id": "03-ec2-basics-q05",
+      "type": "single",
+      "domain": "performant",
+      "difficulty": "medium",
+      "question": "A team runs Apache Cassandra on EC2. The database replicates data across nodes itself and needs hundreds of thousands of low-latency random IOPS per node from local disks. Which instance family should the team choose?",
+      "options": [
+        { "id": "A", "text": "Storage optimized instances with NVMe instance store, such as I8g or I4i", "correct": true, "explanation": "Storage optimized instances are built for very high random I/O on large local NVMe disks; Cassandra's own replication covers the loss of a node's local data." },
+        { "id": "B", "text": "Compute optimized instances such as C7i with gp3 EBS volumes", "correct": false, "explanation": "C instances add CPU, not local disk performance, and a gp3 volume tops out far below the IOPS the workload needs." },
+        { "id": "C", "text": "Burstable T4g instances with gp3 EBS volumes", "correct": false, "explanation": "Burstable instances suit low, spiky CPU and have no local disks; they cannot deliver this I/O profile." },
+        { "id": "D", "text": "Accelerated computing instances such as G6", "correct": false, "explanation": "GPU instances are for graphics and ML; they do not address storage I/O." }
+      ],
+      "explanation": "High-frequency OLTP and NoSQL databases that need very fast local storage map to storage optimized (I, D, H) instances.",
+      "tags": ["instance-types", "storage-optimized"]
+    },
+    {
+      "id": "03-ec2-basics-q06",
+      "type": "single",
+      "domain": "secure",
+      "difficulty": "medium",
+      "question": "A public web application on EC2 is receiving abusive traffic from one IP address, 198.51.100.25. The instance security group allows HTTPS from 0.0.0.0/0, and all other customers must keep access. What should a solutions architect do to block only that address at the network level?",
+      "options": [
+        { "id": "A", "text": "Add an inbound deny rule for 198.51.100.25/32 to the instance's security group.", "correct": false, "explanation": "Security groups support allow rules only; there is no way to create a deny rule." },
+        { "id": "B", "text": "Add an inbound deny rule for 198.51.100.25/32 to the subnet's network ACL, numbered before the rule that allows HTTPS.", "correct": true, "explanation": "Network ACLs support explicit deny rules evaluated in number order, so a lower-numbered deny blocks that address while everyone else is still allowed." },
+        { "id": "C", "text": "Remove the 0.0.0.0/0 HTTPS rule from the security group.", "correct": false, "explanation": "That blocks every customer, not just the attacker." },
+        { "id": "D", "text": "Move the instance to a different Availability Zone.", "correct": false, "explanation": "Changing AZ does not change who can reach the instance; the attacker would simply follow the new address or DNS name." }
+      ],
+      "explanation": "Security groups cannot deny; blocking a specific IP needs a network ACL (or AWS WAF for HTTP traffic through supported services).",
+      "tags": ["security-groups", "nacl"]
+    },
+    {
+      "id": "03-ec2-basics-q07",
+      "type": "single",
+      "domain": "secure",
+      "difficulty": "medium",
+      "question": "An administrator launches an Amazon Linux 2023 instance with a public IP. Its security group allows SSH only from the company's office IP range. SSH from an office laptop works, but choosing Connect on the EC2 Instance Connect tab in the EC2 console fails. The administrator's IAM user has ec2-instance-connect:SendSSHPublicKey permission. What should be changed?",
+      "options": [
+        { "id": "A", "text": "Install the EC2 Instance Connect package on the instance.", "correct": false, "explanation": "The standard Amazon Linux 2023 AMI already includes EC2 Instance Connect, so installation is not the problem." },
+        { "id": "B", "text": "Create a new key pair and download it before connecting.", "correct": false, "explanation": "EC2 Instance Connect pushes its own temporary public key; no downloaded key file is needed for the console session." },
+        { "id": "C", "text": "Open port 3389 in the security group.", "correct": false, "explanation": "3389 is RDP for Windows; EC2 Instance Connect uses SSH on port 22." },
+        { "id": "D", "text": "Add an inbound rule allowing TCP 22 from the com.amazonaws.<region>.ec2-instance-connect prefix list.", "correct": true, "explanation": "The browser session connects from the EC2 Instance Connect service's IP range, which the office-only rule does not include." }
+      ],
+      "explanation": "Console-based EC2 Instance Connect still uses port 22, and the security group must allow it from the service's managed prefix list.",
+      "tags": ["ec2-instance-connect", "security-groups"]
+    },
+    {
+      "id": "03-ec2-basics-q08",
+      "type": "multi",
+      "domain": "secure",
+      "difficulty": "easy",
+      "question": "Which statements about Amazon EC2 security groups are correct? (Select TWO.)",
+      "options": [
+        { "id": "A", "text": "Security groups are stateless, so return traffic needs its own rule.", "correct": false, "explanation": "That describes network ACLs. Security groups are stateful." },
+        { "id": "B", "text": "A security group rule can explicitly deny traffic from a CIDR range.", "correct": false, "explanation": "Security groups contain allow rules only." },
+        { "id": "C", "text": "If an inbound request is allowed, its response is allowed out regardless of outbound rules.", "correct": true, "explanation": "This is what stateful means: connection tracking lets replies through automatically." },
+        { "id": "D", "text": "A newly created security group allows all outbound traffic and no inbound traffic.", "correct": true, "explanation": "New groups start with zero inbound rules and one outbound rule that allows all traffic." },
+        { "id": "E", "text": "Security groups are applied to subnets, so every instance in the subnet shares the same rules.", "correct": false, "explanation": "Security groups attach to network interfaces of individual resources; subnet-level filtering is the job of network ACLs." }
+      ],
+      "explanation": "Security groups: stateful, allow-only, attached to network interfaces, default deny inbound and allow outbound.",
+      "tags": ["security-groups"]
+    },
+    {
+      "id": "03-ec2-basics-q09",
+      "type": "single",
+      "domain": "cost",
+      "difficulty": "easy",
+      "question": "A small internal wiki runs on one EC2 instance. Average CPU use is under 10 %, with short spikes when people search. It needs about 2 GiB of memory, and the wiki software runs on both x86 and Arm processors. Which instance type is the MOST cost-effective choice?",
+      "options": [
+        { "id": "A", "text": "m7i.large (general purpose, 2 vCPU, 8 GiB)", "correct": false, "explanation": "It would work, but you pay for fixed full-time CPU and four times the memory the wiki needs." },
+        { "id": "B", "text": "c7i.large (compute optimized, 2 vCPU, 4 GiB)", "correct": false, "explanation": "Compute optimized capacity is wasted on a workload that is idle most of the time." },
+        { "id": "C", "text": "t4g.small (burstable general purpose, 2 vCPU, 2 GiB)", "correct": true, "explanation": "Burstable T instances earn CPU credits while idle and spend them on short spikes, which matches this pattern; the Graviton (Arm) t4g has the lowest hourly price of the options, and the wiki runs on Arm." },
+        { "id": "D", "text": "r7i.large (memory optimized, 2 vCPU, 16 GiB)", "correct": false, "explanation": "Memory optimized instances are for large in-memory data sets; 16 GiB is far more than needed." }
+      ],
+      "explanation": "Low average CPU with occasional bursts is the classic case for burstable T instances.",
+      "tags": ["instance-types", "burstable"]
+    },
+    {
+      "id": "03-ec2-basics-q10",
+      "type": "single",
+      "domain": "secure",
+      "difficulty": "medium",
+      "question": "A user data script configures an application on EC2 at launch and needs the database password. The security team does not allow secrets to be readable by anyone who can view instance attributes or by every process on the instance. Which approach meets this requirement?",
+      "options": [
+        { "id": "A", "text": "Store the password in AWS Secrets Manager, attach an IAM role to the instance that can read that secret, and have the script retrieve it at boot.", "correct": true, "explanation": "The secret is encrypted and access-controlled by IAM, and only the script running under the instance role fetches it." },
+        { "id": "B", "text": "Put the password directly in the user data script, since user data is only visible from inside the instance.", "correct": false, "explanation": "User data is neither encrypted nor access-controlled on the instance, and users with permission to describe instance attributes can read it too." },
+        { "id": "C", "text": "Add the password as a tag on the instance and read it from instance metadata.", "correct": false, "explanation": "Tags are visible to anyone who can describe the instance and are not meant for secrets." },
+        { "id": "D", "text": "Bake the password into a custom AMI and share the AMI with the operations team.", "correct": false, "explanation": "Anyone who can launch or copy the AMI gets the password, and rotating it means rebuilding images." }
+      ],
+      "explanation": "Never place secrets in user data; give the instance an IAM role and read them from Secrets Manager or Parameter Store.",
+      "tags": ["user-data", "security"]
+    },
+    {
+      "id": "03-ec2-basics-q11",
+      "type": "single",
+      "domain": "resilient",
+      "difficulty": "medium",
+      "question": "An operator stops an EC2 instance, edits its user data to add a new configuration step, and starts the instance again. The new step does not run. No errors appear in the logs. What explains this behaviour?",
+      "options": [
+        { "id": "A", "text": "User data can only be edited while the instance is running.", "correct": false, "explanation": "It is the opposite: user data can be viewed while running but edited only while the instance is stopped." },
+        { "id": "B", "text": "The script exceeded the 16 KB user data limit and was silently truncated.", "correct": false, "explanation": "An oversized payload is rejected when you save it; it is not silently truncated." },
+        { "id": "C", "text": "By default, user data scripts run only during the first boot of an instance, not on later starts.", "correct": true, "explanation": "cloud-init runs user data once per instance by default; it must be configured explicitly to run on every boot." },
+        { "id": "D", "text": "User data scripts run as an unprivileged user and could not write the configuration.", "correct": false, "explanation": "User data runs as root, and a permission failure would appear in cloud-init-output.log." }
+      ],
+      "explanation": "User data runs once on first boot (as root) unless you configure it to run on every boot.",
+      "tags": ["user-data"]
+    },
+    {
+      "id": "03-ec2-basics-q12",
+      "type": "multi",
+      "domain": "secure",
+      "difficulty": "easy",
+      "question": "Engineers with Windows 11 laptops must open a terminal session on an Amazon Linux instance. The instance has a public IP, and its security group allows TCP 22 from the office. Which approaches work? (Select TWO.)",
+      "options": [
+        { "id": "A", "text": "Use the built-in Windows OpenSSH client with the key pair's .pem file: ssh -i key.pem ec2-user@<public-dns>.", "correct": true, "explanation": "Windows 10 (1809 and later) and Windows 11 provide an OpenSSH client that accepts .pem keys, once the file's permissions are restricted to the user." },
+        { "id": "B", "text": "Use PuTTY with the private key in .ppk format, either converted with PuTTYgen or created as .ppk.", "correct": true, "explanation": "PuTTY needs the .ppk format; EC2 can produce it directly or PuTTYgen converts a .pem." },
+        { "id": "C", "text": "Use Remote Desktop (RDP) on port 3389 to the Linux instance.", "correct": false, "explanation": "RDP is for Windows instances; port 3389 is not open and Amazon Linux does not run an RDP server by default." },
+        { "id": "D", "text": "Load the .pem file directly into PuTTY without conversion.", "correct": false, "explanation": "PuTTY does not read PEM keys natively; the key must be in .ppk format." },
+        { "id": "E", "text": "Use Telnet on port 23 with the ec2-user account.", "correct": false, "explanation": "Telnet is unencrypted, not running on Amazon Linux, and blocked by the security group." }
+      ],
+      "explanation": "From Windows, use the built-in OpenSSH client with .pem or PuTTY with .ppk (or EC2 Instance Connect in the browser).",
+      "tags": ["ssh", "putty", "key-pairs"],
+      "updated": "The slides treat Windows 10 and later as SSH-capable and older Windows as PuTTY-only; EC2 can now also create .ppk keys directly."
+    },
+    {
+      "id": "03-ec2-basics-q13",
+      "type": "single",
+      "domain": "secure",
+      "difficulty": "hard",
+      "question": "A company runs EC2 instances in private subnets with no public IP addresses. Administrators need interactive shell access. Security policy forbids bastion hosts and any inbound rule on administrative ports, and every session must be logged to Amazon S3. Which solution meets these requirements?",
+      "options": [
+        { "id": "A", "text": "EC2 Instance Connect from the EC2 console using the instances' public IP addresses.", "correct": false, "explanation": "The console path needs a public IP and an inbound SSH rule, both of which the scenario rules out." },
+        { "id": "B", "text": "An EC2 Instance Connect Endpoint in each VPC.", "correct": false, "explanation": "It removes the need for public IPs and bastions, but instances must still allow inbound port 22 from the endpoint, which the policy forbids." },
+        { "id": "C", "text": "A hardened bastion host in a public subnet with SSH agent forwarding.", "correct": false, "explanation": "Bastion hosts are explicitly forbidden and need inbound SSH." },
+        { "id": "D", "text": "AWS Systems Manager Session Manager, with the SSM Agent and an IAM instance profile on each instance and session logging to S3.", "correct": true, "explanation": "Session Manager needs no inbound ports, public IPs or bastions, is controlled by IAM, and can log sessions to S3 or CloudWatch Logs." }
+      ],
+      "explanation": "No inbound ports + no bastion + session logging points to Session Manager; EC2 Instance Connect Endpoint still needs port 22 from the endpoint.",
+      "tags": ["session-manager", "ec2-instance-connect"]
+    },
+    {
+      "id": "03-ec2-basics-q14",
+      "type": "single",
+      "domain": "resilient",
+      "difficulty": "easy",
+      "question": "A partner's firewall allows outbound connections only to the public IPv4 address of a company's EC2 instance. After the instance was stopped for maintenance and started again, the partner can no longer connect. What is the simplest way to keep the address from changing after future stop/start cycles?",
+      "options": [
+        { "id": "A", "text": "Reboot the instance instead of stopping it during future maintenance.", "correct": false, "explanation": "A reboot keeps the address, but many maintenance tasks (changing instance type, host issues) require a stop, so the problem would return." },
+        { "id": "B", "text": "Allocate an Elastic IP address, associate it with the instance and give that address to the partner.", "correct": true, "explanation": "An Elastic IP stays allocated to your account and remains associated with the instance across stop and start." },
+        { "id": "C", "text": "Attach a second security group to the instance.", "correct": false, "explanation": "Security groups filter traffic; they have no effect on which public IP the instance receives." },
+        { "id": "D", "text": "Change the instance to a larger instance type.", "correct": false, "explanation": "Instance size has nothing to do with address assignment; a resize even requires a stop, which changes the public IP again." }
+      ],
+      "explanation": "Stop/start releases an auto-assigned public IPv4 address; use an Elastic IP (or DNS in front) for a stable endpoint.",
+      "tags": ["lifecycle", "elastic-ip"]
+    }
+  ]
+}

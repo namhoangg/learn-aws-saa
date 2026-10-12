@@ -1,0 +1,235 @@
+{
+  "section": "14-s3-security",
+  "questions": [
+    {
+      "id": "14-s3-security-q01",
+      "type": "single",
+      "domain": "secure",
+      "difficulty": "easy",
+      "question": "A healthcare company stores patient documents in Amazon S3. Its compliance team requires that all objects are encrypted at rest, that the security team can restrict which roles are allowed to use the encryption key, and that every use of the key is recorded for audits. Which solution meets these requirements?",
+      "options": [
+        { "id": "A", "text": "Rely on the bucket's default SSE-S3 encryption.", "correct": false, "explanation": "SSE-S3 encrypts the data, but the keys are owned by S3: you cannot write a key policy for them and key usage is not logged in CloudTrail." },
+        { "id": "B", "text": "Use SSE-C and store the keys in an on-premises key server.", "correct": false, "explanation": "SSE-C leaves key management and auditing entirely to the company and requires sending the key on every request; it does not give an AWS-side audit trail of key use." },
+        { "id": "C", "text": "Use SSE-KMS with a customer managed KMS key whose key policy lists the allowed roles, and review the KMS events in AWS CloudTrail.", "correct": true, "explanation": "A customer managed key lets the team control usage through the key policy, and every GenerateDataKey and Decrypt call S3 makes is logged in CloudTrail." },
+        { "id": "D", "text": "Enable S3 server access logging on the bucket.", "correct": false, "explanation": "Access logs record requests to the bucket but do not encrypt anything or control who may use an encryption key." }
+      ],
+      "explanation": "Key access control plus an audit trail of key usage is the signature of SSE-KMS (ideally with a customer managed key).",
+      "tags": ["sse-kms", "kms", "cloudtrail"]
+    },
+    {
+      "id": "14-s3-security-q02",
+      "type": "single",
+      "domain": "performant",
+      "difficulty": "medium",
+      "question": "An image-processing pipeline reads and writes tens of thousands of small objects per second in a bucket whose default encryption is SSE-KMS with a customer managed key. During peaks, many requests fail and the logs show KMS throttling. The company must keep using SSE-KMS. What should a solutions architect do to resolve this with the LEAST operational effort?",
+      "options": [
+        { "id": "A", "text": "Enable an S3 Bucket Key in the bucket's default encryption settings (and copy existing hot objects so they use it).", "correct": true, "explanation": "A Bucket Key lets S3 derive data keys locally from a short-lived bucket-level key, removing most calls to KMS and therefore most of the throttling, while still using SSE-KMS." },
+        { "id": "B", "text": "Switch the bucket default encryption to SSE-S3.", "correct": false, "explanation": "This would remove KMS calls but breaks the requirement to keep using SSE-KMS." },
+        { "id": "C", "text": "Spread the objects across more prefixes to increase S3 request throughput.", "correct": false, "explanation": "More prefixes raise S3 request limits, but the bottleneck here is the KMS request quota, which is shared by all calls in the account and Region." },
+        { "id": "D", "text": "Create one customer managed KMS key per prefix to split the load.", "correct": false, "explanation": "The symmetric cryptographic request quota is per account and Region, shared across all keys, so more keys do not add capacity." }
+      ],
+      "explanation": "SSE-KMS calls GenerateDataKey and Decrypt for each object; S3 Bucket Keys (or a Service Quotas increase) are the fix for KMS throttling.",
+      "tags": ["bucket-keys", "kms-quota"]
+    },
+    {
+      "id": "14-s3-security-q03",
+      "type": "single",
+      "domain": "secure",
+      "difficulty": "medium",
+      "question": "A bank's policy says encryption keys must be generated and stored only in its on-premises HSMs and must never be persisted in AWS. The bank still wants Amazon S3, not its own servers, to perform the encryption and decryption of objects. Which approach meets these requirements?",
+      "options": [
+        { "id": "A", "text": "SSE-KMS with an AWS managed key.", "correct": false, "explanation": "AWS managed keys are created and stored in AWS KMS, which violates the rule that keys never persist in AWS." },
+        { "id": "B", "text": "Client-side encryption with the Amazon S3 Encryption Client.", "correct": false, "explanation": "The keys would stay on premises, but the bank's application, not S3, would perform the encryption, which does not match the requirement." },
+        { "id": "C", "text": "SSE-S3 with a bucket policy that requires the AES256 header.", "correct": false, "explanation": "SSE-S3 uses keys owned and stored by S3, so the bank would not control the key material." },
+        { "id": "D", "text": "SSE-C, sending the key from the HSM in the request headers over HTTPS, after allowing SSE-C in the bucket's default encryption settings.", "correct": true, "explanation": "With SSE-C, S3 encrypts with the key supplied in each request and does not store it. Since April 2026 new buckets block SSE-C until BlockedEncryptionTypes is set to allow it." }
+      ],
+      "explanation": "Customer-held keys plus S3-side encryption is SSE-C; remember it is HTTPS-only and now blocked by default on new buckets.",
+      "tags": ["sse-c"],
+      "updated": "Since April 2026 SSE-C is disabled by default on new buckets and must be explicitly allowed."
+    },
+    {
+      "id": "14-s3-security-q04",
+      "type": "single",
+      "domain": "secure",
+      "difficulty": "easy",
+      "question": "A security audit found that some clients access an S3 bucket over plain HTTP. The company wants S3 to reject every request to the bucket and its objects that is not encrypted in transit, regardless of who sends it. Which solution meets this requirement?",
+      "options": [
+        { "id": "A", "text": "Change the bucket's default encryption to SSE-KMS.", "correct": false, "explanation": "Default encryption protects data at rest; it does not stop requests from arriving over HTTP." },
+        { "id": "B", "text": "Add a bucket policy statement that denies all S3 actions for all principals when aws:SecureTransport is false.", "correct": true, "explanation": "An explicit Deny on aws:SecureTransport = false rejects every HTTP request, and an explicit Deny overrides any Allow." },
+        { "id": "C", "text": "Turn on S3 Block Public Access for the bucket.", "correct": false, "explanation": "Block Public Access prevents public grants; it does not care whether authorized requests use HTTP or HTTPS." },
+        { "id": "D", "text": "Enable MFA Delete on the bucket.", "correct": false, "explanation": "MFA Delete protects version deletion and versioning changes, not the transport protocol." }
+      ],
+      "explanation": "Forcing encryption in transit = bucket policy Deny with the aws:SecureTransport condition key.",
+      "tags": ["encryption-in-transit", "bucket-policy"]
+    },
+    {
+      "id": "14-s3-security-q05",
+      "type": "single",
+      "domain": "secure",
+      "difficulty": "medium",
+      "question": "A marketing site is hosted as a static website in the bucket site-html. Its JavaScript calls fetch() to load a JSON product list from the bucket site-data, which allows public reads. The browser console shows an error that the request was blocked by CORS policy. What should a solutions architect do?",
+      "options": [
+        { "id": "A", "text": "Add a CORS configuration to site-data that allows the site-html website endpoint as an origin with the GET method.", "correct": true, "explanation": "The bucket that serves the requested resource must return Access-Control-Allow-Origin for the calling page's origin; that is configured on site-data." },
+        { "id": "B", "text": "Add a CORS configuration to site-html that allows the site-data origin.", "correct": false, "explanation": "CORS rules on the page's own bucket are never consulted for requests to another bucket; the target bucket must allow the caller." },
+        { "id": "C", "text": "Add a bucket policy to site-data that grants s3:GetObject to everyone.", "correct": false, "explanation": "The data is already publicly readable; the error is a browser cross-origin check, not an authorization failure." },
+        { "id": "D", "text": "Enable S3 Transfer Acceleration on site-data.", "correct": false, "explanation": "Transfer Acceleration speeds up long-distance transfers and has nothing to do with cross-origin browser rules." }
+      ],
+      "explanation": "CORS is configured on the bucket that holds the requested files, allowing the origin of the page that makes the request.",
+      "tags": ["cors"]
+    },
+    {
+      "id": "14-s3-security-q06",
+      "type": "multi",
+      "domain": "resilient",
+      "difficulty": "medium",
+      "question": "A company wants to require a one-time code from an MFA device before anyone can permanently delete object versions in an important S3 bucket. Which statements about MFA Delete are correct? (Select TWO.)",
+      "options": [
+        { "id": "A", "text": "S3 Versioning must be enabled on the bucket.", "correct": true, "explanation": "MFA Delete is part of the versioning configuration and only applies to versioned buckets." },
+        { "id": "B", "text": "An IAM administrator can enable it from the bucket's Properties tab in the console.", "correct": false, "explanation": "Neither IAM users nor the console can enable MFA Delete." },
+        { "id": "C", "text": "After it is enabled, an MFA code is required to list object versions.", "correct": false, "explanation": "Listing versions (including deleted ones) does not require MFA; only permanent version deletes and versioning changes do." },
+        { "id": "D", "text": "Only the bucket owner's root user can enable it, using the AWS CLI, an SDK or the REST API.", "correct": true, "explanation": "The console cannot enable MFA Delete, and only the root user of the owning account may turn it on or off." },
+        { "id": "E", "text": "It can be combined with a lifecycle rule that expires noncurrent versions after 30 days.", "correct": false, "explanation": "AWS documents that MFA Delete cannot be used together with lifecycle configurations." }
+      ],
+      "explanation": "MFA Delete: versioning required, root user only, CLI/API only, protects permanent version deletion and versioning suspension.",
+      "tags": ["mfa-delete", "versioning"]
+    },
+    {
+      "id": "14-s3-security-q07",
+      "type": "single",
+      "domain": "secure",
+      "difficulty": "easy",
+      "question": "A security team needs detailed per-request records for the S3 bucket app-data in eu-west-1, including denied requests, so it can analyze access patterns with Amazon Athena. The records should be stored as files in Amazon S3, and the solution should be low cost. What should a solutions architect configure?",
+      "options": [
+        { "id": "A", "text": "Enable server access logging on app-data with app-data itself as the destination bucket.", "correct": false, "explanation": "Logging a bucket into itself creates a logging loop in which log files generate more log files, so the bucket grows endlessly." },
+        { "id": "B", "text": "Enable server access logging on app-data with a separate logging bucket in eu-west-1 in the same account as the destination.", "correct": true, "explanation": "A dedicated destination bucket in the same Region and account is required; logging is free apart from storing the log files, and Athena can query them." },
+        { "id": "C", "text": "Enable server access logging on app-data with a logging bucket in us-east-1 for disaster recovery.", "correct": false, "explanation": "When logs are delivered to an S3 bucket, the destination has to sit in the source bucket's own Region (and account)." },
+        { "id": "D", "text": "Enable MFA Delete on app-data.", "correct": false, "explanation": "MFA Delete protects version deletion; it produces no request records." }
+      ],
+      "explanation": "Server access logs go to a different bucket in the same Region and account; never the monitored bucket itself.",
+      "tags": ["access-logs"]
+    },
+    {
+      "id": "14-s3-security-q08",
+      "type": "single",
+      "domain": "secure",
+      "difficulty": "medium",
+      "question": "A video platform stores premium videos in a private S3 bucket. Only signed-in subscribers may download a video, and a shared link must stop working after 15 minutes. The subscriber list changes every day and the company does not want to create IAM identities for customers. Which solution meets these requirements?",
+      "options": [
+        { "id": "A", "text": "Make the bucket public and hide the object keys behind random names.", "correct": false, "explanation": "Anyone who learns a key could download the video forever; obscurity is not access control." },
+        { "id": "B", "text": "Create an IAM user for each subscriber with read access to the bucket.", "correct": false, "explanation": "This does not scale with a daily-changing subscriber list and hands long-term credentials to customers." },
+        { "id": "C", "text": "Have the backend check the subscription and generate an S3 pre-signed GET URL that expires in 15 minutes.", "correct": true, "explanation": "A pre-signed URL grants time-limited access to one object using the backend's permissions, so the bucket stays private and no customer identities are needed." },
+        { "id": "D", "text": "Add a CORS rule that only allows the platform's domain to read the videos.", "correct": false, "explanation": "CORS only instructs browsers; it does not authenticate users and is ignored by non-browser clients." }
+      ],
+      "explanation": "Temporary, per-user access to private objects without IAM users = pre-signed URLs with a short expiry.",
+      "tags": ["presigned-url"]
+    },
+    {
+      "id": "14-s3-security-q09",
+      "type": "single",
+      "domain": "secure",
+      "difficulty": "hard",
+      "question": "An application on Amazon EC2 uses the instance profile role to generate S3 pre-signed URLs with an expiration of 7 days, which partners use to download reports. Partners complain that many links stop working after a few hours. What is the most likely cause?",
+      "options": [
+        { "id": "A", "text": "The S3 console limits pre-signed URLs to 12 hours.", "correct": false, "explanation": "The 12-hour limit applies to URLs created in the console; this application signs URLs through an SDK." },
+        { "id": "B", "text": "The bucket's default encryption is SSE-S3, which invalidates pre-signed URLs.", "correct": false, "explanation": "Pre-signed URLs work the same way for encrypted and unencrypted objects." },
+        { "id": "C", "text": "The bucket lacks a CORS configuration for the partners' domains.", "correct": false, "explanation": "CORS only affects browser scripts reading cross-origin responses; it does not expire links." },
+        { "id": "D", "text": "The URLs were signed with temporary role credentials, so they expire when those credentials expire, regardless of the requested 7 days.", "correct": true, "explanation": "A pre-signed URL can never outlive the credentials that signed it; instance profile credentials last only hours." }
+      ],
+      "explanation": "Pre-signed URL lifetime = the shorter of the requested expiry and the signing credentials' lifetime.",
+      "tags": ["presigned-url", "iam-roles"]
+    },
+    {
+      "id": "14-s3-security-q10",
+      "type": "single",
+      "domain": "resilient",
+      "difficulty": "medium",
+      "question": "A broker-dealer must keep trade records in Amazon S3 in a non-rewritable, non-erasable format for 7 years. No user, including the root user of the account, may delete or overwrite a record during that time. Which solution meets this requirement?",
+      "options": [
+        { "id": "A", "text": "Enable MFA Delete on a versioned bucket.", "correct": false, "explanation": "MFA Delete adds friction, but the root user with the MFA device can still permanently delete versions." },
+        { "id": "B", "text": "Enable S3 Object Lock and apply compliance mode retention of 7 years to the record versions (for example as the bucket default retention).", "correct": true, "explanation": "In compliance mode no user, including root, can delete or overwrite the locked version, change the mode or shorten the period." },
+        { "id": "C", "text": "Enable S3 Object Lock with governance mode retention of 7 years.", "correct": false, "explanation": "Users with s3:BypassGovernanceRetention can still delete governance-mode objects, so it does not stop everyone." },
+        { "id": "D", "text": "Add a bucket policy that denies s3:DeleteObject to all principals.", "correct": false, "explanation": "A bucket policy can be edited or removed by the account's administrators or root user, so it is not immutable." }
+      ],
+      "explanation": "\"Nobody, not even root\" plus a fixed period is S3 Object Lock in compliance mode.",
+      "tags": ["object-lock", "worm"]
+    },
+    {
+      "id": "14-s3-security-q11",
+      "type": "multi",
+      "domain": "resilient",
+      "difficulty": "hard",
+      "question": "A company stores contracts in an S3 bucket with Object Lock and a default governance-mode retention of 90 days. The legal department needs certain contract versions protected until an ongoing lawsuit ends, which may take years. A small operations group must still be able to delete wrongly uploaded files before their 90 days end. Which actions meet these requirements? (Select TWO.)",
+      "options": [
+        { "id": "A", "text": "Change the bucket default retention to compliance mode.", "correct": false, "explanation": "Compliance mode would stop the operations group from deleting wrongly uploaded files before the retention ends." },
+        { "id": "B", "text": "Place a legal hold on the contract versions involved in the lawsuit.", "correct": true, "explanation": "A legal hold has no expiry and protects the version until someone with s3:PutObjectLegalHold removes it, independently of the 90-day retention." },
+        { "id": "C", "text": "Enable MFA Delete so the lawsuit files require MFA to delete.", "correct": false, "explanation": "MFA Delete does not keep data for an open-ended period and cannot be enabled per object." },
+        { "id": "D", "text": "Move the lawsuit files to an Amazon Glacier vault with a Vault Lock policy.", "correct": false, "explanation": "A locked vault policy can never be changed, so the files could not be released when the case ends; it is also a separate service now closed to new customers." },
+        { "id": "E", "text": "Grant the operations group s3:BypassGovernanceRetention and have them send the bypass governance retention header when deleting.", "correct": true, "explanation": "Governance mode can be overridden by principals with this permission who explicitly request the bypass." }
+      ],
+      "explanation": "Legal hold = protection with no end date; governance mode = protection that privileged users can bypass.",
+      "tags": ["object-lock", "legal-hold"]
+    },
+    {
+      "id": "14-s3-security-q12",
+      "type": "single",
+      "domain": "secure",
+      "difficulty": "medium",
+      "question": "A data lake bucket is shared by dozens of departments. Each department may read and write only its own prefix, and the single bucket policy has become long, error-prone and hard to review. Which solution simplifies permission management with the LEAST effort?",
+      "options": [
+        { "id": "A", "text": "Create a separate bucket per department and replicate data between them.", "correct": false, "explanation": "Splitting and replicating data adds cost and operational work and breaks the shared data lake design." },
+        { "id": "B", "text": "Use S3 Object Lambda to filter objects per department.", "correct": false, "explanation": "Object Lambda transforms object content on retrieval; it is not a way to manage per-prefix permissions." },
+        { "id": "C", "text": "Create one S3 access point per department with a policy scoped to its prefix, and delegate access control from the bucket policy to the account's access points.", "correct": true, "explanation": "Each access point has its own small policy and endpoint, so departments are managed independently while the data stays in one bucket." },
+        { "id": "D", "text": "Use object ACLs to grant each department access to its objects.", "correct": false, "explanation": "ACLs are disabled by default on new buckets, are per object, and are harder to manage than policies." }
+      ],
+      "explanation": "Many teams, one bucket, separate permissions per team or prefix = S3 access points.",
+      "tags": ["access-points"]
+    },
+    {
+      "id": "14-s3-security-q13",
+      "type": "single",
+      "domain": "secure",
+      "difficulty": "hard",
+      "question": "Analytics instances run in private subnets of a VPC with no internet access. A solutions architect created an S3 access point with a VPC network origin for that VPC, delegated the bucket policy to access points, and wrote an access point policy that allows the analytics role to read objects. A gateway VPC endpoint for S3 exists, but requests through the access point return AccessDenied. What is the most likely fix?",
+      "options": [
+        { "id": "A", "text": "Update the VPC endpoint policy so it allows access to both the access point ARN and the underlying bucket.", "correct": true, "explanation": "Requests through a VPC endpoint succeed only if the endpoint policy allows both the access point and the bucket; a restrictive endpoint policy causes AccessDenied." },
+        { "id": "B", "text": "Change the access point's network origin to Internet.", "correct": false, "explanation": "The network origin cannot be changed after creation, and the instances have no internet path anyway." },
+        { "id": "C", "text": "Attach a NAT gateway to the private subnets.", "correct": false, "explanation": "Traffic already reaches S3 through the gateway endpoint. Requests sent out through a NAT gateway would not come from the VPC as S3 sees it, so the VPC-origin access point would still reject them, and the NAT gateway adds cost." },
+        { "id": "D", "text": "Enable S3 Transfer Acceleration on the bucket.", "correct": false, "explanation": "Transfer Acceleration speeds up long-distance uploads through edge locations; it has nothing to do with authorizing private requests from a VPC." }
+      ],
+      "explanation": "For VPC-origin access points, three policies must agree: VPC endpoint policy, access point policy and bucket policy.",
+      "tags": ["access-points", "vpc-endpoints"]
+    },
+    {
+      "id": "14-s3-security-q14",
+      "type": "single",
+      "domain": "secure",
+      "difficulty": "medium",
+      "question": "A retailer that already uses S3 Object Lambda stores customer orders in one S3 bucket. The e-commerce application must read the original objects, while a new analytics application must receive the same objects with personal data removed. The company does not want to store a second copy of the data or change the analytics application's S3 GET calls. Which solution meets these requirements?",
+      "options": [
+        { "id": "A", "text": "Run a nightly AWS Glue job that writes redacted copies to a second bucket.", "correct": false, "explanation": "This stores a second copy of the data and adds a batch pipeline to operate." },
+        { "id": "B", "text": "Enable SSE-KMS and deny the analytics role kms:Decrypt.", "correct": false, "explanation": "The analytics application would then be unable to read the objects at all, not receive a redacted version." },
+        { "id": "C", "text": "Create a CORS rule that hides personal data fields from the analytics application.", "correct": false, "explanation": "CORS only controls which browser origins may read responses; it cannot change object content." },
+        { "id": "D", "text": "Create an S3 Object Lambda Access Point backed by a supporting access point and a Lambda function that redacts personal data, and point the analytics application at it.", "correct": true, "explanation": "Object Lambda transforms each GET on the fly through the Lambda function, so one copy of the data serves both applications with standard S3 calls." }
+      ],
+      "explanation": "On-the-fly, per-application transformation of S3 objects without copies = S3 Object Lambda.",
+      "tags": ["object-lambda"],
+      "updated": "S3 Object Lambda has been closed to new customers since 7 November 2025; new accounts would use Lambda behind API Gateway, a function URL or CloudFront."
+    },
+    {
+      "id": "14-s3-security-q15",
+      "type": "multi",
+      "domain": "cost",
+      "difficulty": "medium",
+      "question": "A company changes the default encryption of an existing bucket that contains 50 million objects from SSE-S3 to SSE-KMS with a customer managed key, and enables an S3 Bucket Key. Which statements are correct? (Select TWO.)",
+      "options": [
+        { "id": "A", "text": "S3 automatically re-encrypts all existing objects with the new KMS key within 24 hours.", "correct": false, "explanation": "S3 never re-encrypts existing objects when the default changes." },
+        { "id": "B", "text": "Because a Bucket Key is used, the KMS key policy is no longer evaluated for any request.", "correct": false, "explanation": "Requesters still need permission on the KMS key; bucket-level keys are fetched at least once per requester so access is checked and logged." },
+        { "id": "C", "text": "Objects that were already in the bucket keep SSE-S3 until they are copied or rewritten, for example with S3 Batch Operations.", "correct": true, "explanation": "Default encryption applies only to new uploads; existing objects must be copied to pick up SSE-KMS." },
+        { "id": "D", "text": "S3 Bucket Keys would also work if the company chose DSSE-KMS instead.", "correct": false, "explanation": "S3 Bucket Keys are not supported for DSSE-KMS." },
+        { "id": "E", "text": "The S3 Bucket Key reduces the number of requests from S3 to KMS, lowering KMS request charges.", "correct": true, "explanation": "A short-lived bucket-level key lets S3 create data keys without calling KMS for every object, cutting KMS request costs by up to 99%." }
+      ],
+      "explanation": "Default encryption is forward-looking only, and Bucket Keys are the cost lever for SSE-KMS.",
+      "tags": ["default-encryption", "bucket-keys", "s3-batch-operations"]
+    }
+  ]
+}

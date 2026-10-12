@@ -1,0 +1,188 @@
+{
+  "section": "08-asg",
+  "cards": [
+    {
+      "id": "08-asg-fc-01",
+      "front": "What four jobs does an EC2 Auto Scaling group do?",
+      "back": "1. Keeps the instance count between the **minimum** and **maximum**. 2. **Scales out/in** with demand. 3. **Replaces** instances that stop or fail health checks. 4. **Registers/deregisters** instances with the load balancer's target group.",
+      "tags": ["asg"]
+    },
+    {
+      "id": "08-asg-fc-02",
+      "front": "How much does EC2 Auto Scaling cost?",
+      "back": "Nothing extra. You pay only for what the group uses: EC2 instances, EBS volumes, public IPv4 addresses, CloudWatch alarms and detailed monitoring.",
+      "tags": ["asg", "pricing"]
+    },
+    {
+      "id": "08-asg-fc-03",
+      "front": "Define minimum, desired and maximum capacity.",
+      "back": "**Minimum**: the floor the group never goes below. **Desired**: the number it tries to run right now (changed by you, policies or schedules). **Maximum**: the ceiling scale-out stops at. Always min ≤ desired ≤ max.",
+      "tags": ["asg", "capacity"]
+    },
+    {
+      "id": "08-asg-fc-04",
+      "front": "A group's desired capacity equals its maximum and load keeps rising. What happens and what is the fix?",
+      "back": "Nothing scales out: policies cannot exceed the maximum. **Raise the maximum capacity** (the API rejects a desired value above max).",
+      "tags": ["asg", "capacity"]
+    },
+    {
+      "id": "08-asg-fc-05",
+      "front": "What is the geographic scope of an Auto Scaling group?",
+      "back": "**One Region**, spread across one or more **Availability Zones** (the subnets you choose). Multi-Region resilience needs a second group in another Region behind Route 53 or Global Accelerator.",
+      "tags": ["asg", "high-availability"]
+    },
+    {
+      "id": "08-asg-fc-06",
+      "front": "What goes in a launch template, and what is set on the Auto Scaling group instead?",
+      "back": "**Template** (per instance): AMI, instance type, key pair, security groups, IAM instance profile, user data, EBS volumes. **Group** (fleet): subnets/AZs, min/desired/max, target groups, health checks, scaling policies, termination policy.",
+      "tags": ["launch-template"]
+    },
+    {
+      "id": "08-asg-fc-07",
+      "front": "What is the current status of launch configurations?",
+      "back": "Legacy and immutable. No instance types released after **1 Jan 2023**; accounts created on or after **1 Oct 2024** cannot create them by any method. Use **launch templates** (versioned, multiple instance types, Spot mix).",
+      "tags": ["launch-template"],
+      "updated": "Stricter than the slides' 'deprecated': new accounts can no longer create launch configurations at all."
+    },
+    {
+      "id": "08-asg-fc-08",
+      "front": "Which health checks does an Auto Scaling group use by default, and which must you turn on?",
+      "back": "Always on: **EC2 status checks** (and scheduled events). Off until enabled: **Elastic Load Balancing**, **EBS** and **VPC Lattice** health checks. Custom checks are reported with `set-instance-health`.",
+      "tags": ["health-checks"],
+      "updated": "EBS and VPC Lattice health checks are newer options than the slides."
+    },
+    {
+      "id": "08-asg-fc-09",
+      "front": "What is the health check grace period and its defaults?",
+      "back": "How long after an instance enters `InService` the group waits before acting on failed health checks, so booting instances are not killed. **300 s** in the console, **0 s** with the CLI/SDK. Losing the `running` state is acted on immediately.",
+      "tags": ["health-checks"]
+    },
+    {
+      "id": "08-asg-fc-10",
+      "front": "How does a target tracking scaling policy work?",
+      "back": "You pick a metric and a target value (e.g. 50% average CPU). EC2 Auto Scaling creates and manages **two CloudWatch alarms** and adds or removes instances to keep the metric near the target, like a thermostat. Never edit its alarms.",
+      "tags": ["target-tracking"]
+    },
+    {
+      "id": "08-asg-fc-11",
+      "front": "Name the four predefined metrics for target tracking.",
+      "back": "`ASGAverageCPUUtilization`, `ALBRequestCountPerTarget`, `ASGAverageNetworkIn`, `ASGAverageNetworkOut`. Anything else is a custom metric (or metric math).",
+      "tags": ["target-tracking", "metrics"]
+    },
+    {
+      "id": "08-asg-fc-12",
+      "front": "Why are the ALB's total RequestCount and latency poor target tracking metrics?",
+      "back": "They do not fall in proportion when instances are added: total requests measure demand, and latency is not proportional to capacity. Use **`ALBRequestCountPerTarget`** instead.",
+      "tags": ["target-tracking", "metrics"]
+    },
+    {
+      "id": "08-asg-fc-13",
+      "front": "Step scaling vs simple scaling?",
+      "back": "Both use alarms you create. **Step**: several bands, bigger breach = bigger adjustment, keeps reacting while in breach. **Simple**: one fixed adjustment, then waits for the **cooldown**. AWS recommends target tracking, then step; avoid simple.",
+      "tags": ["step-scaling"]
+    },
+    {
+      "id": "08-asg-fc-14",
+      "front": "When do you use scheduled scaling, and how is the schedule expressed?",
+      "back": "For load changes you know in advance (Friday sale, office hours). A scheduled action sets desired and optionally min/max, **once** or on a **cron** schedule, in UTC or an IANA time zone. Up to **125** per group.",
+      "tags": ["scheduled-scaling"]
+    },
+    {
+      "id": "08-asg-fc-15",
+      "front": "Predictive scaling: how much history, what forecast, how often?",
+      "back": "Needs at least **24 hours** of data, analyses up to **14 days**, forecasts hourly capacity for the next **48 hours**, refreshed every **6 hours**. Starts in **forecast only** mode, then **forecast and scale**.",
+      "tags": ["predictive-scaling"]
+    },
+    {
+      "id": "08-asg-fc-16",
+      "front": "Does predictive scaling scale in?",
+      "back": "**No.** It only adds capacity ahead of forecast load. Pair it with a dynamic policy (usually target tracking) to remove capacity and handle surprises.",
+      "tags": ["predictive-scaling"]
+    },
+    {
+      "id": "08-asg-fc-17",
+      "front": "Several scaling policies are active at once. What capacity does the group use?",
+      "back": "Each policy computes its own desired capacity and the group takes the **largest**. With multiple target tracking policies it scales out if **any** wants more and scales in only if **all** agree.",
+      "tags": ["scaling-policies"]
+    },
+    {
+      "id": "08-asg-fc-18",
+      "front": "How do you scale an ASG of SQS workers correctly?",
+      "back": "Target tracking on **backlog per instance** (queue messages ÷ in-service instances, via metric math). Target = acceptable latency ÷ processing time per message, e.g. 30 s ÷ 0.5 s = 60 messages per instance.",
+      "tags": ["metrics", "sqs"]
+    },
+    {
+      "id": "08-asg-fc-19",
+      "front": "What is the default cooldown, and which policies does it affect?",
+      "back": "**300 seconds**, and it gates only **simple scaling** policies. Target tracking and step scaling use instance warmup; scheduled actions and unhealthy-instance replacement ignore the cooldown.",
+      "tags": ["cooldown"],
+      "updated": "The slides apply the cooldown to every scaling activity; current docs limit it to simple scaling."
+    },
+    {
+      "id": "08-asg-fc-20",
+      "front": "What is the default instance warmup?",
+      "back": "A group-level time after `InService` during which a new instance does not count in aggregated metrics; scale-in is blocked meanwhile and warming instances count as capacity already added. **Not enabled by default**; AWS strongly recommends it (start around 300 s).",
+      "tags": ["cooldown", "warmup"]
+    },
+    {
+      "id": "08-asg-fc-21",
+      "front": "Three ways to get new Auto Scaling instances serving traffic sooner?",
+      "back": "A **golden AMI** with software pre-installed (less user data work), a **launch lifecycle hook** so instances join only when ready, and a **warm pool** of pre-initialized instances. Detailed monitoring also makes EC2-metric policies react faster.",
+      "tags": ["warmup", "ami"]
+    },
+    {
+      "id": "08-asg-fc-22",
+      "front": "In what order does the default termination policy choose an instance on scale-in?",
+      "back": "1. The **AZ with the most instances**. 2. Instances with the **oldest configuration** (launch configuration, then other template, then oldest template version). 3. Closest to the **next billing hour**, then random.",
+      "tags": ["termination-policy"]
+    },
+    {
+      "id": "08-asg-fc-23",
+      "front": "What are lifecycle hooks and their timeouts?",
+      "back": "They pause instances in `Pending:Wait` or `Terminating:Wait` for custom actions (bootstrap, copy logs) until `complete-lifecycle-action` (CONTINUE/ABANDON). Default timeout **1 hour**; maximum **48 h or 100× the heartbeat**, whichever is smaller.",
+      "tags": ["lifecycle-hooks"]
+    },
+    {
+      "id": "08-asg-fc-24",
+      "front": "What is a warm pool and which instance states can it hold?",
+      "back": "Pre-initialized instances kept beside the group for fast scale-out of slow-booting apps. States: **Stopped** (pay EBS + Elastic IPs only), **Hibernated** (RAM saved to EBS) or **Running** (costly, discouraged).",
+      "tags": ["warm-pools"]
+    },
+    {
+      "id": "08-asg-fc-25",
+      "front": "How do you roll a new AMI across a running Auto Scaling group?",
+      "back": "Create a new **launch template version** with the AMI, point the group at it, then start an **instance refresh** (rolling replacement; default minimum healthy **90%**, optional checkpoints and auto rollback).",
+      "tags": ["instance-refresh", "launch-template"]
+    },
+    {
+      "id": "08-asg-fc-26",
+      "front": "Which Spot allocation strategy does AWS recommend in a mixed instances group?",
+      "back": "**price-capacity-optimized**: picks Spot pools with the lowest interruption risk and lowest price. Combine with an **On-Demand base capacity** and **Capacity Rebalancing**.",
+      "tags": ["mixed-instances", "spot"]
+    },
+    {
+      "id": "08-asg-fc-27",
+      "front": "Why should you enable detailed monitoring when scaling on EC2 metrics like CPU?",
+      "back": "Basic monitoring publishes every **5 minutes**; detailed monitoring every **1 minute** (extra CloudWatch charge), so alarms and target tracking react faster. Memory needs the **CloudWatch agent**.",
+      "tags": ["metrics", "cloudwatch"]
+    },
+    {
+      "id": "08-asg-fc-28",
+      "front": "EC2 Auto Scaling vs Application Auto Scaling?",
+      "back": "**EC2 Auto Scaling**: EC2 instances in Auto Scaling groups. **Application Auto Scaling**: the same policy types for ECS services, DynamoDB tables, Aurora replicas, Lambda provisioned concurrency, ElastiCache, EMR, Spot Fleet and more.",
+      "tags": ["application-auto-scaling"]
+    },
+    {
+      "id": "08-asg-fc-29",
+      "front": "A compliance rule says no instance in an Auto Scaling group may run longer than 30 days. Which setting enforces it?",
+      "back": "**Maximum instance lifetime** (minimum 86,400 seconds, one day). The group replaces instances that reach it, launching replacements from the current launch template.",
+      "tags": ["asg", "instance-refresh"]
+    },
+    {
+      "id": "08-asg-fc-30",
+      "front": "How do you stop an Auto Scaling group from replacing instances while you troubleshoot?",
+      "back": "Put the instance in **Standby** (no health checks, stays running), or **suspend the `ReplaceUnhealthy` process** (and `HealthCheck` if needed) for the whole group, then resume it afterwards.",
+      "tags": ["asg", "health-checks"]
+    }
+  ]
+}

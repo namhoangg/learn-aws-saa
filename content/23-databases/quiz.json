@@ -1,0 +1,235 @@
+{
+  "section": "23-databases",
+  "questions": [
+    {
+      "id": "23-databases-q01",
+      "type": "single",
+      "domain": "performant",
+      "difficulty": "easy",
+      "question": "A startup is building a social application. Users follow other users, write posts, comment and like content. The main feature suggests new connections by finding people who are two or three hops away in the network and who liked similar posts, with responses in milliseconds. Which AWS database is the BEST fit for this feature?",
+      "options": [
+        { "id": "A", "text": "Amazon RDS for PostgreSQL with recursive SQL queries", "correct": false, "explanation": "Recursive self-joins work for one hop but get slower and harder to maintain with every extra hop, so millisecond multi-hop traversals are not realistic." },
+        { "id": "B", "text": "Amazon DynamoDB with a table per relationship type", "correct": false, "explanation": "DynamoDB has no joins or traversals; the application would have to issue many sequential lookups and stitch the graph together itself." },
+        { "id": "C", "text": "Amazon Neptune", "correct": true, "explanation": "Neptune is a purpose-built graph database that stores users, posts and likes as vertices and edges and answers multi-hop traversals across billions of relationships in milliseconds." },
+        { "id": "D", "text": "Amazon Keyspaces (for Apache Cassandra)", "correct": false, "explanation": "Keyspaces is a wide-column store queried by partition key with CQL; it has no graph traversal capability and no joins." }
+      ],
+      "explanation": "When the relationships themselves are what you query (friends of friends, fraud rings, recommendations), choose a graph database: Neptune.",
+      "tags": ["neptune", "graph"]
+    },
+    {
+      "id": "23-databases-q02",
+      "type": "single",
+      "domain": "resilient",
+      "difficulty": "easy",
+      "question": "A company runs a self-managed MongoDB replica set on Amazon EC2 for its product catalog. The operations team spends many hours on patching, backups and disk resizing. The company wants a managed, highly available service and must keep its existing MongoDB drivers and queries with minimal code changes. Which solution meets these requirements?",
+      "options": [
+        { "id": "A", "text": "Migrate the catalog to Amazon DocumentDB (with MongoDB compatibility)", "correct": true, "explanation": "DocumentDB is MongoDB-compatible, so drivers and queries keep working, while AWS manages storage that grows automatically, six-way replication across three AZs, backups and failover." },
+        { "id": "B", "text": "Migrate the catalog to Amazon DynamoDB", "correct": false, "explanation": "DynamoDB is fully managed but does not speak the MongoDB API, so the data access layer would have to be rewritten." },
+        { "id": "C", "text": "Move the replica set to larger EC2 instances in an Auto Scaling group", "correct": false, "explanation": "The database would still be self-managed, so patching, backups and disk management remain the team's job." },
+        { "id": "D", "text": "Store each product document as a JSON object in Amazon S3", "correct": false, "explanation": "S3 cannot run MongoDB queries or secondary indexes, so the application would need major changes and lose its query capabilities." }
+      ],
+      "explanation": "\"MongoDB\" plus \"managed\" plus \"minimal code changes\" points to Amazon DocumentDB.",
+      "tags": ["documentdb", "migration"]
+    },
+    {
+      "id": "23-databases-q03",
+      "type": "single",
+      "domain": "cost",
+      "difficulty": "medium",
+      "question": "A gaming company operates a 40-node Apache Cassandra cluster in its data center to store player events. Traffic varies widely during the day. The company wants to move to AWS, stop managing nodes, pay only for the reads and writes it uses, and keep its existing CQL statements and Cassandra drivers. Which solution meets these requirements?",
+      "options": [
+        { "id": "A", "text": "Run Cassandra on Amazon EC2 instances spread across three Availability Zones", "correct": false, "explanation": "This keeps CQL but leaves the company operating nodes, repairs and upgrades, and it pays for instances around the clock." },
+        { "id": "B", "text": "Migrate to Amazon DynamoDB with on-demand capacity", "correct": false, "explanation": "DynamoDB is serverless and pay-per-request, but it does not accept CQL or Cassandra drivers, so the code would need rewriting." },
+        { "id": "C", "text": "Migrate to Amazon Aurora serverless", "correct": false, "explanation": "Aurora is a relational MySQL or PostgreSQL-compatible engine, not a Cassandra-compatible store, so CQL would not work." },
+        { "id": "D", "text": "Migrate to Amazon Keyspaces (for Apache Cassandra) in on-demand capacity mode", "correct": true, "explanation": "Keyspaces is serverless and Cassandra-compatible, so CQL and drivers keep working, there are no nodes, and on-demand mode bills only for requests actually made." }
+      ],
+      "explanation": "Cassandra or CQL with no servers to manage is the signature of Amazon Keyspaces; on-demand mode suits unpredictable traffic.",
+      "tags": ["keyspaces", "migration"]
+    },
+    {
+      "id": "23-databases-q04",
+      "type": "single",
+      "domain": "performant",
+      "difficulty": "medium",
+      "question": "A fraud team stores account relationships in an Amazon Neptune cluster. Investigators also need full-text search over account notes, so every change to the graph must appear in an Amazon OpenSearch Service domain within seconds, in the same order the changes were made. Which approach requires the LEAST custom change-tracking code?",
+      "options": [
+        { "id": "A", "text": "Run a nightly job that exports the whole graph to S3 and reindexes OpenSearch", "correct": false, "explanation": "A nightly batch export leaves the search index hours out of date, which breaks the within-seconds requirement." },
+        { "id": "B", "text": "Enable Neptune Streams and have a reader application poll the streams endpoint and write each change to OpenSearch", "correct": true, "explanation": "Neptune Streams logs every graph change in strict order without duplicates, right after commit, so a simple reader can apply the changes to OpenSearch in near real time." },
+        { "id": "C", "text": "Modify every application that writes to Neptune to also write to OpenSearch", "correct": false, "explanation": "Dual writes need custom code in every writer and can leave the two stores inconsistent when one write fails." },
+        { "id": "D", "text": "Configure Neptune to invoke an AWS Lambda function automatically on every write", "correct": false, "explanation": "Neptune Streams has no native Lambda trigger; a reader must poll the streams REST endpoint." }
+      ],
+      "explanation": "Keeping another store (OpenSearch, ElastiCache, S3, another Region) in sync with a graph is the textbook use of Neptune Streams.",
+      "tags": ["neptune", "neptune-streams", "opensearch"]
+    },
+    {
+      "id": "23-databases-q05",
+      "type": "single",
+      "domain": "performant",
+      "difficulty": "hard",
+      "question": "In 2026, a manufacturer that has never used AWS creates its first AWS account (a standalone account, not part of any existing organization) for a factory monitoring project. Thousands of sensors will send readings every few seconds through Telegraf agents. Engineers need time-window queries (for example 5-minute averages) and Grafana dashboards. The team wants a managed, purpose-built time series database. Which service should the solutions architect recommend?",
+      "options": [
+        { "id": "A", "text": "Amazon Timestream for InfluxDB", "correct": true, "explanation": "It is a managed InfluxDB service, works natively with Telegraf and Grafana, and is the Timestream engine AWS recommends for new customers." },
+        { "id": "B", "text": "Amazon Timestream for LiveAnalytics", "correct": false, "explanation": "LiveAnalytics closed to new customers on 20 June 2025; only payer accounts already using it can add users and linked accounts, so this first-time standalone account cannot adopt it." },
+        { "id": "C", "text": "Amazon RDS for MySQL with a table partitioned by date", "correct": false, "explanation": "A relational database can hold readings but becomes slow and costly at this ingest rate and lacks built-in time series functions." },
+        { "id": "D", "text": "Amazon ElastiCache for Valkey with sorted sets", "correct": false, "explanation": "An in-memory cache is not a durable, cost-effective home for a growing history of sensor readings and does not provide time series analytics." }
+      ],
+      "explanation": "For new time series workloads, AWS points to Timestream for InfluxDB; LiveAnalytics is limited to existing customers.",
+      "tags": ["timestream"],
+      "updated": "Timestream for LiveAnalytics closed to new customers on 20 June 2025"
+    },
+    {
+      "id": "23-databases-q06",
+      "type": "multi",
+      "domain": "cost",
+      "difficulty": "medium",
+      "question": "A company is launching a new serverless application with unpredictable traffic that can drop to zero at night. The team does not want to choose instance sizes or manage database servers, and it wants to pay per request. Which TWO database options meet these requirements? (Select TWO.)",
+      "options": [
+        { "id": "A", "text": "Amazon DynamoDB table in on-demand capacity mode", "correct": true, "explanation": "DynamoDB is serverless with no instances, and on-demand mode bills per read and write request while scaling automatically with traffic." },
+        { "id": "B", "text": "Amazon RDS for PostgreSQL Multi-AZ deployment on db.m7g instances", "correct": false, "explanation": "RDS requires picking an instance class and is billed per instance-hour even when the application is idle at night." },
+        { "id": "C", "text": "Amazon Keyspaces table in on-demand capacity mode", "correct": true, "explanation": "Keyspaces is serverless with no nodes to size, and on-demand mode charges only for the read and write request units actually used." },
+        { "id": "D", "text": "Amazon DocumentDB instance-based cluster with three db.r6g instances", "correct": false, "explanation": "An instance-based cluster means choosing instance classes and paying for every instance-hour regardless of traffic." },
+        { "id": "E", "text": "Amazon Neptune provisioned cluster with two read replicas", "correct": false, "explanation": "Provisioned Neptune instances are sized by you and billed hourly, which contradicts the no-servers, pay-per-request requirement." }
+      ],
+      "explanation": "DynamoDB and Keyspaces are fully serverless and offer per-request on-demand pricing; RDS and instance-based DocumentDB or Neptune bill per instance.",
+      "tags": ["dynamodb", "keyspaces", "serverless"]
+    },
+    {
+      "id": "23-databases-q07",
+      "type": "single",
+      "domain": "performant",
+      "difficulty": "easy",
+      "question": "An e-commerce site stores its product catalog in Amazon DynamoDB. During sales events the catalog receives millions of identical read requests per minute, and the business now requires microsecond read latency without changing the data model. Which solution meets this requirement with the LEAST effort?",
+      "options": [
+        { "id": "A", "text": "Switch the table from provisioned to on-demand capacity", "correct": false, "explanation": "On-demand removes throttling worries but keeps DynamoDB's single-digit millisecond latency, not microseconds." },
+        { "id": "B", "text": "Add a DynamoDB Accelerator (DAX) cluster in front of the table", "correct": true, "explanation": "DAX is an in-memory, API-compatible cache for DynamoDB that serves repeated reads in microseconds with minimal code changes." },
+        { "id": "C", "text": "Create a global table replica in a second Region", "correct": false, "explanation": "Global tables add multi-Region resilience and local access, but each read still has millisecond latency." },
+        { "id": "D", "text": "Export the table to Amazon S3 and serve reads from S3", "correct": false, "explanation": "S3 is slower than DynamoDB for small items and would require rewriting the application's read path." }
+      ],
+      "explanation": "\"Microsecond reads\" on DynamoDB means DAX.",
+      "tags": ["dynamodb", "dax"]
+    },
+    {
+      "id": "23-databases-q08",
+      "type": "single",
+      "domain": "cost",
+      "difficulty": "medium",
+      "question": "A company runs a line-of-business application on Oracle Database under expensive commercial licences. The application uses standard SQL without Oracle-specific features. Management wants to cut licensing costs while improving availability and read scalability, with as little database administration as possible. Which target should a solutions architect recommend?",
+      "options": [
+        { "id": "A", "text": "Amazon RDS for Oracle with a bring-your-own-licence model", "correct": false, "explanation": "The database becomes managed, but the company still pays for Oracle licences, which is the cost it wants to remove." },
+        { "id": "B", "text": "Oracle Database installed on Amazon EC2 Dedicated Hosts", "correct": false, "explanation": "This keeps both the licence cost and the full administration burden of a self-managed database." },
+        { "id": "C", "text": "Amazon DynamoDB with on-demand capacity", "correct": false, "explanation": "Moving a relational SQL application to a NoSQL key-value store would require a major redesign of the data model and queries." },
+        { "id": "D", "text": "Amazon Aurora PostgreSQL-Compatible Edition", "correct": true, "explanation": "Aurora has no commercial licence fees, keeps a relational SQL model, stores data six ways across three AZs and supports up to 15 low-lag read replicas." }
+      ],
+      "explanation": "\"Reduce commercial licence costs\" for a standard SQL app points to Aurora (or an open-source engine on RDS).",
+      "tags": ["aurora", "rds", "cost"]
+    },
+    {
+      "id": "23-databases-q09",
+      "type": "single",
+      "domain": "resilient",
+      "difficulty": "medium",
+      "question": "A financial news company runs its relational database on Amazon Aurora MySQL in us-east-1. Readers in Europe and Asia complain about slow page loads, and the company needs a disaster recovery plan that can promote another Region within minutes if us-east-1 fails. Reads in each remote Region should lag the primary by about a second or less. Which solution meets these requirements?",
+      "options": [
+        { "id": "A", "text": "Convert the cluster into an Aurora Global Database with secondary clusters in Europe and Asia", "correct": true, "explanation": "Aurora Global Database replicates at the storage layer to read-only secondary Regions with lag typically under a second, and a secondary can be promoted for disaster recovery." },
+        { "id": "B", "text": "Add more Aurora Replicas to the existing cluster in us-east-1", "correct": false, "explanation": "Extra replicas in the same Region add read capacity but do nothing for European and Asian latency or for a Regional outage." },
+        { "id": "C", "text": "Take daily snapshots and copy them to Europe and Asia", "correct": false, "explanation": "Snapshot copies give a recovery point up to a day old and cannot serve live reads in the remote Regions." },
+        { "id": "D", "text": "Put Amazon ElastiCache clusters in Europe and Asia in front of the us-east-1 database", "correct": false, "explanation": "Caches can speed up repeated reads but are not a database replica and provide no way to promote another Region after a failure." }
+      ],
+      "explanation": "Cross-Region low-lag reads plus Regional disaster recovery for a relational workload is the job of Aurora Global Database (up to 10 secondary Regions).",
+      "tags": ["aurora-global", "disaster-recovery"],
+      "updated": "Aurora Global Database now supports up to 10 secondary Regions (May 2025)"
+    },
+    {
+      "id": "23-databases-q10",
+      "type": "multi",
+      "domain": "resilient",
+      "difficulty": "hard",
+      "question": "A solutions architect is evaluating Amazon Neptune Streams for an application that must react to changes in a graph database. Which TWO statements about Neptune Streams are correct? (Select TWO.)",
+      "options": [
+        { "id": "A", "text": "Change records appear in strict order and each change is logged only once", "correct": true, "explanation": "Neptune Streams guarantees a strictly sequential log with no duplicates and no missing changes, so consumers can rebuild the graph state." },
+        { "id": "B", "text": "Neptune automatically invokes an AWS Lambda function for every change record", "correct": false, "explanation": "There is no native Lambda integration; the log does not emit events, so a reader application must poll it." },
+        { "id": "C", "text": "Applications read the change log through an HTTP REST API on the cluster", "correct": true, "explanation": "Stream records are retrieved with HTTPS GET requests to the cluster's streams endpoint, from the writer or from read replicas." },
+        { "id": "D", "text": "Change records are kept indefinitely until the stream is disabled", "correct": false, "explanation": "Records expire after 7 days by default, configurable between 1 and 90 days on recent engine versions." },
+        { "id": "E", "text": "Changes become readable only after a nightly batch publishes them", "correct": false, "explanation": "Change records are written in the same transaction as the change and are readable immediately after it commits." }
+      ],
+      "explanation": "Neptune Streams is an ordered, duplicate-free, immediately readable change log exposed over a REST API; consumers poll it.",
+      "tags": ["neptune", "neptune-streams"]
+    },
+    {
+      "id": "23-databases-q11",
+      "type": "single",
+      "domain": "performant",
+      "difficulty": "easy",
+      "question": "A web application running on EC2 instances behind an Application Load Balancer stores user session data on each instance, so users are logged out when an instance is replaced. Session data can be recreated if lost, and lookups must take well under a millisecond. Which solution is MOST appropriate?",
+      "options": [
+        { "id": "A", "text": "Store sessions in Amazon Redshift", "correct": false, "explanation": "Redshift is a data warehouse for analytical queries and is far too slow and heavy for per-request session lookups." },
+        { "id": "B", "text": "Store sessions in Amazon S3 objects keyed by session ID", "correct": false, "explanation": "S3 has much higher per-request latency than an in-memory store and is a poor fit for tiny, frequently updated records." },
+        { "id": "C", "text": "Store sessions in an Amazon Neptune graph", "correct": false, "explanation": "Neptune is built for relationship traversals, not simple key lookups of session blobs." },
+        { "id": "D", "text": "Store sessions in Amazon ElastiCache", "correct": true, "explanation": "ElastiCache is an in-memory key-value store with sub-millisecond latency, and session data that can be rebuilt is a classic workload for it." }
+      ],
+      "explanation": "Sub-millisecond key lookups of rebuildable data such as sessions point to ElastiCache (DynamoDB with TTL is the durable alternative).",
+      "tags": ["elasticache", "sessions"]
+    },
+    {
+      "id": "23-databases-q12",
+      "type": "single",
+      "domain": "performant",
+      "difficulty": "medium",
+      "question": "A team stores sensor readings in an Amazon Keyspaces table whose primary key is ((device_id), reading_time). A new dashboard must list all readings for a given factory site, but a query that filters only on the site_id column is rejected unless ALLOW FILTERING is added, and with it the query is slow. What should the team do?",
+      "options": [
+        { "id": "A", "text": "Add ALLOW FILTERING to every dashboard query and increase provisioned capacity", "correct": false, "explanation": "ALLOW FILTERING scans many partitions; more capacity only makes an inefficient query more expensive and still unpredictable." },
+        { "id": "B", "text": "Create a second table partitioned by site_id and write each reading to both tables", "correct": true, "explanation": "Cassandra data modeling is query-first: denormalise into a table whose partition key matches the new access pattern so the query reads one partition." },
+        { "id": "C", "text": "Use a JOIN between the readings table and a sites table", "correct": false, "explanation": "CQL does not support joins, so this query cannot be written in Keyspaces." },
+        { "id": "D", "text": "Enable point-in-time recovery to speed up the query", "correct": false, "explanation": "PITR provides continuous backups for restores and has no effect on query performance." }
+      ],
+      "explanation": "In Keyspaces and other key-based NoSQL stores, design one table per query pattern so each query targets a partition key.",
+      "tags": ["keyspaces", "data-modeling"]
+    },
+    {
+      "id": "23-databases-q13",
+      "type": "single",
+      "domain": "cost",
+      "difficulty": "medium",
+      "question": "A company's production Amazon Aurora PostgreSQL cluster holds 8 TB of data. Testers need a full, writable copy of production every Monday morning for a few hours of testing. The copy must be ready quickly, and storage costs for the copy should be as low as possible. Which solution meets these requirements?",
+      "options": [
+        { "id": "A", "text": "Restore the latest automated snapshot to a new cluster every Monday", "correct": false, "explanation": "A snapshot restore of 8 TB takes much longer and creates a full copy of the storage, which is slower and costlier than cloning." },
+        { "id": "B", "text": "Use pg_dump to export the database and load it into a new cluster", "correct": false, "explanation": "A logical dump and reload of 8 TB takes many hours and adds operational work every week." },
+        { "id": "C", "text": "Create an Aurora clone of the production cluster", "correct": true, "explanation": "Cloning uses copy-on-write, so the new cluster is available quickly and stores only the pages the testers change." },
+        { "id": "D", "text": "Promote an Aurora Replica to a standalone cluster each week", "correct": false, "explanation": "Aurora Replicas share the production cluster volume; promoting one makes it the writer of the same cluster (a failover), not a separate writable copy, so testers would be writing to production data." }
+      ],
+      "explanation": "Fast, cheap, writable copies of an Aurora cluster for testing are what Aurora database cloning is for.",
+      "tags": ["aurora", "cloning"]
+    },
+    {
+      "id": "23-databases-q14",
+      "type": "single",
+      "domain": "performant",
+      "difficulty": "hard",
+      "question": "Analysts want to run ad hoc SQL with Amazon Athena on a 2 TB Amazon DynamoDB table that serves a latency-sensitive production application. The analysis must not consume any of the table's read capacity or affect performance, and the team wants a fully managed approach. Point-in-time recovery is already enabled. What should the solutions architect do?",
+      "options": [
+        { "id": "A", "text": "Run a Scan from an EC2 script every night and write the results to Amazon S3", "correct": false, "explanation": "A Scan of 2 TB consumes large amounts of read capacity and can throttle the production application." },
+        { "id": "B", "text": "Add a DAX cluster and point Athena at it", "correct": false, "explanation": "DAX caches reads for applications using the DynamoDB API; Athena cannot query it, and cache misses still read from the table." },
+        { "id": "C", "text": "Use DynamoDB export to S3 and query the exported files with Athena", "correct": true, "explanation": "Export to S3 works from the PITR window, consumes no read capacity and has no impact on table performance, and Athena can query the exported data." },
+        { "id": "D", "text": "Enable DynamoDB Streams and replay the whole table through Lambda into S3", "correct": false, "explanation": "Streams only capture changes from the last 24 hours, not the existing 2 TB, and would need custom code." }
+      ],
+      "explanation": "DynamoDB export to S3 (backed by PITR) gives analysts a copy without spending RCUs; import from S3 likewise uses no WCUs.",
+      "tags": ["dynamodb", "s3", "athena"]
+    },
+    {
+      "id": "23-databases-q15",
+      "type": "multi",
+      "domain": "cost",
+      "difficulty": "easy",
+      "question": "A media company is deciding where to store different kinds of data. Which TWO workloads are a better fit for Amazon S3 than for Amazon DynamoDB? (Select TWO.)",
+      "options": [
+        { "id": "A", "text": "Raw 20 GB video files uploaded by customers", "correct": true, "explanation": "S3 holds objects up to 50 TB cheaply and durably, while a DynamoDB item is capped at 400 KB." },
+        { "id": "B", "text": "A shopping cart that is updated several times per minute per user", "correct": false, "explanation": "Small, frequently updated records with millisecond access are a DynamoDB strength; S3 adds request cost and latency for every tiny update." },
+        { "id": "C", "text": "Nightly database backup files of several hundred gigabytes kept for one year", "correct": true, "explanation": "Large backup files suit S3, where lifecycle rules can move them to cheaper Glacier storage classes as they age." },
+        { "id": "D", "text": "A game leaderboard that is read thousands of times per second", "correct": false, "explanation": "High-rate reads and writes of small records need a low-latency database such as DynamoDB or an in-memory store." },
+        { "id": "E", "text": "User profile records of about 2 KB looked up by user ID", "correct": false, "explanation": "Small items fetched by key at low latency are a textbook DynamoDB workload rather than an S3 one." }
+      ],
+      "explanation": "S3 is the key-value store for big objects; DynamoDB is the key-value store for small items needing low latency.",
+      "tags": ["s3", "dynamodb"]
+    }
+  ]
+}

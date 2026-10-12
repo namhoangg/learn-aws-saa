@@ -1,0 +1,165 @@
+{
+  "section": "01-getting-started",
+  "cards": [
+    {
+      "id": "01-getting-started-fc-01",
+      "front": "What is an AWS **Region**?",
+      "back": "A separate geographic area (for example `eu-west-3`, Paris) containing a cluster of data centers grouped into at least three Availability Zones. Regions are isolated from each other, and most services run independently in each one.",
+      "tags": ["regions-azs"]
+    },
+    {
+      "id": "01-getting-started-fc-02",
+      "front": "Name the four factors for choosing an AWS Region, in the order they usually apply.",
+      "back": "1. **Compliance / data residency** (a hard constraint)\n2. **Latency** to your users\n3. **Service and feature availability** in that Region\n4. **Price** (the tie-breaker)",
+      "tags": ["regions-azs", "region-choice"]
+    },
+    {
+      "id": "01-getting-started-fc-03",
+      "front": "What is an **Availability Zone (AZ)**?",
+      "back": "One or more discrete data centers inside a Region, each with its own redundant power, cooling and networking. An AZ is a failure domain: disasters are expected to hit at most one AZ at a time.",
+      "tags": ["regions-azs"]
+    },
+    {
+      "id": "01-getting-started-fc-04",
+      "front": "What is the minimum number of AZs in an AWS Region, and which Region has the most?",
+      "back": "Every Region has **at least three** AZs. **US East (N. Virginia), `us-east-1`**, has the most with **six**.",
+      "updated": "AWS docs list a seventh us-east-1 AZ (Maryland) as coming in 2026; newer accounts see only two AZs in us-west-1.",
+      "tags": ["regions-azs"]
+    },
+    {
+      "id": "01-getting-started-fc-05",
+      "front": "How far apart are the AZs of one Region, and how is traffic between them protected?",
+      "back": "Many kilometers apart so one disaster cannot hit two, but all **within 100 km (60 miles)** of each other, joined by redundant low-latency metro fiber. **All traffic between AZs is encrypted.**",
+      "tags": ["regions-azs"]
+    },
+    {
+      "id": "01-getting-started-fc-06",
+      "front": "What is the basic rule for making an application **highly available** on AWS?",
+      "back": "Run at least two copies of every critical component in **at least two Availability Zones** of the Region, so the loss of one AZ leaves the others serving.",
+      "tags": ["regions-azs", "high-availability"]
+    },
+    {
+      "id": "01-getting-started-fc-07",
+      "front": "Multi-AZ or multi-Region: which protects against the loss of a whole Region?",
+      "back": "**Multi-Region.** Multi-AZ protects against a data center or AZ failure inside one Region and is the usual, cheaper high-availability answer; multi-Region is for Region-wide disasters or geographic DR.",
+      "tags": ["regions-azs", "high-availability"]
+    },
+    {
+      "id": "01-getting-started-fc-08",
+      "front": "What is the difference between an **AZ name** and an **AZ ID**?",
+      "back": "An AZ name (`us-east-1a`) can point to different physical zones in different accounts in older Regions. An AZ ID (`use1-az1`) is the **same physical zone in every account**, so use it to coordinate across accounts.",
+      "updated": "Accounts created from November 2025 get a uniform name-to-zone mapping even in the older Regions.",
+      "tags": ["regions-azs", "az-id"]
+    },
+    {
+      "id": "01-getting-started-fc-09",
+      "front": "Which CLI command shows the AZ names and AZ IDs available to your account in a Region?",
+      "back": "`aws ec2 describe-availability-zones --region <code>` (the `ZoneName` and `ZoneId` fields). Add `--filters Name=zone-type,Values=availability-zone` to hide Local Zones and Wavelength Zones.",
+      "tags": ["regions-azs", "cli-sdk"]
+    },
+    {
+      "id": "01-getting-started-fc-10",
+      "front": "What is an **opt-in Region**?",
+      "back": "A Region launched **after 20 March 2019** (for example Cape Town, Milan, Zurich, Jakarta). It is disabled by default; an administrator must enable it before anyone can create resources there.",
+      "tags": ["regions-azs"]
+    },
+    {
+      "id": "01-getting-started-fc-11",
+      "front": "What runs at AWS **edge locations (points of presence)**?",
+      "back": "The data planes of edge services: **CloudFront** caching, **Route 53** DNS, **Global Accelerator** network entry, and **AWS WAF / Shield** protection for CloudFront. They do **not** run your EC2 instances or databases.",
+      "tags": ["edge-locations", "cloudfront", "route53"]
+    },
+    {
+      "id": "01-getting-started-fc-12",
+      "front": "How big is the AWS edge network today?",
+      "back": "**750+ points of presence** in 100+ cities across 50+ countries, plus **15 regional edge caches** (and 1,140+ embedded POPs inside internet providers' networks).",
+      "updated": "The slides said 400+ PoPs and 10+ regional caches in 90+ cities across 40+ countries.",
+      "tags": ["edge-locations", "cloudfront"]
+    },
+    {
+      "id": "01-getting-started-fc-13",
+      "front": "What is a CloudFront **regional edge cache**?",
+      "back": "A larger cache that sits between the edge locations and your origin. It keeps content that is not popular enough to stay at every edge location, so fewer requests travel back to the origin.",
+      "tags": ["edge-locations", "cloudfront"]
+    },
+    {
+      "id": "01-getting-started-fc-14",
+      "front": "Users in one large city need single-digit millisecond latency to EC2 instances. What do you use?",
+      "back": "**AWS Local Zones**: small AWS sites in metro areas that extend a parent Region. You opt in to the zone and create a subnet there.",
+      "tags": ["local-zones"]
+    },
+    {
+      "id": "01-getting-started-fc-15",
+      "front": "When would you choose **AWS Wavelength** rather than a Local Zone?",
+      "back": "When the users are **mobile devices on a 5G network**: Wavelength Zones sit inside telecom carriers' 5G networks, so traffic does not leave the carrier network to reach your compute.",
+      "tags": ["wavelength"]
+    },
+    {
+      "id": "01-getting-started-fc-16",
+      "front": "What is **AWS Outposts**?",
+      "back": "AWS-owned racks (42U) or servers (1U/2U) installed in **your own data center**, run by AWS as an extension of an AZ in a parent Region. Use it when data or low-latency processing must stay on premises but you want AWS APIs and tools.",
+      "tags": ["outposts"]
+    },
+    {
+      "id": "01-getting-started-fc-17",
+      "front": "Name four AWS services that are **global** rather than Regional.",
+      "back": "**IAM**, **Route 53** (public DNS), **CloudFront**, and **AWS WAF** when protecting CloudFront. (Organizations and Global Accelerator are global too.)",
+      "tags": ["iam", "route53", "cloudfront", "waf"]
+    },
+    {
+      "id": "01-getting-started-fc-18",
+      "front": "In which Region must you create an ACM certificate or a WAF web ACL used by a CloudFront distribution?",
+      "back": "**US East (N. Virginia), `us-east-1`**. Global services keep their configuration there; WAF protection for Regional resources such as an ALB must instead be created in that resource's Region.",
+      "tags": ["acm", "waf", "cloudfront"]
+    },
+    {
+      "id": "01-getting-started-fc-19",
+      "front": "Is Amazon S3 a global or a Regional service?",
+      "back": "**Regional.** Bucket names are unique across all of AWS, but each bucket and its objects live in the one Region you choose, unless you configure replication.",
+      "tags": ["s3", "regions-azs"]
+    },
+    {
+      "id": "01-getting-started-fc-20",
+      "front": "Match the service model to the AWS example: IaaS, PaaS, FaaS, SaaS.",
+      "back": "**IaaS** → Amazon EC2\n**PaaS** → AWS Elastic Beanstalk\n**FaaS** → AWS Lambda\n**SaaS** → Amazon Rekognition (a complete capability consumed through an API)",
+      "tags": ["ec2", "elastic-beanstalk", "lambda", "rekognition"]
+    },
+    {
+      "id": "01-getting-started-fc-21",
+      "front": "You created EC2 instances yesterday, but today the EC2 console shows none. What is the most likely cause?",
+      "back": "The console is set to a **different Region**. EC2 resources appear only in the Region where you created them. Switch with the Region selector, set a default Region in Unified Settings, or use AWS Global View.",
+      "tags": ["console", "regions-azs"]
+    },
+    {
+      "id": "01-getting-started-fc-22",
+      "front": "What is **AWS CloudShell** and what does it cost?",
+      "back": "A browser-based, pre-authenticated terminal opened from the console, with the AWS CLI v2 and common tools preinstalled. **No extra charge**; 1 GB of persistent home storage per Region (deleted after 120 days unused).",
+      "tags": ["cloudshell", "cli-sdk"]
+    },
+    {
+      "id": "01-getting-started-fc-23",
+      "front": "Where do you now check whether a service or feature is available in a given Region?",
+      "back": "**AWS Capabilities by Region** in AWS Builder Center, which compares services, features, APIs and CloudFormation resources across Regions and shows planned launches.",
+      "updated": "Replaced the old Region Table page in November 2025.",
+      "tags": ["regions-azs"]
+    },
+    {
+      "id": "01-getting-started-fc-24",
+      "front": "SAA-C03 basics: how many questions, how long, and what score passes?",
+      "back": "**65 questions** (50 scored, 15 unscored), **130 minutes**, scaled score 100–1,000 with **720** to pass. No penalty for guessing.",
+      "tags": ["exam"]
+    },
+    {
+      "id": "01-getting-started-fc-25",
+      "front": "What are the four SAA-C03 domains and their weights?",
+      "back": "Design **Secure** Architectures 30%, **Resilient** 26%, **High-Performing** 24%, **Cost-Optimized** 20%.",
+      "tags": ["exam"]
+    },
+    {
+      "id": "01-getting-started-fc-26",
+      "front": "Which AWS Budgets template warns you as soon as you spend anything beyond the Free Tier, and what does monitoring cost?",
+      "back": "The **Zero spend budget** template. Budget monitoring and notifications are free; only budgets with actions beyond the first two (USD 0.10 per day each) and budget reports cost money.",
+      "tags": ["budgets"]
+    }
+  ]
+}

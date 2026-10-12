@@ -1,0 +1,233 @@
+{
+  "section": "20-lambda",
+  "questions": [
+    {
+      "id": "20-lambda-q01",
+      "type": "single",
+      "domain": "performant",
+      "difficulty": "medium",
+      "question": "A retail company exposes a checkout API through Amazon API Gateway backed by an AWS Lambda function written in Node.js. Every weekday at 09:00 traffic jumps from almost zero to about 300 concurrent requests, and customers complain that the first requests of the morning are slow. The company wants consistently low latency during business hours and does not want to pay for warm capacity overnight. Which solution meets these requirements?",
+      "options": [
+        {"id": "A", "text": "Set reserved concurrency of 300 on the function.", "correct": false, "explanation": "Reserved concurrency guarantees and caps capacity but does not pre-initialise any environment, so the morning cold starts remain."},
+        {"id": "B", "text": "Increase the function timeout to 15 minutes.", "correct": false, "explanation": "The timeout limits how long one invocation may run; it has no effect on how quickly new execution environments start."},
+        {"id": "C", "text": "Configure provisioned concurrency on a function alias and use Application Auto Scaling scheduled actions to raise it before 09:00 and lower it after business hours.", "correct": true, "explanation": "Provisioned concurrency keeps initialised environments ready, removing cold starts, and scheduled scaling means the company pays for them only during the predictable busy window."},
+        {"id": "D", "text": "Enable Lambda SnapStart on the $LATEST version of the function.", "correct": false, "explanation": "SnapStart does not support Node.js and never applies to $LATEST; it works only on published versions of Java, Python and .NET functions."}
+      ],
+      "explanation": "Predictable latency for a known peak points to provisioned concurrency on a version or alias, scaled on a schedule by Application Auto Scaling.",
+      "tags": ["lambda", "provisioned-concurrency", "cold-start"]
+    },
+    {
+      "id": "20-lambda-q02",
+      "type": "single",
+      "domain": "resilient",
+      "difficulty": "medium",
+      "question": "An account runs dozens of Lambda functions in one Region. A nightly data-import function occasionally scales to hundreds of concurrent executions, and during those periods the order-processing function starts returning throttling errors to customers. The company must make sure the order-processing function always has capacity for up to 150 concurrent requests. What should a solutions architect do?",
+      "options": [
+        {"id": "A", "text": "Configure reserved concurrency of 150 on the order-processing function.", "correct": true, "explanation": "Reserved concurrency sets aside 150 units that no other function can consume, so the import job can no longer starve the order function. It has no additional cost."},
+        {"id": "B", "text": "Increase the memory of the order-processing function to 10,240 MB.", "correct": false, "explanation": "More memory makes each invocation faster but does not stop other functions from consuming the shared concurrency pool."},
+        {"id": "C", "text": "Move the order-processing function to a different Availability Zone.", "correct": false, "explanation": "Lambda is a Regional service and the concurrency pool is per Region; you do not place functions in Availability Zones."},
+        {"id": "D", "text": "Configure an on-failure destination for the order-processing function.", "correct": false, "explanation": "Destinations capture failed asynchronous events after the fact; they do not give the function any capacity, and customer API calls are synchronous."}
+      ],
+      "explanation": "Reserved concurrency both guarantees and caps a function's share of the Regional pool; it is the tool for protecting a critical function from noisy neighbours.",
+      "tags": ["lambda", "reserved-concurrency", "throttling"]
+    },
+    {
+      "id": "20-lambda-q03",
+      "type": "single",
+      "domain": "resilient",
+      "difficulty": "medium",
+      "question": "A serverless application uses Lambda functions to write orders to an Amazon RDS for MySQL DB instance in private subnets. During flash sales the functions scale to over 1,000 concurrent executions and the database starts rejecting connections with \"too many connections\" errors. The company wants to fix the problem with minimal code changes and also improve failover behaviour. Which solution should be used?",
+      "options": [
+        {"id": "A", "text": "Move the database credentials into Lambda environment variables so connections open faster.", "correct": false, "explanation": "Where credentials are stored does not change how many connections each environment opens, and plain environment variables are a weaker security choice than Secrets Manager."},
+        {"id": "B", "text": "Make the DB instance publicly accessible so the functions can connect without being attached to the VPC.", "correct": false, "explanation": "Exposing the database to the internet weakens security and does nothing to reduce the number of connections."},
+        {"id": "C", "text": "Replace the DB instance with a larger instance class every time a sale is planned.", "correct": false, "explanation": "A bigger instance raises the connection ceiling a little but adds cost and operational work, and connection storms can still exceed it."},
+        {"id": "D", "text": "Create an Amazon RDS Proxy for the DB instance and point the VPC-attached functions at the proxy endpoint.", "correct": true, "explanation": "RDS Proxy pools and reuses database connections, absorbs connection surges, and keeps client connections open during failover, cutting failover time. Functions must be in the VPC because the proxy is never public."}
+      ],
+      "explanation": "Lambda connection storms against RDS or Aurora are solved with RDS Proxy, which requires the functions to be attached to the database's VPC.",
+      "tags": ["rds-proxy", "lambda", "vpc"]
+    },
+    {
+      "id": "20-lambda-q04",
+      "type": "single",
+      "domain": "secure",
+      "difficulty": "medium",
+      "question": "A Lambda function must read data from an Amazon ElastiCache cluster in private subnets and then send the result to a partner's public HTTPS API on the internet. The function is attached to the VPC through a public subnet and a security group that allows all outbound traffic, but calls to the partner API time out. What change will fix the problem?",
+      "options": [
+        {"id": "A", "text": "Assign an Elastic IP address to the function's network interface.", "correct": false, "explanation": "Lambda manages its Hyperplane ENIs; you cannot attach an Elastic IP to give a function a public address."},
+        {"id": "B", "text": "Attach the function to private subnets whose route table sends internet-bound traffic to a NAT gateway in a public subnet.", "correct": true, "explanation": "A VPC-attached function never receives a public IP, even in a public subnet. Private subnets routed through a NAT gateway give it outbound internet access while it still reaches ElastiCache."},
+        {"id": "C", "text": "Remove the VPC configuration from the function.", "correct": false, "explanation": "Without the VPC configuration the function regains internet access but can no longer reach the private ElastiCache cluster."},
+        {"id": "D", "text": "Add an inbound rule to the function's security group that allows HTTPS from 0.0.0.0/0.", "correct": false, "explanation": "The problem is outbound routing; inbound rules on the function's security group do not create an internet path."}
+      ],
+      "explanation": "VPC-attached Lambda functions reach the internet only through a NAT gateway from private subnets; a public subnet gives them no public IP.",
+      "tags": ["lambda", "vpc", "nat-gateway"]
+    },
+    {
+      "id": "20-lambda-q05",
+      "type": "single",
+      "domain": "cost",
+      "difficulty": "easy",
+      "question": "A media website served through Amazon CloudFront receives millions of requests per second. The company wants to add security headers to every response and rewrite legacy URLs to new paths at the edge. The logic is a few lines of code with no external calls. Which option is the most cost-effective?",
+      "options": [
+        {"id": "A", "text": "CloudFront Functions associated with the viewer request and viewer response events.", "correct": true, "explanation": "CloudFront Functions are built for lightweight, sub-millisecond header and URL manipulation at millions of requests per second and cost a fraction of Lambda@Edge."},
+        {"id": "B", "text": "Lambda@Edge functions associated with the origin request and origin response events.", "correct": false, "explanation": "Lambda@Edge could do this job, but it costs about six times more per request, adds a duration charge and has no free tier. Nothing in the scenario (network calls, request body, more memory) needs Lambda@Edge, so it is not the most cost-effective choice."},
+        {"id": "C", "text": "A Lambda function behind an Application Load Balancer in front of the origin.", "correct": false, "explanation": "This adds a Regional hop and per-request Lambda cost, and it cannot act on responses served from the CloudFront cache."},
+        {"id": "D", "text": "An Auto Scaling group of EC2 proxy servers between CloudFront and the origin.", "correct": false, "explanation": "Running a proxy fleet adds servers to manage and pay for, the opposite of the lowest-cost serverless option."}
+      ],
+      "explanation": "Simple, high-volume viewer-side changes (headers, redirects, cache-key normalisation, token checks) are the job of CloudFront Functions.",
+      "tags": ["cloudfront-functions", "cloudfront"]
+    },
+    {
+      "id": "20-lambda-q06",
+      "type": "single",
+      "domain": "performant",
+      "difficulty": "medium",
+      "question": "A streaming company uses CloudFront in front of an S3 origin. Before a request is forwarded to the origin, the company wants to look up the viewer's subscription tier in an Amazon DynamoDB table with the AWS SDK and choose a different origin path for premium users. Which solution meets this requirement?",
+      "options": [
+        {"id": "A", "text": "A CloudFront Function on the viewer request event that calls DynamoDB.", "correct": false, "explanation": "CloudFront Functions have no network access, so they cannot call DynamoDB or use the AWS SDK."},
+        {"id": "B", "text": "An S3 event notification that invokes a Lambda function for each GET request.", "correct": false, "explanation": "S3 event notifications fire on object changes such as uploads and deletes, not on reads, and cannot alter CloudFront routing."},
+        {"id": "C", "text": "A Lambda@Edge function, created in us-east-1, associated with the origin request event of the cache behaviour.", "correct": true, "explanation": "Lambda@Edge supports origin request triggers, has network access for SDK calls to DynamoDB and can modify the request before it reaches the origin. It must be authored in us-east-1."},
+        {"id": "D", "text": "A Lambda@Edge function, created in us-east-1, associated with the viewer response event that calls DynamoDB.", "correct": false, "explanation": "Lambda@Edge can call DynamoDB, but the viewer response event runs after CloudFront already has the response, so it is too late to choose which origin path the request goes to."}
+      ],
+      "explanation": "Edge logic that needs the AWS SDK, network calls or origin-side events requires Lambda@Edge, which is created in us-east-1 and replicated by CloudFront.",
+      "tags": ["lambda-edge", "cloudfront", "dynamodb"]
+    },
+    {
+      "id": "20-lambda-q07",
+      "type": "single",
+      "domain": "resilient",
+      "difficulty": "medium",
+      "question": "An S3 bucket invokes a Lambda function whenever an invoice PDF is uploaded. Some invoices are malformed and the function fails on every attempt. The operations team needs to keep each failed event together with the error message and the number of attempts so they can investigate and reprocess later. Which solution requires the least custom code?",
+      "options": [
+        {"id": "A", "text": "Wrap the handler in try/except and write failures to a log file in /tmp.", "correct": false, "explanation": "The /tmp directory is ephemeral and local to one execution environment, so failure records would be lost when the environment is recycled."},
+        {"id": "B", "text": "Configure a dead-letter queue on the S3 bucket.", "correct": false, "explanation": "S3 event notifications have no dead-letter queue setting; failures of asynchronous invocations are handled by Lambda's own configuration."},
+        {"id": "C", "text": "Set the function's reserved concurrency to 0 so that failed events stay in S3.", "correct": false, "explanation": "Reserved concurrency of 0 stops all processing; it does not keep failure details and would block the valid invoices as well."},
+        {"id": "D", "text": "Configure an on-failure destination on the function that sends invocation records to an Amazon SQS standard queue.", "correct": true, "explanation": "S3 invokes Lambda asynchronously; after the retries are exhausted Lambda sends a JSON record with the original event, the error details and the attempt count to the on-failure destination."}
+      ],
+      "explanation": "For asynchronous sources such as S3, SNS and EventBridge, an on-failure destination captures discarded events with response and error details; a DLQ keeps only the event.",
+      "tags": ["lambda", "destinations", "async"]
+    },
+    {
+      "id": "20-lambda-q08",
+      "type": "single",
+      "domain": "cost",
+      "difficulty": "easy",
+      "question": "A company wants to run a containerised report-generation job every night. The job takes about 40 minutes to finish and the company does not want to manage any servers. Which solution meets these requirements?",
+      "options": [
+        {"id": "A", "text": "Package the job as a Lambda container image and invoke it nightly with EventBridge Scheduler.", "correct": false, "explanation": "A single Lambda invocation stops after 15 minutes, so a 40-minute job would be cut off regardless of the packaging."},
+        {"id": "B", "text": "Run the container as an Amazon ECS task on AWS Fargate, started nightly by EventBridge Scheduler.", "correct": true, "explanation": "Fargate runs containers without servers and has no 15-minute limit, and a schedule starts the task only when needed, so nothing runs idle during the day."},
+        {"id": "C", "text": "Run the job on a Lambda function with provisioned concurrency to keep it warm.", "correct": false, "explanation": "Provisioned concurrency removes cold starts but does not extend the 15-minute maximum, and it adds an hourly charge."},
+        {"id": "D", "text": "Launch an On-Demand EC2 instance that runs continuously and uses cron.", "correct": false, "explanation": "A continuously running instance is a server to manage and pays for 23 idle hours a day."}
+      ],
+      "explanation": "Anything longer than 15 minutes rules out a single Lambda invocation; serverless containers on Fargate (or AWS Batch) fit long jobs.",
+      "tags": ["lambda", "limits", "fargate"]
+    },
+    {
+      "id": "20-lambda-q09",
+      "type": "single",
+      "domain": "cost",
+      "difficulty": "hard",
+      "question": "A Lambda function on x86 is configured with 2,048 MB of memory. It runs for 400 ms per invocation and receives 1.5 million invocations per month. Using USD 0.20 per million requests, USD 0.0000166667 per GB-second, and the monthly free allowance of 1 million requests and 400,000 GB-seconds, what is the approximate monthly Lambda charge?",
+      "options": [
+        {"id": "A", "text": "About USD 1.43", "correct": false, "explanation": "This underestimates compute: 1.5 million × 0.4 s × 2 GB is 1,200,000 GB-seconds, of which 800,000 are billable."},
+        {"id": "B", "text": "About USD 20.10", "correct": false, "explanation": "This ignores the 400,000 free GB-seconds; 1,200,000 GB-seconds at full price would be about USD 20, but the free tier applies first."},
+        {"id": "C", "text": "About USD 13.43", "correct": true, "explanation": "Compute: 1,200,000 − 400,000 = 800,000 GB-s × USD 0.0000166667 ≈ USD 13.33. Requests: 0.5 million billable × USD 0.20 = USD 0.10. Total ≈ USD 13.43."},
+        {"id": "D", "text": "About USD 133.43", "correct": false, "explanation": "This is ten times too high; it would match pricing compute at roughly USD 1 per 6,000 GB-seconds instead of about USD 1 per 60,000."}
+      ],
+      "explanation": "Lambda cost = billable requests × USD 0.20 per million + billable GB-seconds (memory in GB × seconds × invocations, minus the free 400,000) × the GB-second rate.",
+      "tags": ["lambda", "pricing"]
+    },
+    {
+      "id": "20-lambda-q10",
+      "type": "single",
+      "domain": "performant",
+      "difficulty": "medium",
+      "question": "A team migrated a Java 21 Spring Boot service to AWS Lambda. The function is attached to a VPC to reach an Amazon RDS database. Each new execution environment takes about 6 seconds to initialise, which hurts users during traffic spikes. Traffic is unpredictable, and the team wants to cut start-up latency without paying for idle pre-warmed capacity. What should the team do?",
+      "options": [
+        {"id": "A", "text": "Enable Lambda SnapStart, publish a new version and route traffic through an alias that points to it.", "correct": true, "explanation": "SnapStart restores new environments from a cached snapshot of the initialised function, cutting multi-second Java start-ups, and has no extra charge for Java managed runtimes. It works on published versions and aliases."},
+        {"id": "B", "text": "Configure provisioned concurrency equal to the highest traffic peak ever observed.", "correct": false, "explanation": "This removes cold starts but bills for the warm environments around the clock, which conflicts with not paying for idle capacity."},
+        {"id": "C", "text": "Set reserved concurrency to 1,000 so environments are created in advance.", "correct": false, "explanation": "Reserved concurrency only reserves and caps capacity; it never pre-initialises environments."},
+        {"id": "D", "text": "Move the function out of the VPC to remove the cold start.", "correct": false, "explanation": "Since the move to shared Hyperplane ENIs, VPC attachment adds little cold-start time, and leaving the VPC would cut the function off from its private database. The delay comes from heavy Java initialisation."}
+      ],
+      "explanation": "Heavy Java initialisation with unpredictable traffic and cost sensitivity points to SnapStart; strict, always-on low latency points to provisioned concurrency.",
+      "tags": ["lambda", "snapstart", "cold-start"]
+    },
+    {
+      "id": "20-lambda-q11",
+      "type": "multi",
+      "domain": "resilient",
+      "difficulty": "medium",
+      "question": "A function has reached its concurrency limit. Which statements correctly describe how Lambda handles the extra invocations? (Select TWO.)",
+      "options": [
+        {"id": "A", "text": "Lambda automatically borrows unused concurrency from another AWS Region.", "correct": false, "explanation": "The concurrency pool is per account per Region; Lambda never shifts invocations to another Region."},
+        {"id": "B", "text": "A caller using a synchronous invocation, such as API Gateway or the SDK, receives a throttling error (HTTP 429) and must retry itself.", "correct": true, "explanation": "Synchronous invocations are not queued by Lambda; the throttle is returned to the caller, which is responsible for retrying."},
+        {"id": "C", "text": "Synchronous invocations are automatically converted to asynchronous ones and retried later.", "correct": false, "explanation": "Lambda does not change the invocation type; synchronous callers simply get the throttling error."},
+        {"id": "D", "text": "An asynchronous event, such as an S3 notification, is returned to Lambda's internal queue and retried with growing back-off for up to 6 hours by default.", "correct": true, "explanation": "For throttles and system errors on asynchronous events, Lambda keeps retrying (1 second up to 5 minutes between tries) until the maximum event age, then uses a DLQ or on-failure destination if one exists."},
+        {"id": "E", "text": "The throttled events are dropped immediately and never retried, whatever the invocation type.", "correct": false, "explanation": "Asynchronous events are retried for hours and event source mappings leave records in the queue or stream, so nothing is dropped immediately."}
+      ],
+      "explanation": "Throttle behaviour depends on the invocation model: synchronous callers get a 429, asynchronous events are retried by Lambda for up to 6 hours, polled sources keep records in the source.",
+      "tags": ["lambda", "throttling", "async"]
+    },
+    {
+      "id": "20-lambda-q12",
+      "type": "multi",
+      "domain": "secure",
+      "difficulty": "hard",
+      "question": "A company wants an Amazon RDS for PostgreSQL DB instance in a private subnet to invoke a Lambda function with the aws_lambda extension whenever a new customer row is inserted, so the function can send a welcome email through Amazon SES. Which steps are required? (Select TWO.)",
+      "options": [
+        {"id": "A", "text": "Create an RDS event notification subscription for the DB instance category.", "correct": false, "explanation": "Event notifications report infrastructure events such as reboots, not inserted rows, and they deliver to SNS or EventBridge rather than running SQL-driven logic."},
+        {"id": "B", "text": "Place an RDS Proxy in front of the DB instance.", "correct": false, "explanation": "RDS Proxy pools inbound client connections to the database; it plays no part in the database calling out to Lambda."},
+        {"id": "C", "text": "Create an IAM role that RDS can assume with permission for lambda:InvokeFunction on the function, and associate it with the DB instance.", "correct": true, "explanation": "The DB instance calls Lambda with the permissions of an IAM role associated with it (feature name Lambda) that allows lambda:InvokeFunction."},
+        {"id": "D", "text": "Make the Lambda function publicly accessible with a function URL so the database can reach it.", "correct": false, "explanation": "The extension calls the Lambda Invoke API with IAM credentials; a public function URL is unnecessary and would weaken security."},
+        {"id": "E", "text": "Provide an outbound network path from the DB instance to the Lambda service, such as a NAT gateway or a VPC interface endpoint for Lambda.", "correct": true, "explanation": "A private DB instance must be able to reach the Lambda endpoint; AWS documents a NAT gateway or a Lambda VPC endpoint for this."}
+      ],
+      "explanation": "To call Lambda from RDS for PostgreSQL or Aurora, the database needs network reachability to the Lambda service and an associated IAM role allowing lambda:InvokeFunction.",
+      "tags": ["rds", "lambda", "iam-roles"]
+    },
+    {
+      "id": "20-lambda-q13",
+      "type": "single",
+      "domain": "resilient",
+      "difficulty": "easy",
+      "question": "The operations team wants to receive an email whenever an Amazon RDS DB instance fails over, is rebooted or runs low on storage. They do not need any information about the data in the tables. What is the simplest solution?",
+      "options": [
+        {"id": "A", "text": "Use the aws_lambda extension to call a function from a database trigger on every table.", "correct": false, "explanation": "Database triggers react to data changes in tables, not to failovers, reboots or storage events."},
+        {"id": "B", "text": "Schedule a Lambda function every minute that polls the database with a SELECT query.", "correct": false, "explanation": "Polling adds code and cost and cannot reliably detect infrastructure events such as a failover."},
+        {"id": "C", "text": "Enable AWS CloudTrail data events for Amazon RDS.", "correct": false, "explanation": "CloudTrail records API calls; it is not a notification mechanism for failovers or low storage."},
+        {"id": "D", "text": "Create an RDS event notification subscription for the relevant event categories that publishes to an Amazon SNS topic with an email subscription.", "correct": true, "explanation": "RDS event notifications cover availability, failover, low storage and configuration events for the DB instance and deliver them through SNS, usually within a few minutes."}
+      ],
+      "explanation": "Infrastructure events about RDS resources come from RDS event notifications (SNS) or the equivalent EventBridge events; they never contain table data.",
+      "tags": ["rds", "sns", "eventbridge"]
+    },
+    {
+      "id": "20-lambda-q14",
+      "type": "multi",
+      "domain": "secure",
+      "difficulty": "medium",
+      "question": "Which statements about connecting AWS Lambda functions to a VPC are correct? (Select TWO.)",
+      "options": [
+        {"id": "A", "text": "Lambda creates Hyperplane elastic network interfaces that are shared by functions using the same subnet and security group combination.", "correct": true, "explanation": "Hyperplane ENIs are created per subnet and security group combination and reused, so invocations do not each need their own ENI."},
+        {"id": "B", "text": "A function attached to a public subnet receives a public IP address and can reach the internet through the internet gateway.", "correct": false, "explanation": "VPC-attached functions never get a public IP; internet access requires private subnets routed to a NAT gateway."},
+        {"id": "C", "text": "Without a VPC configuration, a function cannot reach a DB instance that lives in a private subnet.", "correct": true, "explanation": "By default the function runs in a Lambda-managed VPC with internet access only, so private resources in your VPC are unreachable until you attach it."},
+        {"id": "D", "text": "Each concurrent invocation requires its own dedicated elastic network interface in your subnet.", "correct": false, "explanation": "That was the behaviour before 2019; Hyperplane ENIs are shared, which removed most VPC cold-start and IP exhaustion problems."},
+        {"id": "E", "text": "A VPC-attached function can reach DynamoDB only through a NAT gateway.", "correct": false, "explanation": "A DynamoDB gateway VPC endpoint gives private access without a NAT gateway, and it has no hourly charge."}
+      ],
+      "explanation": "Attach Lambda to private subnets and security groups to reach private resources; use a NAT gateway for the internet and VPC endpoints for AWS services.",
+      "tags": ["lambda", "vpc", "eni"]
+    },
+    {
+      "id": "20-lambda-q15",
+      "type": "single",
+      "domain": "performant",
+      "difficulty": "easy",
+      "question": "A photo-sharing startup wants to create a thumbnail for every image users upload to an S3 bucket and store each image's name, size and upload time so the website can list them. Uploads are bursty and the team wants the least operational overhead. Which architecture should they use?",
+      "options": [
+        {"id": "A", "text": "An EC2 instance that lists the bucket every minute, resizes new images and writes metadata to a MySQL database on the same instance.", "correct": false, "explanation": "Polling from a single instance adds servers to manage, scales poorly with bursts and puts the database on a single point of failure."},
+        {"id": "B", "text": "An S3 event notification that invokes a Lambda function, which writes the thumbnail to a separate bucket and the metadata to an Amazon DynamoDB table.", "correct": true, "explanation": "S3 invokes Lambda for each upload, Lambda scales with bursts automatically, and DynamoDB stores the metadata serverlessly. Writing thumbnails to a separate bucket avoids a recursive trigger loop."},
+        {"id": "C", "text": "An S3 event notification that invokes a Lambda function, which writes the thumbnail back into the same bucket and prefix.", "correct": false, "explanation": "Writing output into the triggering bucket and prefix makes every thumbnail trigger another invocation, creating a costly recursive loop."},
+        {"id": "D", "text": "A Lambda@Edge function that resizes images when users download them through CloudFront.", "correct": false, "explanation": "This resizes on every download rather than once per upload and does not record the metadata the website needs."}
+      ],
+      "explanation": "S3 event → Lambda → separate output bucket + DynamoDB metadata is the textbook serverless, event-driven processing pattern.",
+      "tags": ["lambda", "s3", "dynamodb"]
+    }
+  ]
+}

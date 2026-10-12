@@ -1,0 +1,458 @@
+{
+  "id": "30-threat-protection",
+  "order": 30,
+  "title": "Threat Protection & Detection",
+  "courseSection": "AWS Security & Encryption",
+  "slides": [
+    682,
+    696
+  ],
+  "estimatedMinutes": 55,
+  "summary": "How AWS keeps attackers out and spots the ones who get in: AWS WAF for layer 7 filtering, AWS Shield Standard and Advanced against DDoS, AWS Firewall Manager to push firewall rules across an organization, the AWS DDoS resiliency best practices (BP1-BP7), and the detection trio Amazon GuardDuty (threats), Amazon Inspector (vulnerabilities) and Amazon Macie (sensitive data in S3).",
+  "services": [
+    "waf",
+    "shield",
+    "firewall-manager",
+    "guardduty",
+    "inspector",
+    "macie",
+    "cloudfront",
+    "alb",
+    "api-gateway",
+    "appsync",
+    "cognito",
+    "global-accelerator",
+    "route53",
+    "elb",
+    "nlb",
+    "asg",
+    "ec2",
+    "security-groups",
+    "nacl",
+    "network-firewall",
+    "route53-resolver",
+    "organizations",
+    "config",
+    "eventbridge",
+    "sns",
+    "lambda",
+    "ecr",
+    "systems-manager",
+    "security-hub",
+    "s3",
+    "cloudtrail",
+    "vpc-flow-logs",
+    "eks",
+    "detective"
+  ],
+  "relations": [
+    {
+      "from": "waf",
+      "to": "cloudfront",
+      "label": "filters HTTP requests at the edge for"
+    },
+    {
+      "from": "waf",
+      "to": "alb",
+      "label": "inspects layer 7 traffic arriving at"
+    },
+    {
+      "from": "waf",
+      "to": "api-gateway",
+      "label": "blocks malicious calls to REST APIs on"
+    },
+    {
+      "from": "global-accelerator",
+      "to": "alb",
+      "label": "gives fixed anycast IPs in front of a WAF-protected"
+    },
+    {
+      "from": "shield",
+      "to": "cloudfront",
+      "label": "absorbs layer 3/4 DDoS attacks against"
+    },
+    {
+      "from": "shield",
+      "to": "waf",
+      "label": "(Advanced) writes automatic layer 7 mitigation rules into"
+    },
+    {
+      "from": "firewall-manager",
+      "to": "waf",
+      "label": "deploys web ACL rule groups across accounts with"
+    },
+    {
+      "from": "firewall-manager",
+      "to": "organizations",
+      "label": "applies security policies to every account in"
+    },
+    {
+      "from": "firewall-manager",
+      "to": "security-groups",
+      "label": "audits and enforces baselines for"
+    },
+    {
+      "from": "guardduty",
+      "to": "cloudtrail",
+      "label": "analyzes management events from"
+    },
+    {
+      "from": "guardduty",
+      "to": "vpc-flow-logs",
+      "label": "looks for suspicious traffic in"
+    },
+    {
+      "from": "guardduty",
+      "to": "eventbridge",
+      "label": "publishes findings as events to"
+    },
+    {
+      "from": "inspector",
+      "to": "ecr",
+      "label": "scans container images pushed to"
+    },
+    {
+      "from": "macie",
+      "to": "s3",
+      "label": "discovers PII and other sensitive data in"
+    },
+    {
+      "from": "inspector",
+      "to": "security-hub",
+      "label": "sends vulnerability findings to"
+    }
+  ],
+  "examDomains": [
+    "secure",
+    "resilient",
+    "cost"
+  ],
+  "lastVerified": "2026-10-04",
+  "sources": [
+    {
+      "title": "Resources that you can protect with AWS WAF",
+      "url": "https://docs.aws.amazon.com/waf/latest/developerguide/how-aws-waf-works-resources.html"
+    },
+    {
+      "title": "AWS WAF quotas",
+      "url": "https://docs.aws.amazon.com/waf/latest/developerguide/limits.html"
+    },
+    {
+      "title": "Working with the updated AWS WAF console experience (protection packs)",
+      "url": "https://docs.aws.amazon.com/waf/latest/developerguide/working-with-console.html"
+    },
+    {
+      "title": "Getting started with AWS WAF using the new console experience",
+      "url": "https://docs.aws.amazon.com/waf/latest/developerguide/setup-iap-console.html"
+    },
+    {
+      "title": "Getting started with AWS WAF using the standard console experience",
+      "url": "https://docs.aws.amazon.com/waf/latest/developerguide/setup-existing-console.html"
+    },
+    {
+      "title": "Rate-based rule high-level settings in AWS WAF",
+      "url": "https://docs.aws.amazon.com/waf/latest/developerguide/waf-rule-statement-type-rate-based-high-level-settings.html"
+    },
+    {
+      "title": "Using rule actions in AWS WAF",
+      "url": "https://docs.aws.amazon.com/waf/latest/developerguide/waf-rule-action.html"
+    },
+    {
+      "title": "AWS WAF logging destinations",
+      "url": "https://docs.aws.amazon.com/waf/latest/developerguide/logging-destinations.html"
+    },
+    {
+      "title": "AWS Managed Rules rule groups list",
+      "url": "https://docs.aws.amazon.com/waf/latest/developerguide/aws-managed-rule-groups-list.html"
+    },
+    {
+      "title": "Baseline rule groups (Core rule set, Known bad inputs)",
+      "url": "https://docs.aws.amazon.com/waf/latest/developerguide/aws-managed-rule-groups-baseline.html"
+    },
+    {
+      "title": "Use-case specific rule groups (SQL database)",
+      "url": "https://docs.aws.amazon.com/waf/latest/developerguide/aws-managed-rule-groups-use-case.html"
+    },
+    {
+      "title": "IP reputation rule groups",
+      "url": "https://docs.aws.amazon.com/waf/latest/developerguide/aws-managed-rule-groups-ip-rep.html"
+    },
+    {
+      "title": "Advanced Anti-DDoS protection using the AWS WAF Anti-DDoS managed rule group",
+      "url": "https://docs.aws.amazon.com/waf/latest/developerguide/waf-anti-ddos-advanced.html"
+    },
+    {
+      "title": "AWS WAF pricing",
+      "url": "https://aws.amazon.com/waf/pricing/"
+    },
+    {
+      "title": "AWS Shield Standard overview",
+      "url": "https://docs.aws.amazon.com/waf/latest/developerguide/ddos-standard-summary.html"
+    },
+    {
+      "title": "AWS Shield Advanced overview",
+      "url": "https://docs.aws.amazon.com/waf/latest/developerguide/ddos-advanced-summary.html"
+    },
+    {
+      "title": "List of AWS resources that AWS Shield Advanced protects",
+      "url": "https://docs.aws.amazon.com/waf/latest/developerguide/ddos-advanced-summary-protected-resources.html"
+    },
+    {
+      "title": "Automating application layer DDoS mitigation with Shield Advanced",
+      "url": "https://docs.aws.amazon.com/waf/latest/developerguide/ddos-automatic-app-layer-response.html"
+    },
+    {
+      "title": "Managed DDoS event response with Shield Response Team (SRT) support",
+      "url": "https://docs.aws.amazon.com/waf/latest/developerguide/ddos-srt-support.html"
+    },
+    {
+      "title": "AWS Shield pricing",
+      "url": "https://aws.amazon.com/shield/pricing/"
+    },
+    {
+      "title": "AWS Firewall Manager",
+      "url": "https://docs.aws.amazon.com/waf/latest/developerguide/fms-chapter.html"
+    },
+    {
+      "title": "AWS Firewall Manager prerequisites",
+      "url": "https://docs.aws.amazon.com/waf/latest/developerguide/fms-prereq.html"
+    },
+    {
+      "title": "Using AWS Firewall Manager policies (policy types)",
+      "url": "https://docs.aws.amazon.com/waf/latest/developerguide/working-with-policies.html"
+    },
+    {
+      "title": "Setting up AWS Firewall Manager AWS WAF policies",
+      "url": "https://docs.aws.amazon.com/waf/latest/developerguide/getting-started-fms.html"
+    },
+    {
+      "title": "AWS Firewall Manager quotas",
+      "url": "https://docs.aws.amazon.com/waf/latest/developerguide/fms-limits.html"
+    },
+    {
+      "title": "AWS Firewall Manager pricing",
+      "url": "https://aws.amazon.com/firewall-manager/pricing/"
+    },
+    {
+      "title": "AWS Best Practices for DDoS Resiliency: Mitigation techniques",
+      "url": "https://docs.aws.amazon.com/whitepapers/latest/aws-best-practices-ddos-resiliency/mitigation-techniques.html"
+    },
+    {
+      "title": "AWS Best Practices for DDoS Resiliency: Protecting API endpoints (BP4)",
+      "url": "https://docs.aws.amazon.com/whitepapers/latest/aws-best-practices-ddos-resiliency/protecting-api-endpoints-bp4.html"
+    },
+    {
+      "title": "AWS Best Practices for DDoS Resiliency: Obfuscating AWS resources",
+      "url": "https://docs.aws.amazon.com/whitepapers/latest/aws-best-practices-ddos-resiliency/obfuscating-aws-resources-bp1-bp4-bp5.html"
+    },
+    {
+      "title": "CloudFront flat-rate pricing plans",
+      "url": "https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/flat-rate-pricing-plan.html"
+    },
+    {
+      "title": "What is Amazon GuardDuty?",
+      "url": "https://docs.aws.amazon.com/guardduty/latest/ug/what-is-guardduty.html"
+    },
+    {
+      "title": "GuardDuty foundational data sources",
+      "url": "https://docs.aws.amazon.com/guardduty/latest/ug/guardduty_data-sources.html"
+    },
+    {
+      "title": "Getting started with GuardDuty",
+      "url": "https://docs.aws.amazon.com/guardduty/latest/ug/guardduty_settingup.html"
+    },
+    {
+      "title": "Pricing in GuardDuty (30-day free trial)",
+      "url": "https://docs.aws.amazon.com/guardduty/latest/ug/guardduty-pricing.html"
+    },
+    {
+      "title": "Processing GuardDuty findings with Amazon EventBridge",
+      "url": "https://docs.aws.amazon.com/guardduty/latest/ug/guardduty_findings_eventbridge.html"
+    },
+    {
+      "title": "Generating sample findings in GuardDuty",
+      "url": "https://docs.aws.amazon.com/guardduty/latest/ug/sample_findings.html"
+    },
+    {
+      "title": "Severity levels of GuardDuty findings",
+      "url": "https://docs.aws.amazon.com/guardduty/latest/ug/guardduty_findings-severity.html"
+    },
+    {
+      "title": "GuardDuty EC2 finding types",
+      "url": "https://docs.aws.amazon.com/guardduty/latest/ug/guardduty_finding-types-ec2.html"
+    },
+    {
+      "title": "Suspending or disabling GuardDuty",
+      "url": "https://docs.aws.amazon.com/guardduty/latest/ug/guardduty_suspend-disable.html"
+    },
+    {
+      "title": "What is Amazon Inspector?",
+      "url": "https://docs.aws.amazon.com/inspector/latest/user/what-is-inspector.html"
+    },
+    {
+      "title": "Automated scan types in Amazon Inspector",
+      "url": "https://docs.aws.amazon.com/inspector/latest/user/scanning-resources.html"
+    },
+    {
+      "title": "Scanning Amazon EC2 instances with Amazon Inspector",
+      "url": "https://docs.aws.amazon.com/inspector/latest/user/scanning-ec2.html"
+    },
+    {
+      "title": "Scanning AWS Lambda functions with Amazon Inspector",
+      "url": "https://docs.aws.amazon.com/inspector/latest/user/scanning-lambda.html"
+    },
+    {
+      "title": "Amazon Inspector pricing",
+      "url": "https://aws.amazon.com/inspector/pricing/"
+    },
+    {
+      "title": "Getting started with Amazon Inspector (hybrid scanning enabled automatically)",
+      "url": "https://docs.aws.amazon.com/inspector/latest/user/getting_started.html"
+    },
+    {
+      "title": "Amazon Inspector FAQs (hybrid scan mode default for new customers)",
+      "url": "https://aws.amazon.com/inspector/faqs/"
+    },
+    {
+      "title": "Amazon Inspector agentless vulnerability assessments for Amazon EC2 are generally available (April 2024)",
+      "url": "https://aws.amazon.com/about-aws/whats-new/2024/04/amazon-inspector-agentless-vulnerability-assessments-ec2-ga/"
+    },
+    {
+      "title": "What is Amazon Macie?",
+      "url": "https://docs.aws.amazon.com/macie/latest/user/what-is-macie.html"
+    },
+    {
+      "title": "Getting started with Macie",
+      "url": "https://docs.aws.amazon.com/macie/latest/user/getting-started.html"
+    },
+    {
+      "title": "Creating a sensitive data discovery job",
+      "url": "https://docs.aws.amazon.com/macie/latest/user/discovery-jobs-create.html"
+    },
+    {
+      "title": "Storing and retaining sensitive data discovery results",
+      "url": "https://docs.aws.amazon.com/macie/latest/user/discovery-results-repository-s3.html"
+    },
+    {
+      "title": "Types of Macie findings",
+      "url": "https://docs.aws.amazon.com/macie/latest/user/findings-types.html"
+    },
+    {
+      "title": "Quick reference: Macie managed data identifiers by type",
+      "url": "https://docs.aws.amazon.com/macie/latest/user/mdis-reference-quick.html"
+    },
+    {
+      "title": "Understanding estimated usage costs for Macie (1 GB monthly free tier)",
+      "url": "https://docs.aws.amazon.com/macie/latest/user/account-mgmt-costs-calculations.html"
+    },
+    {
+      "title": "Amazon Macie pricing",
+      "url": "https://aws.amazon.com/macie/pricing/"
+    },
+    {
+      "title": "Introduction to AWS Security Hub CSPM",
+      "url": "https://docs.aws.amazon.com/securityhub/latest/userguide/what-is-securityhub.html"
+    },
+    {
+      "title": "Use AWS WAF to protect your REST APIs in API Gateway",
+      "url": "https://docs.aws.amazon.com/apigateway/latest/developerguide/apigateway-control-access-aws-waf.html"
+    },
+    {
+      "title": "Tutorial: Create a REST API with an HTTP non-proxy integration (console labels)",
+      "url": "https://docs.aws.amazon.com/apigateway/latest/developerguide/api-gateway-create-api-step-by-step.html"
+    },
+    {
+      "title": "Enable mock integration using the API Gateway console",
+      "url": "https://docs.aws.amazon.com/apigateway/latest/developerguide/how-to-mock-integration-console.html"
+    },
+    {
+      "title": "Amazon API Gateway pricing",
+      "url": "https://aws.amazon.com/api-gateway/pricing/"
+    },
+    {
+      "title": "AWS CLI reference: aws wafv2 create-ip-set",
+      "url": "https://docs.aws.amazon.com/cli/latest/reference/wafv2/create-ip-set.html"
+    },
+    {
+      "title": "AWS CLI reference: aws wafv2 create-web-acl",
+      "url": "https://docs.aws.amazon.com/cli/latest/reference/wafv2/create-web-acl.html"
+    },
+    {
+      "title": "Creating and managing an IP set in AWS WAF",
+      "url": "https://docs.aws.amazon.com/waf/latest/developerguide/waf-ip-set-managing.html"
+    },
+    {
+      "title": "Viewing a sample of web requests (AWS WAF sampled requests)",
+      "url": "https://docs.aws.amazon.com/waf/latest/developerguide/web-acl-testing-view-sample.html"
+    },
+    {
+      "title": "Associating or disassociating protection with an AWS resource (AWS WAF)",
+      "url": "https://docs.aws.amazon.com/waf/latest/developerguide/web-acl-associating-aws-resource.html"
+    },
+    {
+      "title": "Get started with the REST API console (deleting a REST API)",
+      "url": "https://docs.aws.amazon.com/apigateway/latest/developerguide/getting-started-rest-new-console.html"
+    },
+    {
+      "title": "Comparison operators for use in event patterns in Amazon EventBridge",
+      "url": "https://docs.aws.amazon.com/eventbridge/latest/userguide/eb-create-pattern-operators.html"
+    },
+    {
+      "title": "Monitoring GuardDuty usage and estimating costs",
+      "url": "https://docs.aws.amazon.com/guardduty/latest/ug/monitoring_costs.html"
+    },
+    {
+      "title": "Suspending Macie for your AWS account",
+      "url": "https://docs.aws.amazon.com/macie/latest/user/macie-suspend-disable.html"
+    },
+    {
+      "title": "Disabling Macie for your AWS account",
+      "url": "https://docs.aws.amazon.com/macie/latest/user/disable-macie.html"
+    },
+    {
+      "title": "Creating a custom data identifier (Macie)",
+      "url": "https://docs.aws.amazon.com/macie/latest/user/custom-data-identifiers-create.html"
+    },
+    {
+      "title": "Managed data identifiers recommended for sensitive data discovery jobs",
+      "url": "https://docs.aws.amazon.com/macie/latest/user/discovery-jobs-mdis-recommended.html"
+    },
+    {
+      "title": "Macie managed data identifiers for PII",
+      "url": "https://docs.aws.amazon.com/macie/latest/user/mdis-reference-pii.html"
+    },
+    {
+      "title": "Macie managed data identifiers for credentials data",
+      "url": "https://docs.aws.amazon.com/macie/latest/user/mdis-reference-credentials.html"
+    },
+    {
+      "title": "Macie managed data identifiers for financial information",
+      "url": "https://docs.aws.amazon.com/macie/latest/user/mdis-reference-financial.html"
+    },
+    {
+      "title": "Enabling automated sensitive data discovery (Macie)",
+      "url": "https://docs.aws.amazon.com/macie/latest/user/discovery-asdd-account-enable.html"
+    },
+    {
+      "title": "AWS CLI reference: aws macie2 create-classification-job",
+      "url": "https://docs.aws.amazon.com/cli/latest/reference/macie2/create-classification-job.html"
+    },
+    {
+      "title": "What's New: Amazon CloudFront no longer charges for requests blocked by AWS WAF",
+      "url": "https://aws.amazon.com/about-aws/whats-new/2024/11/amazon-cloudfront-charges-requests-blocked-aws-waf/"
+    },
+    {
+      "title": "Amazon CloudFront pricing (flat-rate plans and blocked traffic)",
+      "url": "https://aws.amazon.com/cloudfront/pricing/"
+    },
+    {
+      "title": "What's New: AWS Security Hub is now generally available with near real-time risk analytics",
+      "url": "https://aws.amazon.com/about-aws/whats-new/2025/12/security-hub-near-real-time-risk-analytics/"
+    },
+    {
+      "title": "GuardDuty API reference: CreateDetector (default features)",
+      "url": "https://docs.aws.amazon.com/guardduty/latest/APIReference/API_CreateDetector.html"
+    }
+  ],
+  "newServices": []
+}

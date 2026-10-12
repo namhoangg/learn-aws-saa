@@ -1,0 +1,234 @@
+{
+  "section": "02-iam",
+  "questions": [
+    {
+      "id": "02-iam-q01",
+      "type": "single",
+      "domain": "secure",
+      "difficulty": "easy",
+      "question": "A web application running on Amazon EC2 instances must download configuration files from an Amazon S3 bucket. The security team does not allow long-term credentials to be stored on servers. Which solution meets these requirements?",
+      "options": [
+        { "id": "A", "text": "Create an IAM user with S3 read permissions and store its access keys in the instance user data.", "correct": false, "explanation": "User data is readable from the instance and the keys are long-term credentials, which the security team forbids." },
+        { "id": "B", "text": "Create an IAM user for the application and save its access keys in ~/.aws/credentials on each instance.", "correct": false, "explanation": "This still places long-term access keys on the servers, so it violates the requirement and needs manual rotation." },
+        { "id": "C", "text": "Create an IAM role that trusts ec2.amazonaws.com, attach a policy allowing read access to the bucket, and attach the role to the instances through an instance profile.", "correct": true, "explanation": "The role delivers automatically rotated temporary credentials through the instance metadata service, so nothing long-term is stored on the instances." },
+        { "id": "D", "text": "Make the S3 bucket public so the instances can read it without credentials.", "correct": false, "explanation": "A public bucket exposes the configuration files to the whole internet, which is far worse than any credential choice." }
+      ],
+      "explanation": "Workloads on AWS compute should always get permissions from an IAM role, never from stored access keys.",
+      "tags": ["roles", "ec2", "s3"]
+    },
+    {
+      "id": "02-iam-q02",
+      "type": "single",
+      "domain": "secure",
+      "difficulty": "easy",
+      "question": "An auditor requires that IAM user passwords in an AWS account be at least 14 characters long, include symbols and numbers, expire every 90 days, and not repeat any of the previous five passwords. What should a solutions architect do?",
+      "options": [
+        { "id": "A", "text": "Set a custom password policy in IAM Account settings with these length, complexity, expiration and reuse options.", "correct": true, "explanation": "A custom account password policy supports minimum length, character types, expiry from 1 to 1,095 days and reuse prevention of 1 to 24 passwords." },
+        { "id": "B", "text": "Attach an inline policy to every user that denies sign-in when the password is weak.", "correct": false, "explanation": "IAM permission policies control API actions; they cannot inspect password strength or age." },
+        { "id": "C", "text": "Enable MFA for all users; MFA automatically enforces password complexity.", "correct": false, "explanation": "MFA adds a second factor but does not change password length, complexity, expiry or reuse rules." },
+        { "id": "D", "text": "Rely on the default AWS password policy, which already enforces these rules.", "correct": false, "explanation": "The default policy requires only 8 characters and three character types, and passwords never expire." }
+      ],
+      "explanation": "Password length, complexity, rotation and reuse rules for IAM users come from the account's custom password policy.",
+      "tags": ["password-policy"]
+    },
+    {
+      "id": "02-iam-q03",
+      "type": "single",
+      "domain": "secure",
+      "difficulty": "medium",
+      "question": "A security team needs a single document listing every IAM user in the account, whether each user has MFA enabled, and when each user's access keys were last rotated and last used. Which IAM feature provides this with the LEAST effort?",
+      "options": [
+        { "id": "A", "text": "The Last Accessed tab on each IAM user.", "correct": false, "explanation": "Last accessed data is per identity and shows services used, not MFA status or key rotation for every user." },
+        { "id": "B", "text": "AWS CloudTrail event history filtered by IAM API calls.", "correct": false, "explanation": "CloudTrail records API calls; building an MFA and key-age inventory from it would take significant effort." },
+        { "id": "C", "text": "The IAM policy simulator run against each user.", "correct": false, "explanation": "The policy simulator tests whether actions are allowed; it does not report credential status." },
+        { "id": "D", "text": "The IAM credential report.", "correct": true, "explanation": "The credential report is an account-wide CSV with password, MFA and access key status, rotation and last-used details for each user." }
+      ],
+      "explanation": "Account-wide credential status (passwords, MFA, keys) = credential report.",
+      "tags": ["credential-report"]
+    },
+    {
+      "id": "02-iam-q04",
+      "type": "single",
+      "domain": "secure",
+      "difficulty": "medium",
+      "question": "Developers in an IAM group were given the PowerUserAccess managed policy during a project. The company now wants to reduce the group's permissions to only the services the developers actually use. Which IAM capability should the solutions architect use FIRST to identify what to keep?",
+      "options": [
+        { "id": "A", "text": "Generate the IAM credential report and look at the password_last_used column.", "correct": false, "explanation": "Password last used shows sign-in activity, not which AWS services the group's permissions were used for." },
+        { "id": "B", "text": "Review last accessed data (formerly Access Advisor) on the group's Last Accessed tab.", "correct": true, "explanation": "It lists every service the group's policies allow and when members last used each one, so unused services can be removed." },
+        { "id": "C", "text": "Enable MFA for the group.", "correct": false, "explanation": "MFA cannot be enabled on a group, and it does not reveal which permissions are used." },
+        { "id": "D", "text": "Run the IAM policy simulator against the PowerUserAccess policy.", "correct": false, "explanation": "The policy simulator shows which actions a policy would allow or deny, not which services the developers have actually used." }
+      ],
+      "explanation": "To trim permissions toward least privilege, start from last accessed data (or IAM Access Analyzer policy generation).",
+      "tags": ["last-accessed", "least-privilege"]
+    },
+    {
+      "id": "02-iam-q05",
+      "type": "single",
+      "domain": "secure",
+      "difficulty": "medium",
+      "question": "An IAM user is a member of a group whose policy allows s3:* on all resources. The user also has an inline policy with an explicit Deny for s3:DeleteBucket. No other policies apply. What happens when the user tries to delete an empty bucket?",
+      "options": [
+        { "id": "A", "text": "The request is denied because an explicit Deny overrides any Allow.", "correct": true, "explanation": "IAM evaluation always lets an explicit Deny win, regardless of allows from groups or other policies." },
+        { "id": "B", "text": "The request succeeds because group policies take precedence over inline policies.", "correct": false, "explanation": "There is no precedence by policy type; a Deny in any applicable policy wins." },
+        { "id": "C", "text": "The request succeeds because s3:* is broader than s3:DeleteBucket.", "correct": false, "explanation": "Breadth does not matter; the explicit Deny on the specific action still blocks it." },
+        { "id": "D", "text": "The result depends on which policy was attached most recently.", "correct": false, "explanation": "Attachment order plays no role in IAM policy evaluation." }
+      ],
+      "explanation": "Implicit deny by default, explicit Allow grants, explicit Deny always wins.",
+      "tags": ["policy-evaluation"]
+    },
+    {
+      "id": "02-iam-q06",
+      "type": "multi",
+      "domain": "secure",
+      "difficulty": "easy",
+      "question": "A company has just created a new AWS account. Which actions follow AWS best practices for protecting the root user? (Select TWO.)",
+      "options": [
+        { "id": "A", "text": "Register an MFA device, preferably a passkey or security key, for the root user.", "correct": true, "explanation": "MFA is enforced for root users and phishing-resistant passkeys or security keys are AWS's recommended option." },
+        { "id": "B", "text": "Create access keys for the root user so scripts can manage every service.", "correct": false, "explanation": "AWS strongly recommends never creating root access keys because they grant unrestricted, long-term programmatic access." },
+        { "id": "C", "text": "Create an administrator identity for daily work and use the root user only for tasks that require it.", "correct": true, "explanation": "Daily administration through a separate admin identity keeps the root user locked away for the few root-only tasks." },
+        { "id": "D", "text": "Share the root password with all administrators so anyone can respond to incidents.", "correct": false, "explanation": "Sharing the root password removes accountability and multiplies the risk of compromise." },
+        { "id": "E", "text": "Add the root user to an IAM group with a restrictive policy to limit what it can do.", "correct": false, "explanation": "The root user cannot be added to IAM groups, and identity-based policies cannot restrict it inside its own account." }
+      ],
+      "explanation": "Lock the root user away behind MFA, never give it access keys, and work through an admin identity instead.",
+      "tags": ["root-user", "mfa"]
+    },
+    {
+      "id": "02-iam-q07",
+      "type": "single",
+      "domain": "secure",
+      "difficulty": "easy",
+      "question": "A team lead must have all the permissions of the existing Developers group and the existing Auditors group. An administrator suggests making the Auditors group a member of the Developers group. What should the solutions architect recommend?",
+      "options": [
+        { "id": "A", "text": "Proceed with nesting the Auditors group inside the Developers group.", "correct": false, "explanation": "IAM groups cannot contain other groups, so this configuration is not possible." },
+        { "id": "B", "text": "Create a new IAM role and add both groups to it.", "correct": false, "explanation": "Groups cannot be added to roles; roles are assumed by principals, not filled with groups." },
+        { "id": "C", "text": "Merge the Developers and Auditors groups into one new group and delete the two original groups.", "correct": false, "explanation": "Every developer would gain audit permissions and every auditor would gain developer permissions, which breaks least privilege for everyone except the team lead." },
+        { "id": "D", "text": "Add the team lead's IAM user to both the Developers and Auditors groups.", "correct": true, "explanation": "A user can belong to several groups (up to 10) and receives the union of their permissions." }
+      ],
+      "explanation": "Groups hold only users; combine permissions by putting the user in multiple groups.",
+      "tags": ["groups"]
+    },
+    {
+      "id": "02-iam-q08",
+      "type": "single",
+      "domain": "secure",
+      "difficulty": "hard",
+      "question": "An administrator writes a JSON policy that includes \"Principal\": {\"AWS\": \"arn:aws:iam::111122223333:root\"}, \"Action\": \"s3:GetObject\" and a bucket ARN as the resource. When the administrator tries to save it as a customer managed policy and attach it to an IAM user, IAM rejects it. Why?",
+      "options": [
+        { "id": "A", "text": "Customer managed policies cannot reference Amazon S3 resources.", "correct": false, "explanation": "Customer managed policies can grant S3 actions on bucket and object ARNs without any problem." },
+        { "id": "B", "text": "The Principal element is valid only in resource-based policies, such as an S3 bucket policy, not in identity-based policies.", "correct": true, "explanation": "In an identity-based policy the principal is implicitly the identity it is attached to, so the policy belongs on the bucket instead." },
+        { "id": "C", "text": "The Version element must be 2008-10-17 when a Principal is present.", "correct": false, "explanation": "2012-10-17 is the current version for all policies; the old version only removes features." },
+        { "id": "D", "text": "Cross-account access requires an inline policy instead of a managed policy.", "correct": false, "explanation": "Cross-account access is granted with resource-based policies or roles, not by switching to inline identity policies." }
+      ],
+      "explanation": "A policy with a Principal element is resource-based (bucket policy, queue policy, role trust policy).",
+      "tags": ["policies", "principal"]
+    },
+    {
+      "id": "02-iam-q09",
+      "type": "single",
+      "domain": "secure",
+      "difficulty": "medium",
+      "question": "A developer who signs in to the AWS Management Console as an IAM user now needs to run AWS CLI v2 commands from a laptop for a few hours each week. The company wants to avoid creating any new long-term credentials and minimize setup. What should the developer do?",
+      "options": [
+        { "id": "A", "text": "Create an access key in the console and run aws configure with it.", "correct": false, "explanation": "An access key is a new long-term credential, which the company wants to avoid." },
+        { "id": "B", "text": "Ask an administrator to share their access keys for occasional use.", "correct": false, "explanation": "Sharing credentials breaks accountability and still relies on long-term keys." },
+        { "id": "C", "text": "Run aws login, sign in through the browser with the existing console credentials, and use the temporary credentials it caches.", "correct": true, "explanation": "aws login (CLI 2.32.0+) converts the console sign-in into short-lived credentials that refresh automatically for up to 12 hours; the IAM user only needs the permissions in the SignInLocalDevelopmentAccess managed policy." },
+        { "id": "D", "text": "Store the console password in an environment variable that the CLI reads.", "correct": false, "explanation": "The CLI cannot sign API requests with a console password, and storing passwords in variables is insecure." }
+      ],
+      "explanation": "Prefer temporary credentials for CLI use: aws login, IAM Identity Center, CloudShell or roles.",
+      "tags": ["cli", "access-keys"],
+      "updated": "aws login was launched in November 2025."
+    },
+    {
+      "id": "02-iam-q10",
+      "type": "multi",
+      "domain": "secure",
+      "difficulty": "medium",
+      "question": "Five developers will share a single AWS account for a small project, and the company has decided to use IAM users. Which actions follow IAM best practices? (Select TWO.)",
+      "options": [
+        { "id": "A", "text": "Create one IAM user called dev-team and give its password to all five developers.", "correct": false, "explanation": "Shared users make it impossible to tell who did what in CloudTrail and complicate revoking access." },
+        { "id": "B", "text": "Create one IAM user per developer, add them to a Developers group, and attach the needed managed policies to the group.", "correct": true, "explanation": "Individual identities give accountability, and managing permissions on a group keeps them consistent and easy to change." },
+        { "id": "C", "text": "Attach AdministratorAccess directly to each user so nobody is blocked.", "correct": false, "explanation": "Full admin rights for everyone breaks least privilege, and attaching policies to each user individually is harder to manage." },
+        { "id": "D", "text": "Require each developer to register an MFA device and set a strong custom password policy.", "correct": true, "explanation": "MFA plus a strong password policy protects console sign-in even if a password is phished or reused." },
+        { "id": "E", "text": "Create long-term access keys for every developer by default, even those who only use the console.", "correct": false, "explanation": "Create only the credentials a user needs; unused access keys are an unnecessary attack surface." }
+      ],
+      "explanation": "One identity per person, permissions through groups, MFA and a strong password policy, and no unneeded credentials.",
+      "tags": ["best-practices", "groups", "mfa"]
+    },
+    {
+      "id": "02-iam-q11",
+      "type": "single",
+      "domain": "secure",
+      "difficulty": "easy",
+      "question": "An engineer created an access key for an IAM user last month but cannot find the secret access key, which a deployment script now needs. What should the engineer do?",
+      "options": [
+        { "id": "A", "text": "Open the user's Security credentials tab and choose Show next to the existing key.", "correct": false, "explanation": "The secret can be shown or downloaded only once, at creation; the console cannot reveal it later." },
+        { "id": "B", "text": "Ask AWS Support to retrieve the secret access key.", "correct": false, "explanation": "AWS does not keep a retrievable copy of the secret, and you should never share keys with anyone claiming to be support." },
+        { "id": "C", "text": "Create a new access key, update the script to use it, then deactivate and delete the old key.", "correct": true, "explanation": "Users can hold two keys at once, which allows replacing a lost secret without downtime and then removing the old key." },
+        { "id": "D", "text": "Reset the IAM user's console password, which regenerates the secret access key.", "correct": false, "explanation": "Console passwords and access keys are independent credentials; resetting one does not change the other." }
+      ],
+      "explanation": "A lost secret access key cannot be recovered; rotate to a new key and delete the old one.",
+      "tags": ["access-keys"]
+    },
+    {
+      "id": "02-iam-q12",
+      "type": "single",
+      "domain": "secure",
+      "difficulty": "medium",
+      "question": "A company is growing to 40 AWS accounts. Its 300 employees should sign in once with their corporate identities and receive temporary credentials for the accounts they work in. Which approach does AWS recommend?",
+      "options": [
+        { "id": "A", "text": "Create an IAM user for every employee in every account.", "correct": false, "explanation": "That creates 12,000 long-term identities to manage, rotate and audit, which is the opposite of the recommended approach." },
+        { "id": "B", "text": "Use AWS IAM Identity Center connected to the corporate identity provider and assign permission sets per account.", "correct": true, "explanation": "Identity Center gives single sign-on with federated, temporary credentials across all accounts in AWS Organizations." },
+        { "id": "C", "text": "Create one shared IAM user per department in a central account and distribute its access keys.", "correct": false, "explanation": "Shared users and distributed long-term keys break accountability and violate IAM best practices." },
+        { "id": "D", "text": "Give every employee the root user credentials of the accounts they need.", "correct": false, "explanation": "Root credentials must never be shared or used for daily work." }
+      ],
+      "explanation": "Workforce access at scale = federation through IAM Identity Center with temporary credentials.",
+      "tags": ["identity-center", "best-practices"]
+    },
+    {
+      "id": "02-iam-q13",
+      "type": "multi",
+      "domain": "secure",
+      "difficulty": "medium",
+      "question": "A new AWS Lambda function must write items to an Amazon DynamoDB table. Which configuration steps are required to grant this access securely? (Select TWO.)",
+      "options": [
+        { "id": "A", "text": "Create an IAM role whose trust policy allows the lambda.amazonaws.com service principal to assume it, and set it as the function's execution role.", "correct": true, "explanation": "The execution role is how Lambda obtains temporary credentials for the function." },
+        { "id": "B", "text": "Attach to the role a permissions policy allowing dynamodb:PutItem on the table's ARN.", "correct": true, "explanation": "The permissions policy scopes the role to the exact action and table, following least privilege." },
+        { "id": "C", "text": "Create an IAM user for the function and put its access keys in environment variables.", "correct": false, "explanation": "Long-term keys in environment variables are unnecessary and risky when an execution role exists." },
+        { "id": "D", "text": "Add the Lambda function to an IAM group that has DynamoDB permissions.", "correct": false, "explanation": "Groups contain only IAM users; functions and other resources cannot be group members." },
+        { "id": "E", "text": "Use the root user's access keys inside the function code.", "correct": false, "explanation": "Root access keys should never exist, let alone be embedded in code." }
+      ],
+      "explanation": "AWS services get permissions through a role: a trust policy for the service plus a least-privilege permissions policy.",
+      "tags": ["roles", "lambda", "dynamodb"]
+    },
+    {
+      "id": "02-iam-q14",
+      "type": "single",
+      "domain": "cost",
+      "difficulty": "medium",
+      "question": "A startup with one AWS account and about 30 IAM users and roles wants to find permissions that have not been used in the last few months so it can remove them. It wants the MOST cost-effective option. Which should it use?",
+      "options": [
+        { "id": "A", "text": "Enable an IAM Access Analyzer unused access analyzer for continuous monitoring.", "correct": false, "explanation": "Unused access analysis works but is billed per IAM role or user per month, so it is not the cheapest option here." },
+        { "id": "B", "text": "Buy a third-party permissions auditing product from AWS Marketplace.", "correct": false, "explanation": "Paying for an external product is unnecessary when IAM includes free last accessed data." },
+        { "id": "C", "text": "Turn on AWS Config recording for all resource types and review IAM changes.", "correct": false, "explanation": "AWS Config tracks configuration changes, adds cost, and does not show which permissions were used." },
+        { "id": "D", "text": "Review the free last accessed data on each user and role and remove services that were not accessed.", "correct": true, "explanation": "Last accessed data comes with IAM at no charge and shows when each allowed service was last used." }
+      ],
+      "explanation": "IAM itself, the credential report and last accessed data are free; only some IAM Access Analyzer features are billed.",
+      "tags": ["last-accessed", "cost"]
+    },
+    {
+      "id": "02-iam-q15",
+      "type": "single",
+      "domain": "resilient",
+      "difficulty": "easy",
+      "question": "A company runs its workload in us-east-1 and is building a disaster recovery copy in eu-west-1. Its EC2 instances use IAM roles, and its administrators sign in as IAM users. What must the company do so that the same roles and users work in eu-west-1 during a failover?",
+      "options": [
+        { "id": "A", "text": "Nothing extra; IAM users, groups, roles and policies are global and already work in every Region of the account.", "correct": true, "explanation": "IAM is a global service: identities and policies are not tied to a Region, so the existing roles and users can be used in eu-west-1 immediately." },
+        { "id": "B", "text": "Enable cross-Region replication of IAM users and roles from us-east-1 to eu-west-1.", "correct": false, "explanation": "No such feature exists because IAM entities are not stored per Region; there is nothing to replicate." },
+        { "id": "C", "text": "Recreate every IAM user and role in eu-west-1 with the same names and policies.", "correct": false, "explanation": "IAM names are unique per account, not per Region, so the create calls would fail with an EntityAlreadyExists error." },
+        { "id": "D", "text": "Export the IAM configuration with the credential report and import it in eu-west-1.", "correct": false, "explanation": "The credential report is a read-only CSV of credential status for auditing; it cannot be imported and IAM needs no per-Region copy." }
+      ],
+      "explanation": "IAM is global: create users, groups, roles and policies once and they apply in every Region, so a multi-Region DR plan needs no IAM replication.",
+      "tags": ["iam", "global"]
+    }
+  ]
+}

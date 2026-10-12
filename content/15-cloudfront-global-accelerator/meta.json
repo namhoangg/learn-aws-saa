@@ -1,0 +1,343 @@
+{
+  "id": "15-cloudfront-global-accelerator",
+  "order": 15,
+  "title": "CloudFront & Global Accelerator",
+  "courseSection": "CloudFront & Global Accelerator",
+  "slides": [
+    335,
+    349
+  ],
+  "estimatedMinutes": 45,
+  "summary": "Amazon CloudFront caches content at a global edge network in front of S3, load balancers, EC2 or VPC origins, with OAC, managed prefix lists, TTLs, invalidations and geo restriction. AWS Global Accelerator gives applications two static anycast IPs and carries TCP or UDP over the AWS backbone to healthy endpoints in several Regions. Includes CloudFront versus S3 Cross-Region Replication and CloudFront versus Global Accelerator.",
+  "services": [
+    "cloudfront",
+    "global-accelerator",
+    "edge-locations",
+    "s3",
+    "alb",
+    "nlb",
+    "ec2",
+    "elastic-ip",
+    "vpc",
+    "security-groups",
+    "shield",
+    "waf",
+    "acm",
+    "route53",
+    "kms"
+  ],
+  "relations": [
+    {
+      "from": "cloudfront",
+      "to": "s3",
+      "label": "caches and serves objects from, signing requests with OAC to"
+    },
+    {
+      "from": "cloudfront",
+      "to": "alb",
+      "label": "uses as a public custom origin or private VPC origin"
+    },
+    {
+      "from": "cloudfront",
+      "to": "ec2",
+      "label": "fetches dynamic content from"
+    },
+    {
+      "from": "cloudfront",
+      "to": "edge-locations",
+      "label": "caches content at"
+    },
+    {
+      "from": "waf",
+      "to": "cloudfront",
+      "label": "filters HTTP requests at the edge for"
+    },
+    {
+      "from": "shield",
+      "to": "cloudfront",
+      "label": "protects against DDoS"
+    },
+    {
+      "from": "acm",
+      "to": "cloudfront",
+      "label": "provides us-east-1 TLS certificates for"
+    },
+    {
+      "from": "route53",
+      "to": "cloudfront",
+      "label": "points alias records at"
+    },
+    {
+      "from": "global-accelerator",
+      "to": "alb",
+      "label": "routes TCP traffic over the AWS backbone to"
+    },
+    {
+      "from": "global-accelerator",
+      "to": "nlb",
+      "label": "routes TCP and UDP traffic to"
+    },
+    {
+      "from": "global-accelerator",
+      "to": "ec2",
+      "label": "routes traffic to, preserving client IPs"
+    },
+    {
+      "from": "global-accelerator",
+      "to": "elastic-ip",
+      "label": "can use as an endpoint"
+    },
+    {
+      "from": "global-accelerator",
+      "to": "edge-locations",
+      "label": "announces static anycast IPs from"
+    },
+    {
+      "from": "shield",
+      "to": "global-accelerator",
+      "label": "protects static IPs of"
+    }
+  ],
+  "examDomains": [
+    "performant",
+    "resilient",
+    "secure",
+    "cost"
+  ],
+  "lastVerified": "2026-10-04",
+  "sources": [
+    {
+      "title": "Amazon CloudFront features (global edge network: 750+ POPs, 15 regional edge caches)",
+      "url": "https://aws.amazon.com/cloudfront/features/"
+    },
+    {
+      "title": "How CloudFront delivers content (POPs and regional edge caches)",
+      "url": "https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/HowCloudFrontWorks.html"
+    },
+    {
+      "title": "Use various origins with CloudFront distributions",
+      "url": "https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/DownloadDistS3AndCustomOrigins.html"
+    },
+    {
+      "title": "Restrict access to an Amazon S3 origin (OAC and legacy OAI)",
+      "url": "https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/private-content-restricting-access-to-s3.html"
+    },
+    {
+      "title": "Restrict access with VPC origins",
+      "url": "https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/private-content-vpc-origins.html"
+    },
+    {
+      "title": "Amazon CloudFront announces VPC origins (What's New, November 2024)",
+      "url": "https://aws.amazon.com/about-aws/whats-new/2024/11/amazon-cloudfront-vpc-origins/"
+    },
+    {
+      "title": "Restrict access to Application Load Balancers (custom header, managed prefix list)",
+      "url": "https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/restrict-access-to-load-balancer.html"
+    },
+    {
+      "title": "Locations and IP address ranges of CloudFront edge servers (managed prefix list)",
+      "url": "https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/LocationsOfEdgeServers.html"
+    },
+    {
+      "title": "Manage how long content stays in the cache (expiration)",
+      "url": "https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/Expiration.html"
+    },
+    {
+      "title": "Use managed cache policies (CachingOptimized, CachingDisabled)",
+      "url": "https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/using-managed-cache-policies.html"
+    },
+    {
+      "title": "Invalidate files to remove content (invalidation vs versioned names)",
+      "url": "https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/Invalidation.html"
+    },
+    {
+      "title": "What you need to know when invalidating paths",
+      "url": "https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/invalidation-specifying-objects.html"
+    },
+    {
+      "title": "Invalidate files (console and CLI)",
+      "url": "https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/Invalidation_Requests.html"
+    },
+    {
+      "title": "Pay for file invalidation",
+      "url": "https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/PayingForInvalidation.html"
+    },
+    {
+      "title": "Invalidating content by cache tags",
+      "url": "https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/invalidation-by-tags.html"
+    },
+    {
+      "title": "CloudFront quotas",
+      "url": "https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/cloudfront-limits.html"
+    },
+    {
+      "title": "Restrict the geographic distribution of your content",
+      "url": "https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/georestrictions.html"
+    },
+    {
+      "title": "GeoRestriction (CloudFront API reference)",
+      "url": "https://docs.aws.amazon.com/cloudfront/latest/APIReference/API_GeoRestriction.html"
+    },
+    {
+      "title": "DistributionConfig (CloudFront API reference)",
+      "url": "https://docs.aws.amazon.com/cloudfront/latest/APIReference/API_DistributionConfig.html"
+    },
+    {
+      "title": "Distribution settings (price class, certificates, HTTP versions)",
+      "url": "https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/DownloadDistValuesGeneral.html"
+    },
+    {
+      "title": "Get started with a CloudFront standard distribution",
+      "url": "https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/GettingStarted.SimpleDistribution.html"
+    },
+    {
+      "title": "Create a distribution (console)",
+      "url": "https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/distribution-web-creating-console.html"
+    },
+    {
+      "title": "Preconfigured distribution settings reference",
+      "url": "https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/template-preconfigured-origin-settings.html"
+    },
+    {
+      "title": "Enable AWS WAF for distributions",
+      "url": "https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/WAF-one-click.html"
+    },
+    {
+      "title": "Delete a distribution",
+      "url": "https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/HowToDeleteDistribution.html"
+    },
+    {
+      "title": "Request Anycast static IPs to use for allowlisting",
+      "url": "https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/request-static-ips.html"
+    },
+    {
+      "title": "CloudFront flat-rate pricing plans",
+      "url": "https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/flat-rate-pricing-plan.html"
+    },
+    {
+      "title": "Amazon CloudFront pricing (flat-rate plans)",
+      "url": "https://aws.amazon.com/cloudfront/pricing/"
+    },
+    {
+      "title": "Amazon CloudFront pay-as-you-go pricing (Always Free tier, price classes, invalidations)",
+      "url": "https://aws.amazon.com/cloudfront/pricing/pay-as-you-go/"
+    },
+    {
+      "title": "AWS CLI create-origin-access-control",
+      "url": "https://docs.aws.amazon.com/cli/latest/reference/cloudfront/create-origin-access-control.html"
+    },
+    {
+      "title": "AWS CLI create-distribution",
+      "url": "https://docs.aws.amazon.com/cli/latest/reference/cloudfront/create-distribution.html"
+    },
+    {
+      "title": "Replicating objects within and across Regions (S3 CRR, S3 RTC)",
+      "url": "https://docs.aws.amazon.com/AmazonS3/latest/userguide/replication.html"
+    },
+    {
+      "title": "AWS Shield Standard overview",
+      "url": "https://docs.aws.amazon.com/waf/latest/developerguide/ddos-standard-summary.html"
+    },
+    {
+      "title": "What is AWS Global Accelerator?",
+      "url": "https://docs.aws.amazon.com/global-accelerator/latest/dg/what-is-global-accelerator.html"
+    },
+    {
+      "title": "How AWS Global Accelerator works (static IPs, health checks, traffic dials, weights, idle timeout)",
+      "url": "https://docs.aws.amazon.com/global-accelerator/latest/dg/introduction-how-it-works.html"
+    },
+    {
+      "title": "Understanding AWS Global Accelerator use cases",
+      "url": "https://docs.aws.amazon.com/global-accelerator/latest/dg/introduction-benefits-of-migrating.html"
+    },
+    {
+      "title": "Requirements for resources you add as accelerator endpoints",
+      "url": "https://docs.aws.amazon.com/global-accelerator/latest/dg/about-endpoints-caveats.html"
+    },
+    {
+      "title": "Ensure health check access for your accelerator",
+      "url": "https://docs.aws.amazon.com/global-accelerator/latest/dg/about-endpoint-groups-health-check-options.html"
+    },
+    {
+      "title": "Preserve client IP addresses in AWS Global Accelerator",
+      "url": "https://docs.aws.amazon.com/global-accelerator/latest/dg/preserve-client-ip-address.html"
+    },
+    {
+      "title": "Guidelines and restrictions for client IP address preservation",
+      "url": "https://docs.aws.amazon.com/global-accelerator/latest/dg/preserve-client-ip-address.how-to-enable-preservation.html"
+    },
+    {
+      "title": "AWS Region availability for AWS Global Accelerator",
+      "url": "https://docs.aws.amazon.com/global-accelerator/latest/dg/preserve-client-ip-address.regions.html"
+    },
+    {
+      "title": "Getting started with a standard accelerator",
+      "url": "https://docs.aws.amazon.com/global-accelerator/latest/dg/getting-started-standard.html"
+    },
+    {
+      "title": "Pricing for AWS Global Accelerator (developer guide)",
+      "url": "https://docs.aws.amazon.com/global-accelerator/latest/dg/introduction-pricing.html"
+    },
+    {
+      "title": "AWS Global Accelerator pricing",
+      "url": "https://aws.amazon.com/global-accelerator/pricing/"
+    },
+    {
+      "title": "CreateEndpointGroup (Global Accelerator API reference)",
+      "url": "https://docs.aws.amazon.com/global-accelerator/latest/api/API_CreateEndpointGroup.html"
+    },
+    {
+      "title": "UpdateEndpointGroup (Global Accelerator API reference)",
+      "url": "https://docs.aws.amazon.com/global-accelerator/latest/api/API_UpdateEndpointGroup.html"
+    },
+    {
+      "title": "AWS CLI globalaccelerator create-accelerator (us-west-2 requirement)",
+      "url": "https://docs.aws.amazon.com/cli/latest/reference/globalaccelerator/create-accelerator.html"
+    },
+    {
+      "title": "AWS CLI globalaccelerator create-listener",
+      "url": "https://docs.aws.amazon.com/cli/latest/reference/globalaccelerator/create-listener.html"
+    },
+    {
+      "title": "AWS CLI globalaccelerator create-endpoint-group",
+      "url": "https://docs.aws.amazon.com/cli/latest/reference/globalaccelerator/create-endpoint-group.html"
+    },
+    {
+      "title": "AWS CLI globalaccelerator delete-accelerator",
+      "url": "https://docs.aws.amazon.com/cli/latest/reference/globalaccelerator/delete-accelerator.html"
+    },
+    {
+      "title": "Amazon VPC pricing (public IPv4 addresses, including Global Accelerator)",
+      "url": "https://aws.amazon.com/vpc/pricing/"
+    },
+    {
+      "title": "Requirements for endpoints with client IP address preservation (private-subnet endpoints need an internet gateway)",
+      "url": "https://docs.aws.amazon.com/global-accelerator/latest/dg/about-endpoints.sipp-caveats.html"
+    },
+    {
+      "title": "AWS CLI globalaccelerator update-accelerator (--no-enabled)",
+      "url": "https://docs.aws.amazon.com/cli/latest/reference/globalaccelerator/update-accelerator.html"
+    },
+    {
+      "title": "AWS Free Tier plans (Free and Paid account plans)",
+      "url": "https://docs.aws.amazon.com/awsaccountbilling/latest/aboutv2/free-tier-plans.html"
+    },
+    {
+      "title": "AWS Free Tier FAQs (services limited on the Free plan)",
+      "url": "https://aws.amazon.com/free/faqs/"
+    },
+    {
+      "title": "Supported AWS services for Sign up for AWS (new) (Global Accelerator unsupported unless advanced features are activated)",
+      "url": "https://docs.aws.amazon.com/accounts/latest/reference/supported-services-sign-up-new.html"
+    },
+    {
+      "title": "AWS Free Tier (service cards: Global Accelerator marked Paid plan exclusive, CloudFront available on both plans)",
+      "url": "https://aws.amazon.com/free/"
+    },
+    {
+      "title": "Compare sign-up options (Sign up for AWS (new) is a limited rollout separate from standard sign-up)",
+      "url": "https://docs.aws.amazon.com/accounts/latest/reference/sign-up-for-aws.html"
+    }
+  ],
+  "newServices": []
+}

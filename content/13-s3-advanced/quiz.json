@@ -1,0 +1,234 @@
+{
+  "section": "13-s3-advanced",
+  "questions": [
+    {
+      "id": "13-s3-advanced-q01",
+      "type": "single",
+      "domain": "cost",
+      "difficulty": "medium",
+      "question": "A photo-sharing app stores every original upload in Amazon S3. A worker on EC2 creates resized previews of about 500 KB each, which can be regenerated from the original at any time and are useless after 45 days. Originals must be available immediately for the first 45 days; after that, users accept waiting up to 6 hours. Which design is the MOST cost-effective?",
+      "options": [
+        { "id": "A", "text": "Store originals in S3 Standard with a lifecycle rule that transitions them to S3 Glacier Deep Archive after 45 days. Store previews in S3 Standard and expire them after 45 days.", "correct": false, "explanation": "Deep Archive Standard retrievals can take up to 12 hours (Bulk up to 48), which breaks the 6-hour requirement, and keeping disposable previews in S3 Standard costs more than necessary." },
+        { "id": "B", "text": "Store originals in S3 Standard with a lifecycle rule that transitions them to S3 Glacier Flexible Retrieval after 45 days. Store previews in S3 One Zone-IA with a lifecycle rule that expires them after 45 days.", "correct": true, "explanation": "Glacier Flexible Retrieval Standard restores finish in 3–5 hours, inside the 6-hour budget, at a low price. Previews can be recreated, so the cheaper single-AZ One Zone-IA class is acceptable, and expiration removes them automatically." },
+        { "id": "C", "text": "Store originals in S3 Intelligent-Tiering and previews in S3 Standard-IA with no expiration.", "correct": false, "explanation": "Intelligent-Tiering adds monitoring fees and, without archive tiers enabled, never reaches Glacier prices; previews that are never deleted keep costing money long after they are useless." },
+        { "id": "D", "text": "Store originals in S3 Standard-IA with a lifecycle rule that transitions them to S3 Glacier Instant Retrieval after 45 days. Store previews in S3 Glacier Instant Retrieval.", "correct": false, "explanation": "Glacier Instant Retrieval offers millisecond access the originals no longer need, so it costs more than Flexible Retrieval; for previews it adds a 90-day minimum charge and retrieval fees on frequently viewed images." }
+      ],
+      "explanation": "Match each data set to its access need: recreatable data can live in One Zone-IA and expire, and a retrieval window of a few hours points to Glacier Flexible Retrieval rather than Deep Archive.",
+      "tags": ["lifecycle", "storage-classes"]
+    },
+    {
+      "id": "13-s3-advanced-q02",
+      "type": "single",
+      "domain": "resilient",
+      "difficulty": "hard",
+      "question": "A company policy states that any object deleted from an S3 bucket must be recoverable immediately for 30 days and recoverable within 48 hours for up to one year after deletion. Deletions are rare. Which solution meets the policy at the LOWEST cost?",
+      "options": [
+        { "id": "A", "text": "Enable S3 Versioning. Add lifecycle rules that transition noncurrent versions to S3 Standard-IA, transition them to S3 Glacier Deep Archive 30 days after they become noncurrent, and permanently delete noncurrent versions after 365 days.", "correct": true, "explanation": "Versioning turns a delete into a delete marker, so the data survives as a noncurrent version. Standard-IA gives instant, cheap recovery for the first 30 days, Deep Archive Bulk restores finish within 48 hours, and the expiration ends the retention at one year." },
+        { "id": "B", "text": "Enable S3 Versioning and add a lifecycle rule that transitions current versions to S3 Glacier Deep Archive after 30 days.", "correct": false, "explanation": "This archives the live data that users still read, not the deleted copies, and does nothing to manage or expire the noncurrent versions created by deletes." },
+        { "id": "C", "text": "Enable S3 Object Lock in compliance mode with a one-year retention period on every object.", "correct": false, "explanation": "Compliance mode prevents deletion altogether rather than allowing deletes and recovery, and it keeps everything in its current, more expensive storage class." },
+        { "id": "D", "text": "Store all objects in S3 Intelligent-Tiering with the Deep Archive Access tier enabled so that deleted objects remain in the archive tier.", "correct": false, "explanation": "Without versioning, deleting an object removes it no matter which tier it sits in, so nothing would be recoverable." }
+      ],
+      "explanation": "\"Recover deleted objects\" means versioning; cost control over the deleted copies comes from noncurrent-version transitions and expiration.",
+      "tags": ["lifecycle", "versioning"],
+      "updated": "Since July 2026 noncurrent versions can move to Standard-IA from day 0; previously they had to be noncurrent for 30 days first."
+    },
+    {
+      "id": "13-s3-advanced-q03",
+      "type": "single",
+      "domain": "cost",
+      "difficulty": "easy",
+      "question": "A media company keeps several hundred terabytes of video assets in S3 Standard under the prefix assets/. The team wants to add a lifecycle rule that moves assets to S3 Standard-IA, but it does not know after how many days assets stop being downloaded. Which approach gives a data-driven recommendation with the LEAST effort?",
+      "options": [
+        { "id": "A", "text": "Change the storage class of all assets to S3 Intelligent-Tiering.", "correct": false, "explanation": "Intelligent-Tiering is a storage class that moves objects automatically; it does not produce the recommended transition age the team asked for to build its lifecycle rule." },
+        { "id": "B", "text": "Review the S3 Storage Lens free-tier dashboard for the bucket.", "correct": false, "explanation": "Free Storage Lens metrics show usage such as bytes and object counts but no request activity per object age, and Storage Lens does not output an age-based Standard-IA recommendation." },
+        { "id": "C", "text": "Enable server access logging and write Athena queries to compute how often objects of each age are read.", "correct": false, "explanation": "This could work but requires building and maintaining the analysis yourself, which is far more effort than a built-in feature." },
+        { "id": "D", "text": "Configure S3 Storage Class Analysis with a filter on the assets/ prefix and use its recommendation after about 30 days.", "correct": true, "explanation": "Storage Class Analysis observes access by object age group and recommends when Standard objects can move to Standard-IA, exactly the input needed for the lifecycle rule." }
+      ],
+      "explanation": "Storage Class Analysis is the built-in way to decide the Standard to Standard-IA transition age; it does not cover One Zone-IA or Glacier.",
+      "tags": ["storage-class-analysis", "lifecycle"]
+    },
+    {
+      "id": "13-s3-advanced-q04",
+      "type": "single",
+      "domain": "cost",
+      "difficulty": "easy",
+      "question": "A research institute publishes a 400 TB genomics dataset in an S3 bucket. Partner universities that have their own AWS accounts download large parts of it every month. The institute is willing to pay for storage but not for the partners' downloads. What should a solutions architect recommend?",
+      "options": [
+        { "id": "A", "text": "Make the bucket public and put an Amazon CloudFront distribution in front of it.", "correct": false, "explanation": "The institute would pay for every CloudFront and S3 data transfer, and public access means no one else can be billed." },
+        { "id": "B", "text": "Generate presigned URLs with the institute's credentials for each partner.", "correct": false, "explanation": "Requests made with presigned URLs are billed to the account whose credentials signed them, so the institute keeps paying." },
+        { "id": "C", "text": "Enable Requester Pays on the bucket and grant the partner accounts read access in the bucket policy; partners include the request-payer header in their requests.", "correct": true, "explanation": "With Requester Pays the owner pays only for storage, while authenticated requesters from their own accounts pay for requests and data transfer." },
+        { "id": "D", "text": "Use S3 Cross-Region Replication to copy the dataset into a bucket owned by each partner.", "correct": false, "explanation": "The source bucket owner pays replication requests and inter-Region transfer, and the data is duplicated many times." }
+      ],
+      "explanation": "Sharing large datasets while shifting download costs to the consumers is the Requester Pays use case; the consumers must be authenticated AWS identities.",
+      "tags": ["requester-pays"]
+    },
+    {
+      "id": "13-s3-advanced-q05",
+      "type": "single",
+      "domain": "performant",
+      "difficulty": "medium",
+      "question": "An order-processing system already uses an Amazon SQS FIFO queue, where a consumer handles messages for each customer in the order they arrive. The team wants an event for every file uploaded to an S3 bucket to land in that FIFO queue. When the developers configure an S3 event notification, the FIFO queue cannot be selected as the destination. Which solution meets the requirement with the LEAST operational overhead?",
+      "options": [
+        { "id": "A", "text": "Turn on Amazon EventBridge for the bucket and create an EventBridge rule that matches Object Created events and targets the SQS FIFO queue with a message group ID.", "correct": true, "explanation": "EventBridge receives all bucket events and supports SQS FIFO queues as rule targets (you set the message group ID on the target), so no custom code is needed." },
+        { "id": "B", "text": "Send the event notification to an Amazon SNS FIFO topic and subscribe the FIFO queue to the topic.", "correct": false, "explanation": "SNS FIFO topics are not supported as S3 event notification destinations either; only standard topics are." },
+        { "id": "C", "text": "Send the event notification to a Lambda function that forwards each event to the FIFO queue.", "correct": false, "explanation": "This works but adds code to write, deploy and monitor, which is more overhead than a managed EventBridge rule." },
+        { "id": "D", "text": "Enable S3 Replication with Replication Time Control so events are delivered in order.", "correct": false, "explanation": "Replication copies objects between buckets; it is not an event delivery mechanism and does not feed SQS." }
+      ],
+      "explanation": "Native S3 notifications support only standard SQS queues and SNS topics; EventBridge is the managed path to FIFO queues and many other targets. S3 itself does not guarantee event order, so the FIFO queue orders messages as they arrive, not as the uploads happened.",
+      "tags": ["event-notifications", "eventbridge", "sqs"]
+    },
+    {
+      "id": "13-s3-advanced-q06",
+      "type": "single",
+      "domain": "secure",
+      "difficulty": "medium",
+      "question": "A developer tries to add an S3 event notification that sends s3:ObjectCreated:* events to a new Amazon SQS standard queue in the same Region. Saving fails with an error saying that S3 is unable to validate the destination configuration. What should the developer do?",
+      "options": [
+        { "id": "A", "text": "Add a statement to the S3 bucket policy that allows sqs:SendMessage on the queue.", "correct": false, "explanation": "A bucket policy controls access to the bucket, not to the queue; the queue must be the one that trusts S3." },
+        { "id": "B", "text": "Update the SQS queue access policy to allow the s3.amazonaws.com service principal to perform sqs:SendMessage, with conditions on aws:SourceArn for the bucket and aws:SourceAccount.", "correct": true, "explanation": "S3 delivers notifications through the destination's resource-based policy; once the queue allows S3 to send messages, validation succeeds and S3 sends a test event." },
+        { "id": "C", "text": "Create an IAM role for the bucket with SQS permissions and attach it in the bucket properties.", "correct": false, "explanation": "S3 event notifications do not use an IAM role on the bucket, so there is nowhere to attach one." },
+        { "id": "D", "text": "Recreate the queue as a FIFO queue, because S3 requires ordered delivery.", "correct": false, "explanation": "It is the other way round: FIFO queues are not supported as native S3 notification destinations." }
+      ],
+      "explanation": "For SNS, SQS and Lambda destinations, permission is granted on the destination's resource policy to the S3 service principal.",
+      "tags": ["event-notifications", "sqs", "security"]
+    },
+    {
+      "id": "13-s3-advanced-q07",
+      "type": "single",
+      "domain": "performant",
+      "difficulty": "medium",
+      "question": "An analytics application reads millions of small objects stored under the single prefix data/ in one S3 bucket. At about 6,000 GET requests per second the application starts receiving HTTP 503 Slow Down errors. Which change MOST directly increases the read throughput the application can achieve?",
+      "options": [
+        { "id": "A", "text": "Enable S3 Transfer Acceleration on the bucket.", "correct": false, "explanation": "Transfer Acceleration shortens long-distance network paths; it does not raise the per-prefix request rate." },
+        { "id": "B", "text": "Move the objects to S3 Standard-IA.", "correct": false, "explanation": "Storage classes share the same request-rate behavior, and Standard-IA would add retrieval fees for this read-heavy workload." },
+        { "id": "C", "text": "Distribute the objects across many prefixes (for example data/shard-00/ to data/shard-15/) and read from them in parallel.", "correct": true, "explanation": "Each prefix supports at least 5,500 GET/HEAD requests per second and prefixes are unlimited, so spreading keys multiplies the achievable read rate." },
+        { "id": "D", "text": "Upload the objects again using multipart upload.", "correct": false, "explanation": "Multipart upload helps large uploads; it does nothing for the request rate of reads on small objects." }
+      ],
+      "explanation": "S3 request limits are per prefix (3,500 writes and 5,500 reads per second), so scale out by spreading keys over more prefixes.",
+      "tags": ["performance", "prefixes"]
+    },
+    {
+      "id": "13-s3-advanced-q08",
+      "type": "multi",
+      "domain": "performant",
+      "difficulty": "medium",
+      "question": "Field teams around the world upload video files of 2–10 GB to a single S3 bucket in us-east-1. Uploads from Asia and South America are slow and often fail partway, forcing users to start over. Which combination of actions will improve upload speed and reliability? (Select TWO.)",
+      "options": [
+        { "id": "A", "text": "Use multipart upload so parts are sent in parallel and a failed part can be retried on its own.", "correct": true, "explanation": "Parallel parts raise throughput, a failed part is resent without restarting the file, and files above 5 GB require multipart upload anyway." },
+        { "id": "B", "text": "Enable S3 Transfer Acceleration and upload through the bucket's s3-accelerate endpoint.", "correct": true, "explanation": "Uploads enter the AWS network at the nearest edge location and travel the backbone to us-east-1, which helps most for long distances, and it works with multipart upload." },
+        { "id": "C", "text": "Use byte-range fetches when uploading the files.", "correct": false, "explanation": "Byte-range fetches are a download technique using the Range header of GET requests; they do not apply to uploads." },
+        { "id": "D", "text": "Store the uploads in S3 One Zone-IA.", "correct": false, "explanation": "The storage class does not change network speed or upload reliability, and One Zone-IA reduces resilience." },
+        { "id": "E", "text": "Create a lifecycle rule that aborts incomplete multipart uploads after 1 day.", "correct": false, "explanation": "This only cleans up abandoned parts to save cost; it does not make uploads faster or more reliable." }
+      ],
+      "explanation": "Large, far-away uploads: multipart upload for parallelism and resilience, Transfer Acceleration for the long network path.",
+      "tags": ["performance", "multipart", "transfer-acceleration"]
+    },
+    {
+      "id": "13-s3-advanced-q09",
+      "type": "single",
+      "domain": "performant",
+      "difficulty": "easy",
+      "question": "An indexing service must read only the first 512 bytes (a metadata header) of each of thousands of 2 GB binary files stored in S3. Which approach is the MOST efficient?",
+      "options": [
+        { "id": "A", "text": "Download each complete object and discard everything after the first 512 bytes.", "correct": false, "explanation": "Transferring 2 GB to use 512 bytes wastes time, bandwidth and data transfer cost." },
+        { "id": "B", "text": "Enable S3 Transfer Acceleration and download each object through the accelerate endpoint.", "correct": false, "explanation": "Acceleration may speed the transfer but still moves the whole 2 GB object, and adds a per-GB fee." },
+        { "id": "C", "text": "Use an S3 Batch Operations copy job to create a smaller copy of each object.", "correct": false, "explanation": "A copy job duplicates the full objects; it cannot extract the first bytes, and it adds job and storage costs." },
+        { "id": "D", "text": "Issue GET requests with an HTTP Range header of bytes=0-511.", "correct": true, "explanation": "A byte-range fetch returns only the requested bytes, so each request transfers just the header." }
+      ],
+      "explanation": "Byte-range fetches read part of an object, either to get only what you need or to parallelize large downloads.",
+      "tags": ["performance", "byte-range"]
+    },
+    {
+      "id": "13-s3-advanced-q10",
+      "type": "single",
+      "domain": "secure",
+      "difficulty": "medium",
+      "question": "An audit finds that a bucket holds 300 million objects, and some of the older ones were stored without server-side encryption. The company must re-encrypt the unencrypted objects with an AWS KMS customer managed key, track progress and get a report of any failures, with the LEAST operational effort. What should a solutions architect do?",
+      "options": [
+        { "id": "A", "text": "Change the bucket's default encryption to SSE-KMS with the customer managed key.", "correct": false, "explanation": "Default encryption applies only to new uploads; it does not change objects that already exist." },
+        { "id": "B", "text": "Use S3 Inventory to list objects with their encryption status, filter the unencrypted ones with Amazon Athena, and run an S3 Batch Operations job on that list that copies each object in place with SSE-KMS.", "correct": true, "explanation": "Inventory plus Athena builds the exact manifest, and Batch Operations performs the copies at scale with retries, progress tracking and a completion report." },
+        { "id": "C", "text": "Run a script on an EC2 instance that lists the bucket and calls CopyObject for each object.", "correct": false, "explanation": "Listing and copying 300 million objects yourself means handling throttling, retries, checkpointing and reporting, which is high operational effort." },
+        { "id": "D", "text": "Add a lifecycle rule that transitions the objects to S3 Standard-IA, which re-encrypts them during the transition.", "correct": false, "explanation": "Lifecycle transitions keep the existing encryption state; they do not apply a new KMS key." }
+      ],
+      "explanation": "Bulk changes to existing objects are an S3 Batch Operations job, with S3 Inventory and Athena (or a generated manifest) to select the objects.",
+      "tags": ["batch-operations", "inventory", "encryption"],
+      "updated": "Batch Operations now also has a dedicated Update object encryption operation and can generate its manifest from filters such as encryption type."
+    },
+    {
+      "id": "13-s3-advanced-q11",
+      "type": "single",
+      "domain": "secure",
+      "difficulty": "medium",
+      "question": "A security team manages 120 AWS accounts in AWS Organizations. It needs one place to see S3 storage growth across all accounts and to identify buckets that do not have versioning enabled or do not use SSE-KMS default encryption. Which solution requires the LEAST setup?",
+      "options": [
+        { "id": "A", "text": "Enable S3 server access logging on every bucket and query the logs with Amazon Athena.", "correct": false, "explanation": "Access logs record requests, not bucket configuration or storage totals, and setting this up for every bucket is a lot of work." },
+        { "id": "B", "text": "Configure S3 Storage Class Analysis on every bucket in every account.", "correct": false, "explanation": "Storage Class Analysis only recommends Standard to Standard-IA transitions; it does not report versioning or encryption." },
+        { "id": "C", "text": "Enable trusted access for S3 Storage Lens in the management account and create an organization-level Storage Lens dashboard (or delegate it to an administrator account).", "correct": true, "explanation": "An organization dashboard aggregates usage across all member accounts and includes data-protection metrics such as versioning-enabled and SSE-KMS-enabled bucket counts." },
+        { "id": "D", "text": "Create an AWS CloudTrail organization trail and search for PutBucketVersioning events.", "correct": false, "explanation": "CloudTrail shows API calls that happened, not the current state of every bucket, and it gives no storage growth view." }
+      ],
+      "explanation": "Organization-wide S3 usage and best-practice gaps are what S3 Storage Lens is built for.",
+      "tags": ["storage-lens", "organizations"]
+    },
+    {
+      "id": "13-s3-advanced-q12",
+      "type": "single",
+      "domain": "performant",
+      "difficulty": "medium",
+      "question": "A company uses the free tier of S3 Storage Lens. It now wants to see GET and PUT request counts and 503 error counts for individual prefixes, keep 12 months of history, and create CloudWatch alarms on the bucket-level request and error metrics. What should the company do?",
+      "options": [
+        { "id": "A", "text": "Export the free metrics to an S3 bucket every day and keep the files for 12 months.", "correct": false, "explanation": "Free metrics do not include request activity or status-code metrics, so exporting them does not provide the needed data." },
+        { "id": "B", "text": "Create a second free-tier dashboard scoped to the bucket's prefixes.", "correct": false, "explanation": "Prefix-level aggregation, activity metrics and CloudWatch publishing are not available in the free tier, whatever the scope." },
+        { "id": "C", "text": "Enable S3 Inventory reports on the bucket.", "correct": false, "explanation": "Inventory lists objects and their metadata; it does not count requests or errors." },
+        { "id": "D", "text": "Upgrade the dashboard to advanced metrics and recommendations, and enable activity metrics, detailed status code metrics, prefix aggregation and CloudWatch publishing.", "correct": true, "explanation": "The advanced tier adds activity and status-code metrics, prefix aggregation, 15 months of data and CloudWatch publishing. CloudWatch receives the account- and bucket-level metrics for alarms, while the per-prefix detail is read in the dashboard." }
+      ],
+      "explanation": "Request activity, error codes, prefix detail, long history and CloudWatch integration are all advanced-tier Storage Lens features; only prefix-level metrics are kept out of CloudWatch.",
+      "tags": ["storage-lens"]
+    },
+    {
+      "id": "13-s3-advanced-q13",
+      "type": "multi",
+      "domain": "cost",
+      "difficulty": "medium",
+      "question": "The S3 bill of a versioned bucket keeps rising. S3 Storage Lens shows large values for IncompleteMultipartUploadStorageBytes and NonCurrentVersionStorageBytes. Which actions will reduce the cost with the LEAST ongoing effort? (Select TWO.)",
+      "options": [
+        { "id": "A", "text": "Suspend versioning on the bucket.", "correct": false, "explanation": "Suspending versioning stops new versions from being created but leaves every existing noncurrent version, and their cost, in place." },
+        { "id": "B", "text": "Add a lifecycle rule with the AbortIncompleteMultipartUpload action, for example 7 days after initiation.", "correct": true, "explanation": "Abandoned parts are billed until the upload is aborted; this rule removes them automatically." },
+        { "id": "C", "text": "Add a lifecycle rule that expires current versions after 30 days.", "correct": false, "explanation": "In a versioned bucket this only adds delete markers, turning live data into more noncurrent versions, and it does not touch incomplete uploads." },
+        { "id": "D", "text": "Add a lifecycle rule with NoncurrentVersionExpiration, for example 30 days after versions become noncurrent while keeping the 3 newest noncurrent versions.", "correct": true, "explanation": "Old versions are full-price data; expiring them automatically stops the growth while keeping a few recent versions for recovery." },
+        { "id": "E", "text": "Enable S3 Transfer Acceleration so uploads complete before they time out.", "correct": false, "explanation": "Acceleration adds a per-GB fee and does not clean up parts that already exist or old versions." }
+      ],
+      "explanation": "Incomplete multipart uploads and noncurrent versions each need their own lifecycle action; expiring current versions or suspending versioning does not remove them.",
+      "tags": ["lifecycle", "storage-lens", "multipart"]
+    },
+    {
+      "id": "13-s3-advanced-q14",
+      "type": "single",
+      "domain": "cost",
+      "difficulty": "medium",
+      "question": "Compliance reports were moved to S3 Glacier Deep Archive by a lifecycle rule two years ago. For a year-long audit, 2 million of these reports must now be readable with millisecond latency, and the team wants them stored in S3 Standard-IA. What should the team do?",
+      "options": [
+        { "id": "A", "text": "Restore the objects (for example with an S3 Batch Operations restore job), then copy each restored object over itself with the storage class set to S3 Standard-IA.", "correct": true, "explanation": "Archived objects must first be restored as temporary copies; copying them with a new storage class makes the change permanent, and Batch Operations handles millions of objects." },
+        { "id": "B", "text": "Create a lifecycle rule that transitions the objects from S3 Glacier Deep Archive to S3 Standard-IA.", "correct": false, "explanation": "Lifecycle transitions only move objects to colder classes; Deep Archive is the bottom of the waterfall." },
+        { "id": "C", "text": "Edit the storage class of the objects in the S3 console without restoring them.", "correct": false, "explanation": "Archived objects are not readable in real time, so their storage class cannot be changed until a copy is restored." },
+        { "id": "D", "text": "Create a lifecycle rule that transitions the objects to S3 Intelligent-Tiering, which serves them from the Frequent Access tier.", "correct": false, "explanation": "Lifecycle cannot move objects from Deep Archive to Intelligent-Tiering either; only a restore followed by a copy works." }
+      ],
+      "explanation": "Going up the storage-class waterfall always means restore plus copy; lifecycle rules only move data down.",
+      "tags": ["lifecycle", "s3-glacier", "batch-operations"]
+    },
+    {
+      "id": "13-s3-advanced-q15",
+      "type": "single",
+      "domain": "resilient",
+      "difficulty": "medium",
+      "question": "A Lambda function is triggered by s3:ObjectCreated:* events on a bucket. It converts each uploaded image and writes the result back into the same bucket. Soon after deployment, invocations and costs grow without limit. What is the BEST fix?",
+      "options": [
+        { "id": "A", "text": "Increase the Lambda function's reserved concurrency so it can keep up.", "correct": false, "explanation": "More concurrency lets the loop run faster and cost more; it does not stop the function from triggering itself." },
+        { "id": "B", "text": "Replace the Lambda destination with an SNS topic that invokes the function.", "correct": false, "explanation": "The function would still write into the watched bucket and prefix, so the loop would continue through SNS." },
+        { "id": "C", "text": "Limit the notification to an input prefix such as uploads/ and have the function write results to a different prefix such as processed/ (or to a separate bucket).", "correct": true, "explanation": "Outputs no longer match the notification filter, so writing them does not fire a new event and the recursion stops." },
+        { "id": "D", "text": "Enable versioning so that overwritten objects do not generate new events.", "correct": false, "explanation": "New versions still raise ObjectCreated events, so versioning would not break the loop and would add storage cost." }
+      ],
+      "explanation": "Avoid recursive triggers by separating input and output with prefix filters or separate buckets.",
+      "tags": ["event-notifications", "lambda"]
+    }
+  ]
+}

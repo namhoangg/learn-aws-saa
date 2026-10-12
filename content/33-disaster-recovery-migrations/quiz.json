@@ -1,0 +1,588 @@
+{
+  "section": "33-disaster-recovery-migrations",
+  "questions": [
+    {
+      "id": "33-disaster-recovery-migrations-q01",
+      "type": "single",
+      "domain": "cost",
+      "difficulty": "easy",
+      "question": "An internal reporting application runs on EC2 with an EBS-backed database in us-east-1. The business accepts losing up to 24 hours of data and being down for up to one business day if the Region fails. Leadership wants the lowest possible ongoing cost for disaster recovery. Which approach meets these requirements?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Use AWS Backup to take daily backups of the instance and volumes and copy them to a vault in a second Region; rebuild from the copies with CloudFormation if the Region fails.",
+          "correct": true,
+          "explanation": "Backup and restore matches an RPO and RTO of about a day and only pays for stored backups, which makes it the cheapest strategy that still covers a Regional failure."
+        },
+        {
+          "id": "B",
+          "text": "Run a scaled-down copy of the application in a second Region behind a load balancer and replicate the database continuously.",
+          "correct": false,
+          "explanation": "This is warm standby. It delivers RTO in minutes, far better than required, and pays for running infrastructure all month."
+        },
+        {
+          "id": "C",
+          "text": "Deploy the application at full size in two Regions and use Route 53 latency routing between them.",
+          "correct": false,
+          "explanation": "Multi-site active/active roughly doubles the cost and is meant for near-zero downtime, which this workload does not need."
+        },
+        {
+          "id": "D",
+          "text": "Replicate the servers with AWS Elastic Disaster Recovery into a staging area in the second Region.",
+          "correct": false,
+          "explanation": "DRS gives seconds of RPO and minutes of RTO but bills every source server hourly plus staging resources; it costs more than the requirement justifies."
+        }
+      ],
+      "explanation": "When RPO and RTO of hours or a day are acceptable and cost is the priority, choose backup and restore with cross-Region copies.",
+      "tags": [
+        "dr-strategies",
+        "backup-and-restore"
+      ]
+    },
+    {
+      "id": "33-disaster-recovery-migrations-q02",
+      "type": "single",
+      "domain": "resilient",
+      "difficulty": "medium",
+      "question": "A company's order system runs on EC2 and Amazon RDS for MySQL in eu-west-1. For a Regional disaster it needs an RPO of a few minutes and an RTO of about 30 minutes. Finance wants to avoid paying for idle application servers in the recovery Region. Which DR design meets these requirements at the lowest cost?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Take hourly RDS snapshots and copy them to the recovery Region; launch everything from scratch after a disaster.",
+          "correct": false,
+          "explanation": "Hourly snapshots give an RPO of up to an hour, and restoring plus rebuilding usually takes longer than 30 minutes."
+        },
+        {
+          "id": "B",
+          "text": "Run the full application at production size in both Regions with Route 53 weighted routing.",
+          "correct": false,
+          "explanation": "Active/active pays for full-size servers in both Regions, which is exactly what finance wants to avoid."
+        },
+        {
+          "id": "C",
+          "text": "Keep a cross-Region RDS read replica running in the recovery Region, store AMIs and a CloudFormation template for the app tier, and on failover promote the replica, launch the app tier and switch DNS.",
+          "correct": true,
+          "explanation": "This is pilot light: only the data layer runs and replicates continuously (low RPO), while the app tier is created on demand within tens of minutes."
+        },
+        {
+          "id": "D",
+          "text": "Enable Multi-AZ on the RDS instance and spread the Auto Scaling group across three Availability Zones.",
+          "correct": false,
+          "explanation": "Multi-AZ protects against an AZ failure inside one Region, not against the loss of the whole Region."
+        }
+      ],
+      "explanation": "Pilot light keeps the stateful core live in the recovery Region and starts compute only when needed, balancing low RPO with low idle cost.",
+      "tags": [
+        "pilot-light"
+      ]
+    },
+    {
+      "id": "33-disaster-recovery-migrations-q03",
+      "type": "single",
+      "domain": "resilient",
+      "difficulty": "medium",
+      "question": "A media company requires that its recovery site can accept user traffic the moment a failover is declared, even if only at reduced capacity, and then grow to full size within minutes. The team also wants to test the recovery environment continuously with real requests. Finance has rejected paying for a second full-size production environment. Which strategy meets these requirements MOST cost-effectively?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Backup and restore with AWS Backup cross-Region copies",
+          "correct": false,
+          "explanation": "Nothing runs in the recovery site until data is restored and infrastructure rebuilt, so it cannot take traffic immediately."
+        },
+        {
+          "id": "B",
+          "text": "Pilot light with only the database running in the recovery Region",
+          "correct": false,
+          "explanation": "Pilot light cannot serve requests until application servers are started, which breaks the 'accept traffic at once' requirement."
+        },
+        {
+          "id": "C",
+          "text": "Multi-site active/active at full production size in two Regions",
+          "correct": false,
+          "explanation": "It meets the recovery needs, but it means paying for a second full-size production environment, which finance has rejected; reduced capacity at failover is acceptable here."
+        },
+        {
+          "id": "D",
+          "text": "Warm standby: a complete but minimum-size copy behind a load balancer, with database replication, scaled out on failover",
+          "correct": true,
+          "explanation": "Warm standby is fully functional at small scale, can take traffic immediately, is easy to test continuously and scales out after failover."
+        }
+      ],
+      "explanation": "'Can handle traffic immediately at reduced capacity' is the defining phrase for warm standby.",
+      "tags": [
+        "warm-standby"
+      ]
+    },
+    {
+      "id": "33-disaster-recovery-migrations-q04",
+      "type": "single",
+      "domain": "resilient",
+      "difficulty": "hard",
+      "question": "A gaming company serves players in North America and Europe from two AWS Regions. Each Region must accept reads and writes from local players with low latency, and losing a Region must not cause downtime for players in the other Region. Player profiles are key-value items. Which solution meets these requirements?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Amazon Aurora Global Database with the writer in one Region and a read-only secondary in the other",
+          "correct": false,
+          "explanation": "Aurora Global Database is a write-global design: only the primary Region accepts writes, so European writes would cross the Atlantic."
+        },
+        {
+          "id": "B",
+          "text": "Amazon DynamoDB global tables in both Regions, with Route 53 latency routing sending each player to the nearest Region",
+          "correct": true,
+          "explanation": "Global tables accept reads and writes in every replica Region (write local, last writer wins), giving an active/active multi-site design with no failover step."
+        },
+        {
+          "id": "C",
+          "text": "Amazon RDS for MySQL with a cross-Region read replica that is promoted during an outage",
+          "correct": false,
+          "explanation": "The replica is read-only until promoted, so only one Region can write, and promotion adds downtime."
+        },
+        {
+          "id": "D",
+          "text": "A DynamoDB table in one Region with on-demand backups copied to the other Region",
+          "correct": false,
+          "explanation": "Backups give a recovery point, not local writes in both Regions; restoring after a Regional failure causes downtime."
+        }
+      ],
+      "explanation": "Multi-site active/active with writes in every Region points to DynamoDB global tables (write local); Aurora Global Database fits write-global designs.",
+      "tags": [
+        "multi-site",
+        "dynamodb-global-tables"
+      ]
+    },
+    {
+      "id": "33-disaster-recovery-migrations-q05",
+      "type": "single",
+      "domain": "resilient",
+      "difficulty": "medium",
+      "question": "A manufacturer runs 60 physical and VMware servers with Windows, Linux, SQL Server and an ERP application in its own data center. It wants AWS to be its DR site with an RPO of seconds and an RTO of minutes, the ability to run non-disruptive drills, and a way to fail back to the data center after an incident. Which service meets these requirements?",
+      "options": [
+        {
+          "id": "A",
+          "text": "AWS Elastic Disaster Recovery",
+          "correct": true,
+          "explanation": "DRS replicates whole servers continuously at block level into a low-cost staging area, launches recovery instances in minutes, supports drills and point-in-time recovery, and offers failback."
+        },
+        {
+          "id": "B",
+          "text": "AWS Transform MGN (Application Migration Service)",
+          "correct": false,
+          "explanation": "MGN uses similar replication but is built for a one-time migration ending in cutover, not ongoing DR with repeated failover and failback."
+        },
+        {
+          "id": "C",
+          "text": "AWS Backup with a nightly backup plan for the on-premises servers",
+          "correct": false,
+          "explanation": "Nightly backups give an RPO of up to a day, and restoring whole servers takes hours, far from seconds and minutes."
+        },
+        {
+          "id": "D",
+          "text": "AWS DMS with ongoing replication of the SQL Server databases",
+          "correct": false,
+          "explanation": "DMS replicates database data only; it does not protect the operating systems, applications and other servers."
+        }
+      ],
+      "explanation": "Continuous server replication to AWS with drills and failback is the signature of Elastic Disaster Recovery.",
+      "tags": [
+        "drs"
+      ]
+    },
+    {
+      "id": "33-disaster-recovery-migrations-q06",
+      "type": "single",
+      "domain": "secure",
+      "difficulty": "medium",
+      "question": "A broker-dealer must keep backups of its trading databases for 7 years in a write-once-read-many form. Regulators require that no one, including administrators with full permissions and the account root user, can delete or shorten the retention of those backups. Which solution meets this requirement?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Store the backups in an AWS Backup vault with a vault access policy that denies backup:DeleteRecoveryPoint for all IAM users",
+          "correct": false,
+          "explanation": "Anyone allowed to manage the vault can edit or remove an access policy at any time, so it is not tamper-proof WORM protection."
+        },
+        {
+          "id": "B",
+          "text": "Apply AWS Backup Vault Lock in governance mode with a 7-year minimum retention",
+          "correct": false,
+          "explanation": "Governance mode can be removed by users with sufficient IAM permissions, so it does not stop a determined administrator."
+        },
+        {
+          "id": "C",
+          "text": "Apply AWS Backup Vault Lock in compliance mode with a minimum retention of about 2,557 days and let the grace time expire",
+          "correct": true,
+          "explanation": "After the grace time a compliance-mode lock is immutable: nobody, including the root user or AWS, can delete recovery points early or remove the lock."
+        },
+        {
+          "id": "D",
+          "text": "Enable deletion protection on the RDS instances and keep automated backups for 35 days",
+          "correct": false,
+          "explanation": "Deletion protection guards the instance, not backups, and automated backups cannot be kept for 7 years."
+        }
+      ],
+      "explanation": "WORM backups that even the root user cannot delete call for Vault Lock in compliance mode.",
+      "tags": [
+        "vault-lock"
+      ]
+    },
+    {
+      "id": "33-disaster-recovery-migrations-q07",
+      "type": "multi",
+      "domain": "secure",
+      "difficulty": "hard",
+      "question": "After a ransomware incident at a peer company, a security team wants to make sure that an attacker who steals administrator credentials in the production account cannot destroy the company's AWS Backup recovery points and can be recovered from quickly. Which TWO actions best meet this goal? (Select TWO.)",
+      "options": [
+        {
+          "id": "A",
+          "text": "Copy recovery points to a vault in a separate, dedicated backup account (or use a logically air-gapped vault shared with a recovery account)",
+          "correct": true,
+          "explanation": "Keeping copies outside the production account means stolen production credentials cannot reach them, and a recovery account can restore from them."
+        },
+        {
+          "id": "B",
+          "text": "Lock the backup vaults with AWS Backup Vault Lock in compliance mode",
+          "correct": true,
+          "explanation": "A compliance-mode lock blocks early deletion and retention changes by anyone once the grace time has passed, which defeats an attacker with admin rights."
+        },
+        {
+          "id": "C",
+          "text": "Create cross-Region read replicas of every RDS database",
+          "correct": false,
+          "explanation": "Replicas copy the ransomware's changes too and are not point-in-time backups."
+        },
+        {
+          "id": "D",
+          "text": "Lock the vaults with Vault Lock in governance mode",
+          "correct": false,
+          "explanation": "An attacker holding administrator permissions can remove a governance-mode lock and then delete the backups."
+        },
+        {
+          "id": "E",
+          "text": "Turn on S3 Versioning for the buckets in the production account",
+          "correct": false,
+          "explanation": "Versioning helps S3 objects only, and an administrator in the same account can still delete versions or the bucket; it does not protect other backups."
+        }
+      ],
+      "explanation": "Defend backups against compromised admins with immutability (compliance-mode Vault Lock) plus isolation (another account or a logically air-gapped vault).",
+      "tags": [
+        "vault-lock",
+        "ransomware",
+        "aws-backup"
+      ]
+    },
+    {
+      "id": "33-disaster-recovery-migrations-q08",
+      "type": "single",
+      "domain": "resilient",
+      "difficulty": "medium",
+      "question": "A company has 30 AWS accounts in AWS Organizations. Teams currently back up EC2, EBS, RDS and EFS with a mix of Lambda scripts and manual snapshots, and auditors cannot tell what is protected. The company wants one consistent policy (daily backups kept 35 days, copied to a second Region) applied automatically to every resource tagged backup=daily in every account, with the least operational overhead. What should a solutions architect do?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Write a Lambda function in each account that snapshots tagged resources nightly and copies the snapshots to the second Region",
+          "correct": false,
+          "explanation": "Custom scripts are exactly the operational burden the company wants to remove, and they give no central reporting."
+        },
+        {
+          "id": "B",
+          "text": "Enable Amazon Data Lifecycle Manager policies for EBS in each account",
+          "correct": false,
+          "explanation": "Data Lifecycle Manager covers EBS snapshots and AMIs only, not RDS or EFS, and is configured account by account."
+        },
+        {
+          "id": "C",
+          "text": "Turn on RDS automated backups and EFS automatic backups in every account",
+          "correct": false,
+          "explanation": "These are per-service settings without one cross-account policy, consistent copies to a second Region or a single audit view."
+        },
+        {
+          "id": "D",
+          "text": "Use AWS Backup backup policies from the Organizations management account, with a rule for daily backups, 35-day retention, a cross-Region copy and a tag-based resource assignment",
+          "correct": true,
+          "explanation": "AWS Backup centralizes scheduling, retention and copies across many services, and Organizations backup policies push the same plan to every account by tag."
+        }
+      ],
+      "explanation": "Centralized, tag-driven backups across services and accounts point to AWS Backup with Organizations backup policies.",
+      "tags": [
+        "aws-backup",
+        "organizations"
+      ]
+    },
+    {
+      "id": "33-disaster-recovery-migrations-q09",
+      "type": "single",
+      "domain": "performant",
+      "difficulty": "medium",
+      "question": "A retailer wants to move a 4 TB on-premises Oracle database to Amazon Aurora PostgreSQL. The order application must keep writing to Oracle during the migration, and the final cutover may take only a few minutes. Which approach meets these requirements?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Export the database with Oracle Data Pump, copy the dump to S3 and import it into Aurora PostgreSQL",
+          "correct": false,
+          "explanation": "A Data Pump dump is Oracle-specific, cannot be loaded into PostgreSQL directly, and a dump-and-load approach needs long downtime."
+        },
+        {
+          "id": "B",
+          "text": "Convert the schema with AWS SCT or DMS Schema Conversion, then run an AWS DMS task with full load plus CDC and cut over when the target is in sync",
+          "correct": true,
+          "explanation": "The engine changes, so the schema must be converted first; DMS then copies existing data and keeps replicating changes while Oracle stays online."
+        },
+        {
+          "id": "C",
+          "text": "Run an AWS DMS full-load task only and let DMS create the complete schema on Aurora",
+          "correct": false,
+          "explanation": "DMS creates only basic tables and primary keys, and a full-load-only task misses changes made during the copy."
+        },
+        {
+          "id": "D",
+          "text": "Replicate the Oracle server with AWS Transform MGN and launch it on EC2",
+          "correct": false,
+          "explanation": "MGN rehosts the server as-is on EC2; it does not convert the database to Aurora PostgreSQL."
+        }
+      ],
+      "explanation": "Heterogeneous migration with minimal downtime = schema conversion (SCT or DMS Schema Conversion) + DMS full load and CDC.",
+      "tags": [
+        "dms",
+        "sct",
+        "cdc"
+      ]
+    },
+    {
+      "id": "33-disaster-recovery-migrations-q10",
+      "type": "single",
+      "domain": "performant",
+      "difficulty": "easy",
+      "question": "A company runs PostgreSQL 16 on a server in its data center and wants to move it to Amazon RDS for PostgreSQL 16 while the application keeps running until a short cutover. Which solution requires the LEAST effort?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Use AWS DMS with a full load plus CDC task from the on-premises database to RDS for PostgreSQL, without schema conversion",
+          "correct": true,
+          "explanation": "The engine stays PostgreSQL (RDS is only the hosting platform), so no conversion is needed and DMS keeps the target in sync until cutover."
+        },
+        {
+          "id": "B",
+          "text": "Convert the schema with AWS SCT first, then migrate the data with DMS",
+          "correct": false,
+          "explanation": "SCT is for changing engines; using it on a same-engine move adds work without benefit."
+        },
+        {
+          "id": "C",
+          "text": "Rehost the database server with AWS Transform MGN",
+          "correct": false,
+          "explanation": "MGN would land PostgreSQL on a self-managed EC2 instance, not on Amazon RDS as required."
+        },
+        {
+          "id": "D",
+          "text": "Ship the data on a physical device and restore it into RDS",
+          "correct": false,
+          "explanation": "An offline copy cannot capture the writes made while the application keeps running and adds days of logistics."
+        }
+      ],
+      "explanation": "Same engine to RDS is a homogeneous migration: DMS (or native tools) without SCT.",
+      "tags": [
+        "dms",
+        "homogeneous"
+      ]
+    },
+    {
+      "id": "33-disaster-recovery-migrations-q11",
+      "type": "single",
+      "domain": "resilient",
+      "difficulty": "medium",
+      "question": "A company wants to move a 2 TiB Amazon RDS for MySQL database to Amazon Aurora MySQL to get faster failover. The application can tolerate only a few minutes of write downtime during the switch. Which approach should the solutions architect use?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Take a manual RDS snapshot, stop the application, restore the snapshot as an Aurora MySQL cluster and restart against it",
+          "correct": false,
+          "explanation": "The application would have to stay stopped from the snapshot until the restore finishes, which takes far longer than a few minutes for 2 TiB."
+        },
+        {
+          "id": "B",
+          "text": "Use mysqldump to export the database and import it into a new Aurora cluster",
+          "correct": false,
+          "explanation": "mysqldump replays every statement, is slow for 2 TiB and needs writes frozen during the export to stay consistent."
+        },
+        {
+          "id": "C",
+          "text": "Enable Multi-AZ on the RDS instance and then change the engine type to Aurora in place",
+          "correct": false,
+          "explanation": "RDS has no in-place engine switch from MySQL to Aurora; Multi-AZ only adds a standby of the same engine."
+        },
+        {
+          "id": "D",
+          "text": "Create an Aurora read replica of the RDS for MySQL instance, wait until replica lag reaches zero, then promote it and point the application at the new cluster",
+          "correct": true,
+          "explanation": "The Aurora replica stays in sync while the source keeps running; the only downtime is the short promotion and connection switch."
+        }
+      ],
+      "explanation": "RDS for MySQL to Aurora with minimal downtime: Aurora read replica, then promote when lag is zero.",
+      "tags": [
+        "aurora",
+        "rds"
+      ]
+    },
+    {
+      "id": "33-disaster-recovery-migrations-q12",
+      "type": "single",
+      "domain": "performant",
+      "difficulty": "medium",
+      "question": "A company has a 6 TB self-managed MySQL 8.0 database on premises and wants to create an Amazon Aurora MySQL cluster from it as quickly as possible. A short maintenance window is available, and the company already uses Percona XtraBackup for its nightly backups. Which method is the fastest?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Export with mysqldump and load the file into a new Aurora cluster",
+          "correct": false,
+          "explanation": "mysqldump recreates every row with SQL statements, which is far slower than restoring physical data files."
+        },
+        {
+          "id": "B",
+          "text": "Create an Aurora read replica directly from the on-premises server",
+          "correct": false,
+          "explanation": "The console's Aurora read replica option only works when the source is an RDS for MySQL instance; an external server first needs a data copy, after which binlog replication can catch up."
+        },
+        {
+          "id": "C",
+          "text": "Upload the Percona XtraBackup files to Amazon S3 and use Restore from S3 to create the Aurora MySQL cluster",
+          "correct": true,
+          "explanation": "Aurora can build a new cluster directly from XtraBackup files in S3 for MySQL 5.7 and 8.0, which is much faster than a logical load."
+        },
+        {
+          "id": "D",
+          "text": "Use the aws_s3 extension to import CSV exports into Aurora MySQL",
+          "correct": false,
+          "explanation": "The aws_s3 table import extension belongs to Aurora PostgreSQL and loads table data, not a full MySQL database."
+        }
+      ],
+      "explanation": "Large external MySQL to Aurora, fastest: Percona XtraBackup files in S3, then Restore from S3.",
+      "tags": [
+        "aurora",
+        "mysql"
+      ]
+    },
+    {
+      "id": "33-disaster-recovery-migrations-q13",
+      "type": "multi",
+      "domain": "performant",
+      "difficulty": "hard",
+      "question": "A research institute must move 250 TB of files from its data center to Amazon S3 within three weeks. Its only connection is a 100 Mbps internet link, and after the initial move about 50 GB of new and changed files per week must keep flowing to S3. The institute is an existing AWS Snowball Edge customer. Which TWO actions meet these requirements? (Select TWO.)",
+      "options": [
+        {
+          "id": "A",
+          "text": "Copy the 250 TB over the internet link with the AWS CLI",
+          "correct": false,
+          "explanation": "At 100 Mbps, 250 TB needs about 230 days even at full speed, far beyond three weeks."
+        },
+        {
+          "id": "B",
+          "text": "Order Snowball Edge devices for the bulk 250 TB transfer into S3",
+          "correct": true,
+          "explanation": "An offline transfer takes about a week end to end regardless of the link speed, so the bulk load fits the deadline."
+        },
+        {
+          "id": "C",
+          "text": "Order a new 1 Gbps AWS Direct Connect connection for the initial transfer",
+          "correct": false,
+          "explanation": "A new dedicated connection can take weeks or more to provision, and even at 1 Gbps the transfer itself would take about 23 days."
+        },
+        {
+          "id": "D",
+          "text": "Use AWS DataSync over a Site-to-Site VPN for the ongoing weekly changes",
+          "correct": true,
+          "explanation": "About 50 GB per week fits easily on the existing link, and DataSync copies only new and changed files on a schedule."
+        },
+        {
+          "id": "E",
+          "text": "Turn on S3 Transfer Acceleration and upload the 250 TB from the data center",
+          "correct": false,
+          "explanation": "Transfer Acceleration speeds up long-distance paths but cannot exceed the 100 Mbps local link, so the bulk upload still takes months."
+        }
+      ],
+      "explanation": "Do the arithmetic: if the network needs months, ship the bulk offline, then keep it current online with DataSync (or DMS for databases).",
+      "tags": [
+        "data-transfer",
+        "snow-family",
+        "datasync"
+      ],
+      "updated": "Snowball Edge is no longer sold to new customers; new customers would use AWS Data Transfer Terminal or DataSync over a temporary Direct Connect hosted connection."
+    },
+    {
+      "id": "33-disaster-recovery-migrations-q14",
+      "type": "single",
+      "domain": "resilient",
+      "difficulty": "medium",
+      "question": "A company must exit its data center in four months. It runs 300 VMware VMs and 40 physical Linux servers with a variety of applications. The CIO wants a lift-and-shift with no application changes, automated conversion so the servers boot natively on EC2, test launches before the final switch, and cutover windows of minutes. Which service should the company use?",
+      "options": [
+        {
+          "id": "A",
+          "text": "VM Import/Export for every server",
+          "correct": false,
+          "explanation": "VM Import/Export handles one image at a time without continuous replication, testing workflow or minute-level cutover, and does not cover physical servers."
+        },
+        {
+          "id": "B",
+          "text": "AWS Transform MGN (AWS Application Migration Service)",
+          "correct": true,
+          "explanation": "MGN continuously replicates physical, virtual and cloud servers, converts them to run natively on EC2, supports test launches and finishes with a short cutover."
+        },
+        {
+          "id": "C",
+          "text": "AWS DMS",
+          "correct": false,
+          "explanation": "DMS migrates databases, not entire servers with their operating systems and applications."
+        },
+        {
+          "id": "D",
+          "text": "AWS Elastic Disaster Recovery",
+          "correct": false,
+          "explanation": "DRS is designed for ongoing DR protection with failover and failback; MGN is the AWS service for one-time migrations."
+        }
+      ],
+      "explanation": "Rehosting many servers with minimal downtime is the job of Application Migration Service, now named AWS Transform MGN.",
+      "tags": [
+        "mgn",
+        "rehost"
+      ],
+      "updated": "AWS Application Migration Service was renamed AWS Transform MGN on 8 June 2026; exam questions may still use the old name."
+    },
+    {
+      "id": "33-disaster-recovery-migrations-q15",
+      "type": "single",
+      "domain": "resilient",
+      "difficulty": "medium",
+      "question": "A bank is migrating a busy SQL Server database to Amazon Aurora PostgreSQL with AWS DMS. The full load will be followed by about six weeks of change data capture while applications are tested. The team is worried that a hardware failure of the replication instance could interrupt replication. What should the solutions architect do?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Enable Multi-AZ on the DMS replication instance",
+          "correct": true,
+          "explanation": "Multi-AZ keeps a synchronous standby replication instance in another AZ and fails over automatically, which protects long CDC runs."
+        },
+        {
+          "id": "B",
+          "text": "Run two separate DMS tasks on two replication instances writing to the same target tables",
+          "correct": false,
+          "explanation": "Two tasks applying the same changes would conflict on the target and double the load on the source."
+        },
+        {
+          "id": "C",
+          "text": "Take hourly snapshots of the replication instance with AWS Backup",
+          "correct": false,
+          "explanation": "AWS Backup does not protect DMS replication instances, and restoring a snapshot would not resume replication cleanly."
+        },
+        {
+          "id": "D",
+          "text": "Enable Multi-AZ on the Aurora target cluster only",
+          "correct": false,
+          "explanation": "Target high availability is useful, but it does nothing if the replication instance itself fails."
+        }
+      ],
+      "explanation": "For long-running CDC, make the migration itself highly available with a Multi-AZ DMS replication instance.",
+      "tags": [
+        "dms",
+        "multi-az"
+      ]
+    }
+  ]
+}

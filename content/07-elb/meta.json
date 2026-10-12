@@ -1,0 +1,324 @@
+{
+  "id": "07-elb",
+  "order": 7,
+  "title": "Elastic Load Balancing",
+  "courseSection": "High Availability & Scalability",
+  "slides": [
+    118,
+    150
+  ],
+  "estimatedMinutes": 50,
+  "summary": "Scalability versus high availability, then the four Elastic Load Balancing types: ALB for layer 7 HTTP routing, NLB for layer 4 TCP/UDP with static IPs, GWLB for inline security appliances and the legacy CLB. Covers health checks, security group chaining, sticky sessions, cross-zone load balancing, TLS certificates with SNI and deregistration delay.",
+  "services": [
+    "elb",
+    "alb",
+    "nlb",
+    "gwlb",
+    "clb",
+    "ec2",
+    "asg",
+    "acm",
+    "security-groups",
+    "ecs",
+    "lambda",
+    "route53",
+    "waf",
+    "global-accelerator",
+    "privatelink",
+    "regions-azs"
+  ],
+  "relations": [
+    {
+      "from": "alb",
+      "to": "ec2",
+      "label": "routes HTTP/HTTPS requests to"
+    },
+    {
+      "from": "alb",
+      "to": "ecs",
+      "label": "routes to container tasks on dynamic ports in"
+    },
+    {
+      "from": "alb",
+      "to": "lambda",
+      "label": "invokes as an HTTP target"
+    },
+    {
+      "from": "nlb",
+      "to": "alb",
+      "label": "can forward TCP traffic to"
+    },
+    {
+      "from": "nlb",
+      "to": "ec2",
+      "label": "forwards TCP/UDP flows to"
+    },
+    {
+      "from": "nlb",
+      "to": "privatelink",
+      "label": "powers endpoint services for"
+    },
+    {
+      "from": "gwlb",
+      "to": "ec2",
+      "label": "sends GENEVE-encapsulated packets to appliances on"
+    },
+    {
+      "from": "acm",
+      "to": "alb",
+      "label": "provides TLS certificates for"
+    },
+    {
+      "from": "acm",
+      "to": "nlb",
+      "label": "provides TLS certificates for"
+    },
+    {
+      "from": "asg",
+      "to": "alb",
+      "label": "registers new instances in target groups of"
+    },
+    {
+      "from": "route53",
+      "to": "alb",
+      "label": "points alias records at"
+    },
+    {
+      "from": "waf",
+      "to": "alb",
+      "label": "filters web requests in front of"
+    },
+    {
+      "from": "security-groups",
+      "to": "elb",
+      "label": "restrict traffic to and from"
+    },
+    {
+      "from": "global-accelerator",
+      "to": "alb",
+      "label": "gives static anycast IPs to"
+    }
+  ],
+  "examDomains": [
+    "resilient",
+    "performant",
+    "secure",
+    "cost"
+  ],
+  "lastVerified": "2026-10-04",
+  "sources": [
+    {
+      "title": "How Elastic Load Balancing works",
+      "url": "https://docs.aws.amazon.com/elasticloadbalancing/latest/userguide/how-elastic-load-balancing-works.html"
+    },
+    {
+      "title": "Target groups for your Application Load Balancers",
+      "url": "https://docs.aws.amazon.com/elasticloadbalancing/latest/application/load-balancer-target-groups.html"
+    },
+    {
+      "title": "Health checks for Application Load Balancer target groups",
+      "url": "https://docs.aws.amazon.com/elasticloadbalancing/latest/application/target-group-health-checks.html"
+    },
+    {
+      "title": "Condition types for listener rules (ALB)",
+      "url": "https://docs.aws.amazon.com/elasticloadbalancing/latest/application/rule-condition-types.html"
+    },
+    {
+      "title": "Action types for listener rules (ALB)",
+      "url": "https://docs.aws.amazon.com/elasticloadbalancing/latest/application/rule-action-types.html"
+    },
+    {
+      "title": "Transforms for listener rules (ALB)",
+      "url": "https://docs.aws.amazon.com/elasticloadbalancing/latest/application/rule-transforms.html"
+    },
+    {
+      "title": "Listener rules for your Application Load Balancer",
+      "url": "https://docs.aws.amazon.com/elasticloadbalancing/latest/application/listener-rules.html"
+    },
+    {
+      "title": "Add a listener rule for your Application Load Balancer",
+      "url": "https://docs.aws.amazon.com/elasticloadbalancing/latest/application/add-rule.html"
+    },
+    {
+      "title": "Edit target group attributes for your Application Load Balancer (stickiness, cross-zone, deregistration delay, slow start)",
+      "url": "https://docs.aws.amazon.com/elasticloadbalancing/latest/application/edit-target-group-attributes.html"
+    },
+    {
+      "title": "HTTP headers and Application Load Balancers (X-Forwarded-For)",
+      "url": "https://docs.aws.amazon.com/elasticloadbalancing/latest/application/x-forwarded-headers.html"
+    },
+    {
+      "title": "SSL certificates for your Application Load Balancer",
+      "url": "https://docs.aws.amazon.com/elasticloadbalancing/latest/application/https-listener-certificates.html"
+    },
+    {
+      "title": "Security policies for your Application Load Balancer",
+      "url": "https://docs.aws.amazon.com/elasticloadbalancing/latest/application/describe-ssl-policies.html"
+    },
+    {
+      "title": "Quotas for your Application Load Balancers",
+      "url": "https://docs.aws.amazon.com/elasticloadbalancing/latest/application/load-balancer-limits.html"
+    },
+    {
+      "title": "Create an Application Load Balancer",
+      "url": "https://docs.aws.amazon.com/elasticloadbalancing/latest/application/create-application-load-balancer.html"
+    },
+    {
+      "title": "Create a target group for your Application Load Balancer",
+      "url": "https://docs.aws.amazon.com/elasticloadbalancing/latest/application/create-target-group.html"
+    },
+    {
+      "title": "Delete an Application Load Balancer",
+      "url": "https://docs.aws.amazon.com/elasticloadbalancing/latest/application/load-balancer-delete.html"
+    },
+    {
+      "title": "Delete an Application Load Balancer target group",
+      "url": "https://docs.aws.amazon.com/elasticloadbalancing/latest/application/delete-target-group.html"
+    },
+    {
+      "title": "Register targets with your Application Load Balancer target group",
+      "url": "https://docs.aws.amazon.com/elasticloadbalancing/latest/application/target-group-register-targets.html"
+    },
+    {
+      "title": "Update the health check settings of an Application Load Balancer target group",
+      "url": "https://docs.aws.amazon.com/elasticloadbalancing/latest/application/modify-health-check-settings.html"
+    },
+    {
+      "title": "What is a Network Load Balancer?",
+      "url": "https://docs.aws.amazon.com/elasticloadbalancing/latest/network/introduction.html"
+    },
+    {
+      "title": "Target groups for your Network Load Balancers",
+      "url": "https://docs.aws.amazon.com/elasticloadbalancing/latest/network/load-balancer-target-groups.html"
+    },
+    {
+      "title": "Edit target group attributes for your Network Load Balancer (client IP preservation, stickiness, cross-zone)",
+      "url": "https://docs.aws.amazon.com/elasticloadbalancing/latest/network/edit-target-group-attributes.html"
+    },
+    {
+      "title": "Health checks for Network Load Balancer target groups",
+      "url": "https://docs.aws.amazon.com/elasticloadbalancing/latest/network/target-group-health-checks.html"
+    },
+    {
+      "title": "Update the security groups for your Network Load Balancer",
+      "url": "https://docs.aws.amazon.com/elasticloadbalancing/latest/network/load-balancer-security-groups.html"
+    },
+    {
+      "title": "Create a Network Load Balancer",
+      "url": "https://docs.aws.amazon.com/elasticloadbalancing/latest/network/create-network-load-balancer.html"
+    },
+    {
+      "title": "Quotas for your Network Load Balancers",
+      "url": "https://docs.aws.amazon.com/elasticloadbalancing/latest/network/load-balancer-limits.html"
+    },
+    {
+      "title": "What is a Gateway Load Balancer?",
+      "url": "https://docs.aws.amazon.com/elasticloadbalancing/latest/gateway/introduction.html"
+    },
+    {
+      "title": "Target groups for your Gateway Load Balancers",
+      "url": "https://docs.aws.amazon.com/elasticloadbalancing/latest/gateway/target-groups.html"
+    },
+    {
+      "title": "What is a Classic Load Balancer?",
+      "url": "https://docs.aws.amazon.com/elasticloadbalancing/latest/classic/introduction.html"
+    },
+    {
+      "title": "Configure connection draining for your Classic Load Balancer",
+      "url": "https://docs.aws.amazon.com/elasticloadbalancing/latest/classic/config-conn-drain.html"
+    },
+    {
+      "title": "Configure sticky sessions for your Classic Load Balancer",
+      "url": "https://docs.aws.amazon.com/elasticloadbalancing/latest/classic/elb-sticky-sessions.html"
+    },
+    {
+      "title": "ACM public certificate characteristics and limitations (198-day validity)",
+      "url": "https://docs.aws.amazon.com/acm/latest/userguide/acm-certificate-characteristics.html"
+    },
+    {
+      "title": "AWS Certificate Manager updates default certificate validity (Feb 2026)",
+      "url": "https://aws.amazon.com/about-aws/whats-new/2026/02/aws-certificate-manager-updates-default/"
+    },
+    {
+      "title": "AWS Certificate Manager pricing",
+      "url": "https://aws.amazon.com/certificate-manager/pricing/"
+    },
+    {
+      "title": "Elastic Load Balancing pricing",
+      "url": "https://aws.amazon.com/elasticloadbalancing/pricing/"
+    },
+    {
+      "title": "Elastic Load Balancing features and product comparison",
+      "url": "https://aws.amazon.com/elasticloadbalancing/features/"
+    },
+    {
+      "title": "Elastic Load Balancing SLA",
+      "url": "https://aws.amazon.com/elasticloadbalancing/sla/"
+    },
+    {
+      "title": "Amazon VPC pricing (public IPv4 addresses)",
+      "url": "https://aws.amazon.com/vpc/pricing/"
+    },
+    {
+      "title": "Amazon EC2 High Memory instances (U-1 end of sale)",
+      "url": "https://aws.amazon.com/ec2/instance-types/high-memory/"
+    },
+    {
+      "title": "Amazon EC2 U7i instances",
+      "url": "https://aws.amazon.com/ec2/instance-types/u7i/"
+    },
+    {
+      "title": "Launch an EC2 instance using the launch instance wizard",
+      "url": "https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-launch-instance-wizard.html"
+    },
+    {
+      "title": "Attach an Elastic IP address to an internet-facing Network Load Balancer (AWS re:Post Knowledge Center)",
+      "url": "https://repost.aws/knowledge-center/elb-attach-elastic-ip-to-public-nlb"
+    },
+    {
+      "title": "Elastic IP addresses (quota of five per Region, pricing)",
+      "url": "https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/elastic-ip-addresses-eip.html"
+    },
+    {
+      "title": "Edit attributes for your Network Load Balancer (cross-zone)",
+      "url": "https://docs.aws.amazon.com/elasticloadbalancing/latest/network/edit-load-balancer-attributes.html"
+    },
+    {
+      "title": "Listeners for your Network Load Balancers (TCP, TLS, UDP, TCP_UDP, QUIC, TCP_QUIC)",
+      "url": "https://docs.aws.amazon.com/elasticloadbalancing/latest/network/load-balancer-listeners.html"
+    },
+    {
+      "title": "Network Load Balancers (DNS name, cross-zone, zonal health)",
+      "url": "https://docs.aws.amazon.com/elasticloadbalancing/latest/network/network-load-balancers.html"
+    },
+    {
+      "title": "Configure cross-zone load balancing for your Classic Load Balancer (console vs API default)",
+      "url": "https://docs.aws.amazon.com/elasticloadbalancing/latest/classic/enable-disable-crosszone-lb.html"
+    },
+    {
+      "title": "Verify JWTs using an Application Load Balancer",
+      "url": "https://docs.aws.amazon.com/elasticloadbalancing/latest/application/listener-verify-jwt.html"
+    },
+    {
+      "title": "Elastic Load Balancing FAQs (inter-AZ data charges with cross-zone load balancing)",
+      "url": "https://aws.amazon.com/elasticloadbalancing/faqs/"
+    },
+    {
+      "title": "Track your Free Tier usage for Amazon EC2 (eligible instance types before and after 15 July 2025)",
+      "url": "https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-free-tier-usage.html"
+    },
+    {
+      "title": "AWS CLI reference: describe-instance-type-offerings",
+      "url": "https://docs.aws.amazon.com/cli/latest/reference/ec2/describe-instance-type-offerings.html"
+    },
+    {
+      "title": "AWS CloudShell compute environment: pre-installed software",
+      "url": "https://docs.aws.amazon.com/cloudshell/latest/userguide/vm-specs.html"
+    },
+    {
+      "title": "Register an Application Load Balancer behind a Network Load Balancer for a static IP address (AWS re:Post Knowledge Center: per-subnet IPv4 address options)",
+      "url": "https://repost.aws/knowledge-center/alb-static-ip"
+    }
+  ],
+  "newServices": []
+}

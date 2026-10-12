@@ -1,0 +1,604 @@
+{
+  "section": "36-well-architected-exam",
+  "questions": [
+    {
+      "id": "36-well-architected-exam-q01",
+      "type": "single",
+      "domain": "resilient",
+      "difficulty": "easy",
+      "question": "A retail company wants to assess its e-commerce workload against AWS best practices for all six Well-Architected pillars. The architecture board wants a list of high-risk issues, a prioritized improvement plan, and a way to show progress after each round of fixes. The solution should add no service cost. Which solution meets these requirements?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Upgrade to Business Support+ and use the full set of AWS Trusted Advisor checks.",
+          "correct": false,
+          "explanation": "Trusted Advisor scans resource configuration, but it does not review design decisions and processes across all six pillars, and the upgrade costs money."
+        },
+        {
+          "id": "B",
+          "text": "Deploy AWS Config conformance packs for every pillar and review the compliance dashboard monthly.",
+          "correct": false,
+          "explanation": "Config rules evaluate resource settings and are billed per evaluation; they do not produce Well-Architected high-risk issues or an improvement plan for processes."
+        },
+        {
+          "id": "C",
+          "text": "Define the workload in the AWS Well-Architected Tool, answer the review questions, and save a milestone after each improvement cycle.",
+          "correct": true,
+          "explanation": "The WA Tool is free, covers all six pillars, raises HRIs and MRIs with an improvement plan, and immutable milestones show progress over time."
+        },
+        {
+          "id": "D",
+          "text": "Enable AWS Security Hub and use its security score as the architecture baseline.",
+          "correct": false,
+          "explanation": "Security Hub focuses on security posture only and is a paid service; it says nothing about reliability, cost or sustainability practices."
+        }
+      ],
+      "explanation": "Reviewing a workload against the Well-Architected Framework and tracking improvements with milestones is exactly what the free AWS Well-Architected Tool does.",
+      "tags": [
+        "well-architected-tool",
+        "milestones"
+      ]
+    },
+    {
+      "id": "36-well-architected-exam-q02",
+      "type": "single",
+      "domain": "secure",
+      "difficulty": "easy",
+      "question": "A small company has the Basic Support plan. Its security lead wants to periodically find security groups that allow SSH or RDP from 0.0.0.0/0 anywhere in the account, without installing anything and without additional cost. What should the security lead use?",
+      "options": [
+        {
+          "id": "A",
+          "text": "The AWS Trusted Advisor check Security Groups - Specific Ports Unrestricted, refreshed from the Trusted Advisor console.",
+          "correct": true,
+          "explanation": "This check is in the core set available to Basic Support accounts; ports 22 and 3389 open to the world are flagged red, and the learner refreshes it manually."
+        },
+        {
+          "id": "B",
+          "text": "The AWS Well-Architected Tool, by answering the security pillar questions.",
+          "correct": false,
+          "explanation": "The WA Tool is a questionnaire; it does not inspect security group rules in the account."
+        },
+        {
+          "id": "C",
+          "text": "Amazon GuardDuty with a custom threat list.",
+          "correct": false,
+          "explanation": "GuardDuty detects threats from logs and is billed by volume; it is not a configuration check for open ports."
+        },
+        {
+          "id": "D",
+          "text": "Upgrade to Enterprise Support so a Technical Account Manager can audit the security groups.",
+          "correct": false,
+          "explanation": "The free core check already covers this need; Enterprise Support has a USD 5,000 monthly minimum."
+        }
+      ],
+      "explanation": "Basic Support still includes Trusted Advisor's core security checks, including unrestricted access to high-risk ports in security groups.",
+      "tags": [
+        "trusted-advisor",
+        "security-groups"
+      ],
+      "updated": "Core check list for Basic Support verified against the current Trusted Advisor check reference."
+    },
+    {
+      "id": "36-well-architected-exam-q03",
+      "type": "single",
+      "domain": "secure",
+      "difficulty": "medium",
+      "question": "A company with a Business Support+ plan runs all of its workloads in eu-west-1. The operations team wants an email whenever any AWS Trusted Advisor check changes status to red. An engineer created an Amazon EventBridge rule for Trusted Advisor events in eu-west-1, but it never fires. What should the team do?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Enable AWS CloudTrail data events for Trusted Advisor in eu-west-1 and create a metric filter.",
+          "correct": false,
+          "explanation": "Check status changes are delivered as Trusted Advisor events to EventBridge, not as CloudTrail data events, and the Region problem would remain."
+        },
+        {
+          "id": "B",
+          "text": "Upgrade to Enterprise Support, because Trusted Advisor events are only available with a Technical Account Manager.",
+          "correct": false,
+          "explanation": "Business Support+ already allows EventBridge rules for Trusted Advisor; no upgrade is needed."
+        },
+        {
+          "id": "C",
+          "text": "Create an AWS Config custom rule that calls the Trusted Advisor API every hour.",
+          "correct": false,
+          "explanation": "This adds custom code and cost to rebuild a notification EventBridge already provides."
+        },
+        {
+          "id": "D",
+          "text": "Recreate the EventBridge rule in us-east-1 and target an Amazon SNS topic with an email subscription.",
+          "correct": true,
+          "explanation": "Trusted Advisor is a global service that emits all of its events in US East (N. Virginia), so the rule must live there; SNS sends the email."
+        }
+      ],
+      "explanation": "Trusted Advisor events arrive in us-east-1 only; build the EventBridge rule there and route it to SNS or Lambda.",
+      "tags": [
+        "trusted-advisor",
+        "eventbridge",
+        "sns"
+      ]
+    },
+    {
+      "id": "36-well-architected-exam-q04",
+      "type": "single",
+      "domain": "cost",
+      "difficulty": "medium",
+      "question": "A startup on the Basic Support plan wants AWS Trusted Advisor's cost optimization checks (idle load balancers, low-utilization EC2 instances, unassociated Elastic IP addresses) and wants to pull the results into its own dashboard through an API. Which option meets these requirements at the LOWEST cost?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Subscribe to Enterprise Support.",
+          "correct": false,
+          "explanation": "Enterprise Support includes these features but starts at USD 5,000 per month, far more than needed."
+        },
+        {
+          "id": "B",
+          "text": "Subscribe to Business Support+.",
+          "correct": true,
+          "explanation": "Business Support+ (from USD 29 per month) is the cheapest plan that unlocks the full check set plus the Trusted Advisor API and AWS Support API."
+        },
+        {
+          "id": "C",
+          "text": "Turn on the cost optimization category in the Trusted Advisor Preferences page.",
+          "correct": false,
+          "explanation": "Preferences control notifications and organizational settings; they cannot unlock checks that the support plan does not include."
+        },
+        {
+          "id": "D",
+          "text": "Stay on Basic Support and call the AWS Support API from the us-east-1 endpoint.",
+          "correct": false,
+          "explanation": "The AWS Support API requires Business Support+, Enterprise Support or Unified Operations; Basic accounts get an error."
+        }
+      ],
+      "explanation": "The full Trusted Advisor check set and programmatic access require Business Support+ or higher, and Business Support+ is the cheapest of those plans.",
+      "tags": [
+        "trusted-advisor",
+        "support-plans"
+      ],
+      "updated": "Uses the current plan names (Business Support+, Enterprise Support, Unified Operations)."
+    },
+    {
+      "id": "36-well-architected-exam-q05",
+      "type": "multi",
+      "domain": "resilient",
+      "difficulty": "easy",
+      "question": "A solutions architect is preparing a design review and wants to quote design principles from the reliability pillar of the AWS Well-Architected Framework. Which principles belong to that pillar? (Select TWO.)",
+      "options": [
+        {
+          "id": "A",
+          "text": "Automatically recover from failure.",
+          "correct": true,
+          "explanation": "Monitoring business KPIs and triggering automated recovery is a core reliability principle."
+        },
+        {
+          "id": "B",
+          "text": "Go global in minutes.",
+          "correct": false,
+          "explanation": "Deploying to many Regions for lower latency is a performance efficiency principle."
+        },
+        {
+          "id": "C",
+          "text": "Test recovery procedures.",
+          "correct": true,
+          "explanation": "Reliability asks you to simulate failures and prove that recovery actually works."
+        },
+        {
+          "id": "D",
+          "text": "Keep people away from data.",
+          "correct": false,
+          "explanation": "Reducing direct human access to data is a security principle."
+        },
+        {
+          "id": "E",
+          "text": "Adopt a consumption model.",
+          "correct": false,
+          "explanation": "Paying only for what you use is a cost optimization principle."
+        }
+      ],
+      "explanation": "Reliability's principles are: recover automatically, test recovery, scale horizontally, stop guessing capacity and manage change through automation.",
+      "tags": [
+        "reliability",
+        "design-principles"
+      ]
+    },
+    {
+      "id": "36-well-architected-exam-q06",
+      "type": "single",
+      "domain": "cost",
+      "difficulty": "easy",
+      "question": "A company runs development and test EC2 instances and RDS databases 24 hours a day, 7 days a week. Developers use them only from 08:00 to 18:00 on weekdays. Which change follows the Well-Architected cost optimization guidance with the LEAST effort?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Purchase 3-year All Upfront Reserved Instances for every development instance.",
+          "correct": false,
+          "explanation": "Commitments discount 24x7 usage; resources that should be off most of the week are better stopped than reserved."
+        },
+        {
+          "id": "B",
+          "text": "Move the development workloads to larger instances so tests finish faster.",
+          "correct": false,
+          "explanation": "Bigger instances raise the hourly cost and still run all night and all weekend."
+        },
+        {
+          "id": "C",
+          "text": "Convert the databases to Multi-AZ deployments.",
+          "correct": false,
+          "explanation": "Multi-AZ improves availability but roughly doubles database cost, the opposite of the goal for a dev environment."
+        },
+        {
+          "id": "D",
+          "text": "Schedule the instances and databases to stop outside working hours, for example with Instance Scheduler on AWS or EventBridge Scheduler.",
+          "correct": true,
+          "explanation": "Running about 50 of 168 hours cuts compute cost by roughly 70 percent, the consumption-model principle in practice, with a managed scheduler."
+        }
+      ],
+      "explanation": "Adopt a consumption model: pay only while resources are needed. Stopping non-production resources outside working hours is the classic example.",
+      "tags": [
+        "cost",
+        "design-principles",
+        "instance-scheduler"
+      ]
+    },
+    {
+      "id": "36-well-architected-exam-q07",
+      "type": "single",
+      "domain": "performant",
+      "difficulty": "easy",
+      "question": "A media start-up needs to detect unsafe content in user-uploaded images. The team has no machine learning experience and wants to ship the feature in weeks. Which approach reflects the Well-Architected performance efficiency principle of democratizing advanced technologies?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Call Amazon Rekognition content moderation from the upload workflow.",
+          "correct": true,
+          "explanation": "Consuming a managed AI service lets the team use advanced technology without building ML expertise or infrastructure."
+        },
+        {
+          "id": "B",
+          "text": "Hire data scientists to train a custom model on GPU EC2 instances.",
+          "correct": false,
+          "explanation": "Building in-house ML capability is slow and costly, the opposite of delegating complex technology to the cloud provider."
+        },
+        {
+          "id": "C",
+          "text": "Run an open-source model on a self-managed Kubernetes cluster on EC2.",
+          "correct": false,
+          "explanation": "The team would have to operate the cluster and the model, adding overhead it said it lacks the skills for."
+        },
+        {
+          "id": "D",
+          "text": "Ask moderators to review every image manually before publishing.",
+          "correct": false,
+          "explanation": "Manual review does not scale and does not use cloud technology at all."
+        }
+      ],
+      "explanation": "Democratize advanced technologies: consume hard technology such as machine learning as a managed service so the team can focus on the product.",
+      "tags": [
+        "performance",
+        "design-principles",
+        "rekognition"
+      ]
+    },
+    {
+      "id": "36-well-architected-exam-q08",
+      "type": "single",
+      "domain": "resilient",
+      "difficulty": "medium",
+      "question": "An online retailer expects ten times its normal traffic during a one-day sale next month. Leadership wants evidence that the architecture can handle the load and that the operations team knows how to respond if a component fails during the event. What should a solutions architect recommend?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Purchase Reserved Instances for ten times the current capacity before the sale.",
+          "correct": false,
+          "explanation": "Buying capacity on a guess proves nothing about behaviour under load or the team's readiness, and leaves expensive idle capacity afterwards."
+        },
+        {
+          "id": "B",
+          "text": "Enable the full set of AWS Trusted Advisor checks and fix every yellow finding.",
+          "correct": false,
+          "explanation": "Trusted Advisor finds configuration issues but does not test behaviour under peak load or rehearse incident response."
+        },
+        {
+          "id": "C",
+          "text": "Create a production-scale copy with infrastructure as code, run a load test and a game day that injects failures with AWS Fault Injection Service, then delete the copy.",
+          "correct": true,
+          "explanation": "This applies 'test systems at production scale' and 'improve through game days': you pay only while the test runs and the team rehearses failures."
+        },
+        {
+          "id": "D",
+          "text": "Increase the instance size of the web servers to the largest available type.",
+          "correct": false,
+          "explanation": "Vertical scaling on a guess neither proves capacity nor trains the team, and it creates a bigger single point of failure."
+        }
+      ],
+      "explanation": "Before a peak event, test at production scale and run a game day; the cloud makes a temporary full-size test environment affordable.",
+      "tags": [
+        "game-days",
+        "fis",
+        "design-principles"
+      ]
+    },
+    {
+      "id": "36-well-architected-exam-q09",
+      "type": "multi",
+      "domain": "cost",
+      "difficulty": "medium",
+      "question": "A company has a sustainability goal to reduce the resources needed by its web application, which runs on x86 EC2 instances sized for the yearly peak and stores all logs in S3 Standard forever. Which actions align with the sustainability pillar? (Select TWO.)",
+      "options": [
+        {
+          "id": "A",
+          "text": "Keep instances sized for peak so they never run above 30 percent CPU.",
+          "correct": false,
+          "explanation": "Low utilization wastes the baseline energy each host draws; sustainability favours fewer, busier resources."
+        },
+        {
+          "id": "B",
+          "text": "Move to Graviton-based instances behind an Auto Scaling group that tracks actual demand.",
+          "correct": true,
+          "explanation": "More energy-efficient hardware plus capacity that follows demand maximizes utilization and removes idle peak capacity."
+        },
+        {
+          "id": "C",
+          "text": "Deploy a full active-active copy of the application in three additional Regions.",
+          "correct": false,
+          "explanation": "Extra Regions multiply resources; do this only when business requirements demand it, not to improve sustainability."
+        },
+        {
+          "id": "D",
+          "text": "Add S3 Lifecycle rules that move old logs to colder storage classes and delete them after the retention period.",
+          "correct": true,
+          "explanation": "Storing less data, for less time, in more efficient tiers reduces the resources the workload needs."
+        },
+        {
+          "id": "E",
+          "text": "Copy all log files to a second S3 bucket in the same Region as an extra safeguard.",
+          "correct": false,
+          "explanation": "Duplicating data in the same Region doubles storage without a clear business need, increasing impact."
+        }
+      ],
+      "explanation": "Sustainability in the cloud means maximizing utilization, adopting efficient hardware and managed services, and minimizing stored data.",
+      "tags": [
+        "sustainability",
+        "graviton",
+        "s3-lifecycle"
+      ]
+    },
+    {
+      "id": "36-well-architected-exam-q10",
+      "type": "single",
+      "domain": "secure",
+      "difficulty": "medium",
+      "question": "A finance team asks a solutions architect to cut the cost of a non-production environment that copies the production architecture. Which proposed change is consistent with how the Well-Architected Framework treats trade-offs between pillars?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Turn off encryption at rest on the test databases to save AWS KMS request charges.",
+          "correct": false,
+          "explanation": "Security is generally not traded off against other pillars, and test copies often hold sensitive data."
+        },
+        {
+          "id": "B",
+          "text": "Run the test environment in a single Availability Zone with smaller instances.",
+          "correct": true,
+          "explanation": "Accepting lower reliability in non-production to save cost and resources is the framework's own example of a reasonable trade-off."
+        },
+        {
+          "id": "C",
+          "text": "Disable AWS CloudTrail in the test account to reduce log storage costs.",
+          "correct": false,
+          "explanation": "Traceability is a security principle; removing the audit trail trades away security, which the framework advises against."
+        },
+        {
+          "id": "D",
+          "text": "Share one administrator access key among all testers instead of creating IAM roles.",
+          "correct": false,
+          "explanation": "Shared long-term credentials break the strong identity foundation principle and save almost nothing."
+        }
+      ],
+      "explanation": "Reliability, cost and sustainability can be balanced by business context, but security and operational excellence are not the pillars you trade away.",
+      "tags": [
+        "well-architected",
+        "trade-offs"
+      ],
+      "updated": "Reflects the current framework text on trade-offs between pillars."
+    },
+    {
+      "id": "36-well-architected-exam-q11",
+      "type": "single",
+      "domain": "performant",
+      "difficulty": "medium",
+      "question": "Every night a company must run a Python script that takes about 3 minutes to export a report from a DynamoDB table to Amazon S3. Today the script runs from cron on a dedicated EC2 instance that is idle the rest of the day. Which solution meets the requirement with the LEAST operational overhead?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Keep the EC2 instance and use AWS Systems Manager Patch Manager to keep it patched.",
+          "correct": false,
+          "explanation": "It still leaves a server to manage and pay for 24 hours a day just to run a 3-minute job."
+        },
+        {
+          "id": "B",
+          "text": "Package the script as an AWS Lambda function invoked nightly by an Amazon EventBridge Scheduler schedule.",
+          "correct": true,
+          "explanation": "The job fits well within Lambda's 15-minute limit, and a managed schedule removes all servers to operate."
+        },
+        {
+          "id": "C",
+          "text": "Create an Amazon ECS cluster on EC2 container instances and run the script as a scheduled task.",
+          "correct": false,
+          "explanation": "Running a cluster of EC2 container instances adds more infrastructure to manage than the current setup."
+        },
+        {
+          "id": "D",
+          "text": "Launch an Amazon EMR cluster each night to run the script as a step.",
+          "correct": false,
+          "explanation": "EMR is built for big data processing; it is far more complex and expensive than a 3-minute script needs."
+        }
+      ],
+      "explanation": "'Least operational overhead' points to serverless or managed services; a short scheduled job is a textbook Lambda plus EventBridge Scheduler case.",
+      "tags": [
+        "exam-strategy",
+        "lambda",
+        "eventbridge-scheduler"
+      ]
+    },
+    {
+      "id": "36-well-architected-exam-q12",
+      "type": "single",
+      "domain": "resilient",
+      "difficulty": "medium",
+      "question": "A company runs a MySQL database on a single Amazon RDS DB instance. A new requirement says the application must keep working, with automatic failover, if one Availability Zone becomes unavailable. Which solution meets this requirement MOST cost-effectively?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Convert the DB instance to a Multi-AZ deployment.",
+          "correct": true,
+          "explanation": "Multi-AZ keeps a synchronous standby in another AZ with automatic failover, which is exactly what an AZ-level requirement asks for."
+        },
+        {
+          "id": "B",
+          "text": "Create a cross-Region read replica and promote it manually during an outage.",
+          "correct": false,
+          "explanation": "This targets a Region failure, costs more and needs manual promotion; the requirement is only about an AZ and asks for automatic failover."
+        },
+        {
+          "id": "C",
+          "text": "Take hourly snapshots and restore them in another AZ when needed.",
+          "correct": false,
+          "explanation": "Restoring from snapshots is manual, slow and loses recent data; it is backup, not automatic failover."
+        },
+        {
+          "id": "D",
+          "text": "Move to a larger DB instance class with more vCPUs.",
+          "correct": false,
+          "explanation": "A bigger instance is still a single instance in one AZ, so it does not survive an AZ outage."
+        }
+      ],
+      "explanation": "Read the scope: an AZ failure calls for Multi-AZ high availability; a Region failure would call for a multi-Region DR strategy.",
+      "tags": [
+        "exam-strategy",
+        "rds",
+        "multi-az"
+      ]
+    },
+    {
+      "id": "36-well-architected-exam-q13",
+      "type": "single",
+      "domain": "resilient",
+      "difficulty": "hard",
+      "question": "An enterprise architecture board reviews every workload with the AWS Well-Architected Tool. It also wants each review to include its own mandatory questions, for example about approved data stores and the internal change-approval process, with its own improvement guidance, and to share these questions with all application accounts. What should the board do?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Write AWS Config custom rules for each internal standard and attach them to the workloads.",
+          "correct": false,
+          "explanation": "Config rules check resource settings; they cannot ask about processes such as change approval, and they do not appear as review questions."
+        },
+        {
+          "id": "B",
+          "text": "Ask AWS Support to add the questions to the AWS Well-Architected Framework lens for the organization.",
+          "correct": false,
+          "explanation": "The official Framework lens is maintained by AWS and is the same for everyone; it cannot be customized per customer."
+        },
+        {
+          "id": "C",
+          "text": "Create custom Trusted Advisor checks for each internal question.",
+          "correct": false,
+          "explanation": "Trusted Advisor does not support customer-written checks, and it does not ask questions about processes."
+        },
+        {
+          "id": "D",
+          "text": "Create and publish a custom lens in the Well-Architected Tool and share it with the application accounts.",
+          "correct": true,
+          "explanation": "Custom lenses hold your own pillars, questions, best practices and improvement plans, and can be shared with other accounts and applied next to the Framework lens."
+        }
+      ],
+      "explanation": "Custom lenses extend Well-Architected reviews with an organization's own standards and can be shared across accounts.",
+      "tags": [
+        "well-architected-tool",
+        "lenses"
+      ]
+    },
+    {
+      "id": "36-well-architected-exam-q14",
+      "type": "multi",
+      "domain": "secure",
+      "difficulty": "hard",
+      "question": "A company uses AWS Organizations with 60 member accounts. The cloud governance team wants a single report of AWS Trusted Advisor check results for every account, produced from the management account. Which steps are required? (Select TWO.)",
+      "options": [
+        {
+          "id": "A",
+          "text": "Install the Trusted Advisor agent on the EC2 instances in each member account.",
+          "correct": false,
+          "explanation": "Trusted Advisor is agentless; it reads account configuration through AWS APIs."
+        },
+        {
+          "id": "B",
+          "text": "Make sure all features are enabled in AWS Organizations and turn on trusted access for Trusted Advisor from the management account.",
+          "correct": true,
+          "explanation": "Organizational view requires an organization with all features enabled and trusted access granted to Trusted Advisor."
+        },
+        {
+          "id": "C",
+          "text": "Create an AWS Config aggregator in the management account.",
+          "correct": false,
+          "explanation": "A Config aggregator collects Config data, not Trusted Advisor check results."
+        },
+        {
+          "id": "D",
+          "text": "Sign in to each member account weekly and download the Trusted Advisor results manually.",
+          "correct": false,
+          "explanation": "This works but is the manual approach the team wants to avoid; organizational view produces one consolidated report."
+        },
+        {
+          "id": "E",
+          "text": "Ensure the management account has Business Support+, Enterprise Support or Unified Operations, then create an organizational view report.",
+          "correct": true,
+          "explanation": "The management account's plan must be Business Support+ or higher before it can build reports that aggregate all member accounts."
+        }
+      ],
+      "explanation": "Trusted Advisor organizational view needs Organizations with all features, trusted access, and a Business Support+ or higher plan on the management account.",
+      "tags": [
+        "trusted-advisor",
+        "organizations"
+      ],
+      "updated": "Support plan names updated to the current plans."
+    },
+    {
+      "id": "36-well-architected-exam-q15",
+      "type": "single",
+      "domain": "secure",
+      "difficulty": "medium",
+      "question": "Business analysts at a healthcare company sign in to production database servers over SSH to run ad hoc reports on patient data and copy the results to their laptops. A Well-Architected review flags this as a high risk. Which change BEST aligns with the security pillar principle of keeping people away from data?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Require MFA for the SSH key pairs used by the analysts.",
+          "correct": false,
+          "explanation": "Stronger sign-in still leaves people with direct, manual access to raw sensitive data."
+        },
+        {
+          "id": "B",
+          "text": "Move the database servers to a larger instance type so the reports run faster.",
+          "correct": false,
+          "explanation": "Performance is not the issue; humans are still handling sensitive data directly."
+        },
+        {
+          "id": "C",
+          "text": "Publish curated, access-controlled datasets and dashboards through an automated pipeline so analysts never touch the production database.",
+          "correct": true,
+          "explanation": "Automated, governed access replaces direct human handling of data, which reduces mishandling, modification and human error."
+        },
+        {
+          "id": "D",
+          "text": "Add a bastion host in a public subnet that the analysts use to reach the database servers.",
+          "correct": false,
+          "explanation": "A bastion only changes the path; analysts still log in to production and copy data by hand."
+        }
+      ],
+      "explanation": "Keep people away from data: replace direct human access with tools and automated pipelines that enforce access control.",
+      "tags": [
+        "security",
+        "design-principles"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,176 @@
+{
+  "section": "22-serverless-architectures",
+  "cards": [
+    {
+      "id": "22-serverless-architectures-fc-01",
+      "front": "Which three services form the classic serverless REST API, and what does each do?",
+      "back": "**API Gateway** exposes the HTTPS endpoint, **Lambda** runs the business logic, **DynamoDB** stores the data. All three scale automatically and bill per request.",
+      "tags": ["api-gateway", "lambda", "dynamodb"]
+    },
+    {
+      "id": "22-serverless-architectures-fc-02",
+      "front": "How does API Gateway make sure only signed-in Cognito users can call a REST API method?",
+      "back": "Attach a **Cognito user pool authorizer** to the method. The client sends its ID or access token in the `Authorization` header; API Gateway validates it and rejects missing or invalid tokens before Lambda runs.",
+      "tags": ["cognito", "api-gateway"]
+    },
+    {
+      "id": "22-serverless-architectures-fc-03",
+      "front": "Cognito **user pool** vs Cognito **identity pool**: what does each give you?",
+      "back": "**User pool**: a user directory that signs people in and issues JWTs (ID, access, refresh tokens). **Identity pool**: exchanges a token for **temporary AWS credentials** tied to an IAM role.",
+      "tags": ["cognito"]
+    },
+    {
+      "id": "22-serverless-architectures-fc-04",
+      "front": "A mobile app must upload files straight to S3 without embedded keys. Which Cognito feature and which AWS service issue the credentials?",
+      "back": "A **Cognito identity pool** calls **AWS STS** (`AssumeRoleWithWebIdentity`) on the app's behalf and returns short-lived access key, secret key and session token.",
+      "tags": ["cognito", "sts", "s3"]
+    },
+    {
+      "id": "22-serverless-architectures-fc-05",
+      "front": "How long are AWS credentials from a Cognito identity pool's enhanced flow valid?",
+      "back": "**One hour.** The app (or the AWS SDK credential provider) requests new ones with a fresh token when they expire.",
+      "tags": ["cognito", "sts"]
+    },
+    {
+      "id": "22-serverless-architectures-fc-06",
+      "front": "Which IAM policy variable restricts every identity pool user to their own S3 prefix?",
+      "back": "`${cognito-identity.amazonaws.com:sub}`, the caller's identity ID, used in the resource ARN, e.g. `arn:aws:s3:::bucket/${cognito-identity.amazonaws.com:sub}/*`.",
+      "tags": ["cognito", "iam-roles", "s3"]
+    },
+    {
+      "id": "22-serverless-architectures-fc-07",
+      "front": "How can identity pool users query DynamoDB directly but only see their own items?",
+      "back": "Grant DynamoDB actions in the role with the condition **`dynamodb:LeadingKeys`** equal to `${cognito-identity.amazonaws.com:sub}`, so the partition key must match the caller's identity ID.",
+      "tags": ["cognito", "dynamodb"]
+    },
+    {
+      "id": "22-serverless-architectures-fc-08",
+      "front": "Which two conditions belong in the trust policy of an identity pool's authenticated role?",
+      "back": "`cognito-identity.amazonaws.com:aud` = your identity pool ID (required by IAM) and `cognito-identity.amazonaws.com:amr` = `authenticated` (keeps guests out). Principal: `cognito-identity.amazonaws.com`.",
+      "tags": ["cognito", "iam-roles"]
+    },
+    {
+      "id": "22-serverless-architectures-fc-09",
+      "front": "What is DAX and what are its default cache TTLs?",
+      "back": "**DynamoDB Accelerator**: an in-memory, write-through cache that uses the DynamoDB API and returns hot reads in microseconds. Item cache and query cache both default to a **5-minute TTL**.",
+      "tags": ["dax", "dynamodb"]
+    },
+    {
+      "id": "22-serverless-architectures-fc-10",
+      "front": "Two things a Lambda function needs before it can use DAX.",
+      "back": "It must be **attached to the VPC** where the DAX cluster runs (with security group access), and it must use the **DAX client** pointed at the cluster endpoint.",
+      "tags": ["dax", "lambda"]
+    },
+    {
+      "id": "22-serverless-architectures-fc-11",
+      "front": "Does DAX serve strongly consistent reads from its cache?",
+      "back": "**No.** Strongly consistent reads pass straight through to DynamoDB and are not cached. DAX caches eventually consistent `GetItem`, `BatchGetItem`, `Query` and `Scan` results.",
+      "tags": ["dax"]
+    },
+    {
+      "id": "22-serverless-architectures-fc-12",
+      "front": "API Gateway response caching: what are the default and maximum TTL?",
+      "back": "Default **300 seconds**, maximum **3,600 seconds** (a TTL of 0 turns caching off). The stage sets the default; individual methods can override it.",
+      "tags": ["api-gateway"]
+    },
+    {
+      "id": "22-serverless-architectures-fc-13",
+      "front": "API Gateway cache vs DAX: what does each save you?",
+      "back": "**API Gateway cache** stores whole responses, so repeated identical requests skip Lambda and everything behind it. **DAX** caches DynamoDB items, cutting read capacity and latency even when responses differ per user.",
+      "tags": ["api-gateway", "dax"]
+    },
+    {
+      "id": "22-serverless-architectures-fc-14",
+      "front": "How do you keep an S3 bucket private while CloudFront serves its files?",
+      "back": "Use **Origin Access Control (OAC)**: CloudFront signs origin requests and the bucket policy allows the `cloudfront.amazonaws.com` principal only when `AWS:SourceArn` is your distribution's ARN.",
+      "tags": ["cloudfront", "s3"]
+    },
+    {
+      "id": "22-serverless-architectures-fc-15",
+      "front": "Name three things OAC supports that the legacy OAI does not.",
+      "back": "Buckets in **all Regions** (including newer opt-in Regions), objects encrypted with **SSE-KMS**, and **dynamic requests** (`PUT`, `DELETE`) to S3 through CloudFront.",
+      "tags": ["cloudfront"]
+    },
+    {
+      "id": "22-serverless-architectures-fc-16",
+      "front": "What do DynamoDB global tables give a worldwide serverless app?",
+      "back": "Replica tables in several Regions, **each accepting reads and writes** (multi-active). Default mode replicates asynchronously, typically within a second, with **last writer wins** on conflicts.",
+      "tags": ["dynamodb-global-tables"]
+    },
+    {
+      "id": "22-serverless-architectures-fc-17",
+      "front": "DynamoDB global tables MRSC mode: what is it and what does it require?",
+      "back": "**Multi-Region strong consistency**: writes replicate synchronously, strongly consistent reads return the latest data in any Region, RPO zero. It needs **exactly three Regions** (three replicas, or two plus a witness) and has higher write latency.",
+      "tags": ["dynamodb-global-tables"],
+      "updated": "MRSC is a newer mode not covered by the slides."
+    },
+    {
+      "id": "22-serverless-architectures-fc-18",
+      "front": "Aurora Global Database vs DynamoDB global tables: the key difference for writes?",
+      "back": "**Aurora Global Database** has one writer Region plus up to **10** read-only secondary Regions. **DynamoDB global tables** accept writes in every Region.",
+      "tags": ["aurora-global", "dynamodb-global-tables"],
+      "updated": "Aurora Global Database now supports up to 10 secondary Regions."
+    },
+    {
+      "id": "22-serverless-architectures-fc-19",
+      "front": "How do you send a welcome email whenever a new subscriber item is written to DynamoDB, serverlessly?",
+      "back": "Enable **DynamoDB Streams**, add a **Lambda trigger** (optionally filtered to `INSERT` events) and call **Amazon SES** from the function, with `ses:SendEmail` granted in its **execution role**.",
+      "tags": ["dynamodb-streams", "lambda", "ses"]
+    },
+    {
+      "id": "22-serverless-architectures-fc-20",
+      "front": "How long does DynamoDB Streams keep change records?",
+      "back": "**24 hours.** Each record appears once, and changes to the same item stay in order.",
+      "tags": ["dynamodb-streams"]
+    },
+    {
+      "id": "22-serverless-architectures-fc-21",
+      "front": "What are the Amazon SES sandbox limits on a new account?",
+      "back": "Per Region: send only **to verified addresses or domains** (or the mailbox simulator), at most **200 messages per 24 hours** and **1 message per second**. Request production access to lift them.",
+      "tags": ["ses"]
+    },
+    {
+      "id": "22-serverless-architectures-fc-22",
+      "front": "Which destinations can S3 event notifications target, and which queue/topic types are excluded?",
+      "back": "**Lambda, SQS, SNS and EventBridge.** SQS **FIFO** queues and SNS **FIFO** topics are not supported directly; route through EventBridge for those.",
+      "tags": ["s3", "lambda", "sqs", "sns", "eventbridge"]
+    },
+    {
+      "id": "22-serverless-architectures-fc-23",
+      "front": "A thumbnail Lambda writes its output into the bucket that triggers it. What goes wrong and how do you prevent it?",
+      "back": "Each thumbnail triggers the function again, an **infinite loop**. Write to a **separate bucket** or filter the trigger to an input prefix. Lambda recursive loop detection stops S3 loops after about 16 invocations, but only as a safety net.",
+      "tags": ["s3", "lambda"]
+    },
+    {
+      "id": "22-serverless-architectures-fc-24",
+      "front": "Users far from the bucket's Region upload large photos slowly. Which S3 feature helps?",
+      "back": "**S3 Transfer Acceleration**: uploads enter at the nearest CloudFront edge location and travel to S3 over the AWS network, via the `bucket.s3-accelerate.amazonaws.com` endpoint.",
+      "tags": ["s3-transfer-acceleration"]
+    },
+    {
+      "id": "22-serverless-architectures-fc-25",
+      "front": "Name four AWS services used for **asynchronous** communication between microservices, and two for **synchronous**.",
+      "back": "Asynchronous: **SQS, SNS, Kinesis Data Streams, S3 events invoking Lambda** (also EventBridge). Synchronous: **API Gateway** and **load balancers** (ALB/NLB).",
+      "tags": ["sqs", "sns", "kinesis-data-streams", "api-gateway", "elb"]
+    },
+    {
+      "id": "22-serverless-architectures-fc-26",
+      "front": "Which API Gateway features reduce the overhead of running many microservices?",
+      "back": "Automatic scaling with pay-per-request pricing, **stages** to clone environments, OpenAPI import/export, and **generated client SDKs** (REST APIs only: Java, JavaScript, Android, iOS, Ruby).",
+      "tags": ["api-gateway"],
+      "updated": "The slides say 'Swagger'; the current name is OpenAPI (2.0 and 3.0 export)."
+    },
+    {
+      "id": "22-serverless-architectures-fc-27",
+      "front": "An EC2 Auto Scaling group behind an ALB serves static software updates and costs spike on release day. The app must not change. Fix?",
+      "back": "Put **CloudFront in front of the ALB**. Static update files are cached at edge locations, so the fleet scales far less and origin-to-CloudFront transfer from AWS origins is free.",
+      "tags": ["cloudfront", "alb", "asg"]
+    },
+    {
+      "id": "22-serverless-architectures-fc-28",
+      "front": "Which API Gateway API type offers response caching, and how is the cache billed?",
+      "back": "**REST APIs only** (HTTP APIs have no cache). You pick a per-stage cache size from **0.5 GB to 237 GB** and pay **by the hour**; the cache is never covered by the Free Tier.",
+      "tags": ["api-gateway"]
+    }
+  ]
+}

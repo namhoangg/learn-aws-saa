@@ -1,0 +1,235 @@
+{
+  "section": "17-sqs-sns",
+  "questions": [
+    {
+      "id": "17-sqs-sns-q01",
+      "type": "single",
+      "domain": "resilient",
+      "difficulty": "easy",
+      "question": "A media company's upload API calls its video encoding service synchronously. Normally about 10 videos arrive per hour, but after marketing campaigns 1,000 videos can arrive within minutes, the encoders fall behind and upload requests time out. Uploads must never be rejected, even if encoding finishes later. Which solution meets these requirements?",
+      "options": [
+        { "id": "A", "text": "Move the encoders to a larger EC2 instance type so they can handle the peak.", "correct": false, "explanation": "Vertical scaling only raises the ceiling; a bigger burst still overwhelms the encoders and uploads still wait on them synchronously." },
+        { "id": "B", "text": "Publish each upload to an SNS topic with the encoders subscribed through HTTPS endpoints.", "correct": false, "explanation": "SNS pushes immediately to the endpoints, so overloaded encoders still receive more than they can handle and SNS has no backlog for them to work through later." },
+        { "id": "C", "text": "Have the upload API send a message per video to an SQS queue and run the encoders in an Auto Scaling group that polls the queue and scales on queue depth.", "correct": true, "explanation": "The queue accepts every upload instantly and holds the backlog; the encoder fleet scales out on the number of visible messages and works through it at its own pace." },
+        { "id": "D", "text": "Put an Application Load Balancer in front of the encoders and enable cross-zone load balancing.", "correct": false, "explanation": "A load balancer spreads requests but keeps the call synchronous, so a burst larger than total encoder capacity still causes timeouts." }
+      ],
+      "explanation": "Sudden spikes plus 'must not reject requests' points to decoupling with an SQS queue and consumers that scale on the backlog.",
+      "tags": ["sqs", "decoupling", "asg"]
+    },
+    {
+      "id": "17-sqs-sns-q02",
+      "type": "single",
+      "domain": "resilient",
+      "difficulty": "medium",
+      "question": "An order-processing application uses an SQS standard queue with default settings. Each order takes about 45 seconds to process, after which the consumer deletes the message. The team notices that many orders are processed twice by different EC2 consumers. What should a solutions architect do to reduce the duplicate processing?",
+      "options": [
+        { "id": "A", "text": "Increase the queue's visibility timeout to a value longer than the processing time, such as 2 minutes.", "correct": true, "explanation": "The default 30-second visibility timeout expires before the 45-second job finishes, so the message reappears and another consumer takes it. A longer timeout keeps it hidden until it is deleted." },
+        { "id": "B", "text": "Enable long polling by setting the receive message wait time to 20 seconds.", "correct": false, "explanation": "Long polling reduces empty responses and cost but does not change how long a received message stays hidden, so duplicates continue." },
+        { "id": "C", "text": "Set a delivery delay of 45 seconds on the queue.", "correct": false, "explanation": "A delivery delay only postpones the first delivery of new messages; after a consumer receives the message the 30-second visibility timeout still applies." },
+        { "id": "D", "text": "Reduce the message retention period to 1 minute so processed messages expire sooner.", "correct": false, "explanation": "Retention controls when unprocessed messages are deleted; a 1-minute retention would lose orders without fixing the early reappearance." }
+      ],
+      "explanation": "When processing takes longer than the visibility timeout, messages are delivered again. Size the timeout to the processing time or extend it per message with ChangeMessageVisibility.",
+      "tags": ["sqs", "visibility-timeout"]
+    },
+    {
+      "id": "17-sqs-sns-q03",
+      "type": "single",
+      "domain": "cost",
+      "difficulty": "easy",
+      "question": "A fleet of workers polls an SQS queue in a tight loop. Most of the time the queue is empty, and CloudWatch shows a very high NumberOfEmptyReceives value, which drives up the SQS bill. Which change reduces cost with the LEAST effort while keeping messages processed promptly?",
+      "options": [
+        { "id": "A", "text": "Convert the queue to a FIFO queue.", "correct": false, "explanation": "A queue's type cannot be changed, and FIFO queues are charged at higher rates; it does nothing about empty receives." },
+        { "id": "B", "text": "Add a 15-minute delivery delay to the queue.", "correct": false, "explanation": "A delivery delay holds back every new message for 15 minutes, hurting promptness, while workers still make empty calls during that time." },
+        { "id": "C", "text": "Have the workers sleep 5 minutes between receive calls.", "correct": false, "explanation": "Fewer calls, but new messages can now wait up to 5 minutes before anyone looks, so processing is no longer prompt." },
+        { "id": "D", "text": "Enable long polling by setting the queue's receive message wait time to 20 seconds.", "correct": true, "explanation": "Each receive call now waits up to 20 seconds for a message and returns as soon as one arrives, cutting empty responses and billed requests without adding delay." }
+      ],
+      "explanation": "Empty receives and polling cost point to long polling with a wait time of up to 20 seconds.",
+      "tags": ["sqs", "long-polling", "cost"]
+    },
+    {
+      "id": "17-sqs-sns-q04",
+      "type": "single",
+      "domain": "resilient",
+      "difficulty": "medium",
+      "question": "A banking application emits account events (deposit, withdrawal, fee) at about 200 events per second across thousands of accounts. Events for the same account must be processed in the exact order they occurred and must never be applied twice, but events for different accounts can be processed in parallel by several consumers. Which solution meets these requirements?",
+      "options": [
+        { "id": "A", "text": "An SQS standard queue with consumers that sort events by timestamp before applying them.", "correct": false, "explanation": "A standard queue gives best-effort ordering and at-least-once delivery; sorting inside each consumer cannot fix order across consumers or stop duplicates." },
+        { "id": "B", "text": "An SQS FIFO queue, sending each event with the account ID as the message group ID and a unique deduplication ID.", "correct": true, "explanation": "FIFO keeps strict order within each message group, removes retried duplicates within 5 minutes and lets different accounts (groups) be processed in parallel; 200 messages per second is under the default FIFO limit." },
+        { "id": "C", "text": "An SQS FIFO queue, sending every event with the same message group ID.", "correct": false, "explanation": "One group forces all events through one at a time, so consumers cannot work on different accounts in parallel." },
+        { "id": "D", "text": "An SNS standard topic with one Lambda function subscribed.", "correct": false, "explanation": "Standard SNS does not guarantee ordering or deduplication, so events could be applied out of order or twice." }
+      ],
+      "explanation": "Ordering per entity plus no duplicates means SQS FIFO with the entity (account, customer, device) as the message group ID.",
+      "tags": ["sqs", "fifo", "message-group"]
+    },
+    {
+      "id": "17-sqs-sns-q05",
+      "type": "multi",
+      "domain": "resilient",
+      "difficulty": "medium",
+      "question": "When an order is placed, an e-commerce service must notify three independent systems: fraud detection, shipping and analytics. Each system must receive every order, process it at its own pace, and not lose orders if it is offline for several hours. More systems will be added later without changing the order service. Which actions should a solutions architect take? (Select TWO.)",
+      "options": [
+        { "id": "A", "text": "Create one SQS standard queue that all three systems poll.", "correct": false, "explanation": "Each message in a queue is consumed and deleted by one consumer, so each order would reach only one of the three systems." },
+        { "id": "B", "text": "Have the order service publish to an SNS topic and subscribe one SQS queue per consuming system.", "correct": true, "explanation": "This is fan-out: every queue gets its own copy, each system reads at its own pace and new queues can be subscribed later without touching the producer." },
+        { "id": "C", "text": "Add a statement to each queue's access policy that allows sns.amazonaws.com to call sqs:SendMessage, restricted with aws:SourceArn set to the topic ARN.", "correct": true, "explanation": "SNS can only deliver into a queue whose resource policy allows it; without this statement the subscription exists but nothing arrives." },
+        { "id": "D", "text": "Have the order service call each system's HTTP API one after another and retry on failure.", "correct": false, "explanation": "Synchronous calls couple the order service to every consumer and require code changes whenever a system is added." },
+        { "id": "E", "text": "Subscribe each system's HTTPS endpoint directly to the SNS topic.", "correct": false, "explanation": "SNS retries an HTTP/S endpoint for at most 3,600 seconds in total and then discards the message unless a subscription dead-letter queue is set up, so a multi-hour outage loses orders. Push delivery also leaves no backlog the system can work through at its own pace." }
+      ],
+      "explanation": "Independent consumers that each need every message durably = SNS topic fanning out to one SQS queue per consumer, with queue access policies that allow the topic.",
+      "tags": ["sns", "sqs", "fan-out", "access-policy"]
+    },
+    {
+      "id": "17-sqs-sns-q06",
+      "type": "single",
+      "domain": "performant",
+      "difficulty": "medium",
+      "question": "An S3 bucket already sends ObjectCreated event notifications for the images/ prefix to an SQS queue used by a thumbnail service. A new virus-scanning service also needs every ObjectCreated event for images/. When the team adds a second notification rule pointing to a new queue, S3 rejects the configuration. What should a solutions architect do?",
+      "options": [
+        { "id": "A", "text": "Change the bucket notification to target an SNS topic and subscribe both SQS queues to that topic.", "correct": true, "explanation": "S3 does not allow two rules with the same event type and overlapping prefixes. One rule to an SNS topic, fanned out to both queues, delivers the event to each service." },
+        { "id": "B", "text": "Give the second rule the prefix images/new/ so the prefixes differ.", "correct": false, "explanation": "images/new/ still overlaps images/, so S3 rejects it, and the scanner would miss objects outside the sub-prefix anyway." },
+        { "id": "C", "text": "Let the thumbnail service forward each message it receives to the virus-scanning queue.", "correct": false, "explanation": "This couples the scanner to the thumbnail service; if thumbnails fail or lag, scanning is delayed or skipped." },
+        { "id": "D", "text": "Enable S3 Cross-Region Replication and configure the notification on the replica bucket.", "correct": false, "explanation": "Replication adds cost and delay and creates a second bucket just to work around a notification rule; fan-out solves it directly." }
+      ],
+      "explanation": "One S3 event needed by several consumers is the textbook SNS fan-out case (EventBridge is the other valid design).",
+      "tags": ["sns", "s3", "fan-out"]
+    },
+    {
+      "id": "17-sqs-sns-q07",
+      "type": "single",
+      "domain": "performant",
+      "difficulty": "hard",
+      "question": "EC2 instances in an Auto Scaling group process messages from an SQS queue. Each message takes about 0.5 seconds to process, and the business accepts at most 30 seconds between a message arriving and being processed. The workload varies widely during the day, and scaling on CPU has left the backlog growing while CPU looked normal. Which scaling approach should a solutions architect recommend?",
+      "options": [
+        { "id": "A", "text": "A target tracking policy that keeps average CPU utilization at 40%.", "correct": false, "explanation": "CPU is not a reliable signal for queue work here; the scenario already shows a growing backlog while CPU looked normal." },
+        { "id": "B", "text": "Scheduled scaling actions that add instances during business hours.", "correct": false, "explanation": "The load varies unpredictably, so a fixed schedule either wastes instances or lets the backlog grow outside the expected peaks." },
+        { "id": "C", "text": "A step scaling policy on the NumberOfMessagesSent metric.", "correct": false, "explanation": "NumberOfMessagesSent measures the arrival rate, not the work waiting per instance, and ignores how many instances are already processing." },
+        { "id": "D", "text": "A target tracking policy on backlog per instance (visible messages divided by in-service instances) with a target value of 60.", "correct": true, "explanation": "Acceptable backlog per instance = 30 s ÷ 0.5 s = 60 messages. Tracking that ratio adds or removes workers in proportion to the work waiting, which AWS recommends for SQS-driven groups." }
+      ],
+      "explanation": "Scale queue workers on backlog per instance, with the target set to acceptable latency divided by the average processing time per message.",
+      "tags": ["sqs", "asg", "target-tracking"],
+      "updated": "AWS now recommends building the backlog-per-instance metric with CloudWatch metric math rather than publishing a custom metric."
+    },
+    {
+      "id": "17-sqs-sns-q08",
+      "type": "single",
+      "domain": "secure",
+      "difficulty": "medium",
+      "question": "An SQS queue lives in account A (111111111111). An application running with an IAM role in account B (222222222222) must send messages to it. The security team wants the narrowest change on the queue side. What should be done in account A?",
+      "options": [
+        { "id": "A", "text": "Create an IAM user in account A for the application and store its access keys in the application configuration.", "correct": false, "explanation": "Long-term access keys shared across accounts are a security anti-pattern and are not needed when a resource policy can grant access." },
+        { "id": "B", "text": "Make the queue public by allowing Principal \"*\" to call sqs:SendMessage.", "correct": false, "explanation": "A wildcard principal lets anyone on the internet send to the queue, which is far broader than required." },
+        { "id": "C", "text": "Add a statement to the queue's SQS access policy that allows account B's role to call sqs:SendMessage on this queue.", "correct": true, "explanation": "A resource-based SQS access policy is how you grant cross-account access; account B also needs an IAM policy on its role allowing sqs:SendMessage." },
+        { "id": "D", "text": "Enable SSE-KMS on the queue with the AWS managed key alias/aws/sqs.", "correct": false, "explanation": "Encryption does not grant access, and the AWS managed key's policy cannot be edited to admit principals from another account." }
+      ],
+      "explanation": "Cross-account access to a queue is granted with the queue's resource-based access policy (plus IAM permissions in the caller's account).",
+      "tags": ["sqs", "security", "access-policy", "cross-account"]
+    },
+    {
+      "id": "17-sqs-sns-q09",
+      "type": "multi",
+      "domain": "secure",
+      "difficulty": "hard",
+      "question": "An S3 bucket is configured to send ObjectCreated event notifications to an SQS queue. The queue's access policy correctly allows s3.amazonaws.com to send messages from that bucket, but no messages ever arrive. The queue uses SSE-KMS with the AWS managed key alias/aws/sqs, and company policy requires the queue to stay encrypted with an AWS KMS key. Which actions will fix the problem? (Select TWO.)",
+      "options": [
+        { "id": "A", "text": "Create a customer managed KMS key and configure the queue to use it for server-side encryption.", "correct": true, "explanation": "AWS service publishers need explicit key permissions, which you can only grant on a customer managed key." },
+        { "id": "B", "text": "Add a statement to the customer managed key's policy that allows the s3.amazonaws.com service principal to use kms:GenerateDataKey and kms:Decrypt.", "correct": true, "explanation": "S3 must generate and verify data keys to write an encrypted message; the key policy statement grants exactly that." },
+        { "id": "C", "text": "Edit the key policy of alias/aws/sqs to allow s3.amazonaws.com.", "correct": false, "explanation": "The key policy of an AWS managed key cannot be modified, so this change is not possible." },
+        { "id": "D", "text": "Enable long polling on the queue.", "correct": false, "explanation": "Long polling affects how consumers receive messages, not whether S3 can encrypt and deliver them." },
+        { "id": "E", "text": "Enable versioning on the S3 bucket.", "correct": false, "explanation": "Versioning has no effect on event notification delivery or KMS permissions." }
+      ],
+      "explanation": "Encrypted queues (and topics) that receive messages from AWS services need a customer managed KMS key whose key policy lets the service principal use it.",
+      "tags": ["sqs", "kms", "s3", "security"]
+    },
+    {
+      "id": "17-sqs-sns-q10",
+      "type": "single",
+      "domain": "resilient",
+      "difficulty": "medium",
+      "question": "A small number of malformed messages in an SQS standard queue cause the consumer to throw an exception every time. These messages keep reappearing, waste processing capacity, and the team only notices days later. The team wants failed messages set aside for investigation and an alert when this happens. Which solution meets these requirements?",
+      "options": [
+        { "id": "A", "text": "Lower the queue's message retention period to 1 hour so failing messages expire quickly.", "correct": false, "explanation": "Short retention would silently delete valid messages that are merely waiting, and gives no way to investigate the bad ones." },
+        { "id": "B", "text": "Configure a dead-letter queue with a redrive policy (for example maxReceiveCount of 5) and a CloudWatch alarm on the DLQ's ApproximateNumberOfMessagesVisible.", "correct": true, "explanation": "After five failed receives a message moves to the DLQ, freeing the main queue; the alarm alerts the team, and DLQ redrive can return messages after a fix." },
+        { "id": "C", "text": "Increase the visibility timeout to 12 hours.", "correct": false, "explanation": "Failing messages would only reappear less often; they still never succeed and nothing alerts the team." },
+        { "id": "D", "text": "Switch to a FIFO queue with content-based deduplication.", "correct": false, "explanation": "Deduplication prevents duplicate sends, not repeated failures, and a stuck message would also block the rest of its message group." }
+      ],
+      "explanation": "Poison messages are handled with a dead-letter queue (maxReceiveCount) plus monitoring of the DLQ.",
+      "tags": ["sqs", "dlq", "cloudwatch"]
+    },
+    {
+      "id": "17-sqs-sns-q11",
+      "type": "single",
+      "domain": "resilient",
+      "difficulty": "medium",
+      "question": "A retailer publishes price updates that three downstream systems must each receive. Every system must apply the updates for a given product in exactly the order they were published, and duplicate updates must be discarded. One of the systems is implemented as an AWS Lambda function. Which architecture meets these requirements?",
+      "options": [
+        { "id": "A", "text": "An SNS standard topic with two SQS FIFO queues and the Lambda function subscribed directly.", "correct": false, "explanation": "A standard topic keeps no order and removes no duplicates, and SQS FIFO queues cannot subscribe to a standard topic at all, so this design fails on both counts." },
+        { "id": "B", "text": "An SNS FIFO topic with three SQS FIFO queues subscribed, using the product ID as the message group ID, and the Lambda function triggered by one of the queues.", "correct": true, "explanation": "SNS FIFO + SQS FIFO keeps ordering per message group and deduplicates end to end; Lambda reaches the FIFO topic through a subscribed FIFO queue." },
+        { "id": "C", "text": "An SNS FIFO topic with the Lambda function and two HTTPS endpoints subscribed directly.", "correct": false, "explanation": "FIFO topics can deliver only to SQS queues; direct Lambda and HTTPS subscriptions are rejected." },
+        { "id": "D", "text": "A single SQS FIFO queue that all three systems poll.", "correct": false, "explanation": "Each message is consumed by one poller, so each update would reach only one of the three systems." }
+      ],
+      "explanation": "Fan-out with ordering and deduplication = SNS FIFO topic + SQS FIFO queues; Lambda consumes from a queue.",
+      "tags": ["sns", "fifo", "fan-out", "lambda"]
+    },
+    {
+      "id": "17-sqs-sns-q12",
+      "type": "single",
+      "domain": "cost",
+      "difficulty": "medium",
+      "question": "An SNS topic receives all order events with a message attribute status set to placed, cancelled or declined. Five SQS queues are subscribed, and each consumer discards most messages because it only cares about one status. The team wants to cut processing and request costs with minimal code changes. What should a solutions architect do?",
+      "options": [
+        { "id": "A", "text": "Create a separate SNS topic per status and change the producer to publish to the right topic.", "correct": false, "explanation": "It works but requires producer changes and more topics to manage, which is more effort than filtering on existing subscriptions." },
+        { "id": "B", "text": "Enable raw message delivery on every subscription.", "correct": false, "explanation": "Raw delivery removes the SNS JSON envelope but still delivers every message to every queue." },
+        { "id": "C", "text": "Have each consumer use long polling with a 20-second wait.", "correct": false, "explanation": "Long polling reduces empty receives but every unwanted message is still delivered, received and discarded." },
+        { "id": "D", "text": "Add a subscription filter policy to each subscription that matches only the status values that consumer needs.", "correct": true, "explanation": "SNS evaluates each subscription's filter policy against the status attribute and delivers only matching messages, so consumers stop receiving messages they would discard." }
+      ],
+      "explanation": "Subscribers that need only a subset of a topic's messages should use subscription filter policies; no policy means every message.",
+      "tags": ["sns", "filtering", "cost"]
+    },
+    {
+      "id": "17-sqs-sns-q13",
+      "type": "multi",
+      "domain": "resilient",
+      "difficulty": "medium",
+      "question": "During flash sales, a web application writes transactions directly to an Amazon Aurora database. The database becomes overloaded, insert requests time out and some transactions are lost. Users only need to see an 'order received' confirmation. Which steps should a solutions architect take to stop losing transactions? (Select TWO.)",
+      "options": [
+        { "id": "A", "text": "Have the application send each transaction to an SQS queue and run worker instances that read from the queue and write to Aurora.", "correct": true, "explanation": "The queue absorbs the burst; writes reach the database at a pace it can handle instead of timing out." },
+        { "id": "B", "text": "Have the workers delete each message only after the database insert succeeds.", "correct": true, "explanation": "If a worker crashes or an insert fails, the message becomes visible again and is retried, so no transaction is lost." },
+        { "id": "C", "text": "Have the workers delete each message as soon as they receive it, before inserting, to avoid duplicates.", "correct": false, "explanation": "Deleting first means a crash or failed insert loses the transaction for good, which is the problem being solved." },
+        { "id": "D", "text": "Set the queue's visibility timeout to 0 seconds so messages are processed faster.", "correct": false, "explanation": "A zero timeout makes each message immediately visible to other workers, causing many duplicate inserts without speeding anything up." },
+        { "id": "E", "text": "Publish each transaction to an SNS topic with the database endpoint subscribed over HTTPS.", "correct": false, "explanation": "A database is not an SNS subscriber, and SNS push would still hit the database at burst speed with no backlog." }
+      ],
+      "explanation": "Buffer database writes with SQS and delete each message only after it has been written successfully.",
+      "tags": ["sqs", "patterns", "aurora"]
+    },
+    {
+      "id": "17-sqs-sns-q14",
+      "type": "single",
+      "domain": "cost",
+      "difficulty": "easy",
+      "question": "A compliance team requires a permanent copy of every message published to an SNS topic, stored in Amazon S3 and queryable later. The solution must need as little custom code and operations as possible. Which solution meets these requirements?",
+      "options": [
+        { "id": "A", "text": "Subscribe an SQS queue to the topic and run an EC2 instance that reads the queue and writes each message to S3.", "correct": false, "explanation": "It works but requires a server and custom code to build, patch and monitor, which is more operational effort." },
+        { "id": "B", "text": "Enable SNS delivery status logging and export the CloudWatch Logs to S3 every night.", "correct": false, "explanation": "Delivery status logs record delivery attempts, not message bodies, and nightly exports add work." },
+        { "id": "C", "text": "Subscribe an Amazon Data Firehose stream with an S3 destination to the topic.", "correct": true, "explanation": "SNS delivers directly to Data Firehose, which batches and writes the messages to S3 with no consumer code or servers." },
+        { "id": "D", "text": "Turn on S3 event notifications to the topic.", "correct": false, "explanation": "That sends S3 events into SNS, the opposite direction; it does not store SNS messages in S3." }
+      ],
+      "explanation": "SNS to Amazon Data Firehose to S3 archives every message without writing a consumer.",
+      "tags": ["sns", "data-firehose", "s3"],
+      "updated": "Kinesis Data Firehose was renamed Amazon Data Firehose in February 2024."
+    },
+    {
+      "id": "17-sqs-sns-q15",
+      "type": "single",
+      "domain": "performant",
+      "difficulty": "medium",
+      "question": "Customers can cancel an order within 2 minutes of placing it. The fulfilment workers that read orders from an SQS standard queue must therefore not see any order until 2 minutes after it was sent. Which configuration meets this requirement with the LEAST effort?",
+      "options": [
+        { "id": "A", "text": "Set the queue's delivery delay (DelaySeconds) to 120 seconds.", "correct": true, "explanation": "A delay queue hides every new message for the configured time (up to 15 minutes) before its first delivery, exactly matching the 2-minute window." },
+        { "id": "B", "text": "Set the queue's visibility timeout to 120 seconds.", "correct": false, "explanation": "The visibility timeout starts only after a consumer receives a message, so workers would still see new orders immediately." },
+        { "id": "C", "text": "Set the receive message wait time to 120 seconds.", "correct": false, "explanation": "Long polling waits at most 20 seconds and only controls how long a receive call waits, not when messages become available." },
+        { "id": "D", "text": "Set the message retention period to 120 seconds.", "correct": false, "explanation": "Retention deletes messages that are not processed in time; 120 seconds would destroy orders rather than delay them." }
+      ],
+      "explanation": "Postponing first delivery is a delay queue (0-15 minutes); the visibility timeout applies only after a message is received.",
+      "tags": ["sqs", "delay-queue"]
+    }
+  ]
+}

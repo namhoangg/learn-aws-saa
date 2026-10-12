@@ -1,0 +1,190 @@
+{
+  "section": "21-dynamodb-apigw-cognito",
+  "cards": [
+    {
+      "id": "21-dynamodb-apigw-cognito-fc-01",
+      "front": "In one sentence, what is Amazon DynamoDB?",
+      "back": "A fully managed, serverless **NoSQL key-value and document database** that replicates across several AZs and serves requests with consistent **single-digit millisecond** latency at virtually any scale, secured with IAM.",
+      "tags": ["dynamodb"]
+    },
+    {
+      "id": "21-dynamodb-apigw-cognito-fc-02",
+      "front": "What is the maximum size of a DynamoDB item?",
+      "back": "**400 KB**, attribute names included. Store bigger objects in S3 and keep only the S3 key in the item.",
+      "tags": ["dynamodb", "limits"]
+    },
+    {
+      "id": "21-dynamodb-apigw-cognito-fc-03",
+      "front": "What are the two kinds of DynamoDB primary key, and when are they chosen?",
+      "back": "**Simple** (partition key only, each value unique) or **composite** (partition key + sort key, the pair must be unique). Chosen when the table is created and cannot be changed later.",
+      "tags": ["dynamodb", "data-model"]
+    },
+    {
+      "id": "21-dynamodb-apigw-cognito-fc-04",
+      "front": "Name the three groups of DynamoDB data types.",
+      "back": "**Scalar**: String, Number, Binary, Boolean, Null. **Document**: List, Map. **Set**: String set, Number set, Binary set. Key attributes must be String, Number or Binary.",
+      "tags": ["dynamodb", "data-model"]
+    },
+    {
+      "id": "21-dynamodb-apigw-cognito-fc-05",
+      "front": "What does 1 RCU buy, and how many RCUs do 10 strongly consistent reads per second of 6 KB items need?",
+      "back": "1 RCU = 1 strongly consistent (or 2 eventually consistent) read per second of up to **4 KB**. 6 KB rounds up to 2 units, so 10 reads/s need **20 RCU** (10 RCU if eventually consistent).",
+      "tags": ["dynamodb", "capacity"]
+    },
+    {
+      "id": "21-dynamodb-apigw-cognito-fc-06",
+      "front": "What does 1 WCU buy, and how many WCUs do 10 writes per second of 2.5 KB items need?",
+      "back": "1 WCU = 1 write per second of up to **1 KB**. 2.5 KB rounds up to 3 units, so 10 writes/s need **30 WCU**. Transactional writes cost double.",
+      "tags": ["dynamodb", "capacity"]
+    },
+    {
+      "id": "21-dynamodb-apigw-cognito-fc-07",
+      "front": "On-demand or provisioned capacity: which fits which workload?",
+      "back": "**On-demand**: unknown, spiky or idle traffic, new apps, no capacity planning; pay per request. **Provisioned** (+ auto scaling): steady, predictable traffic where high utilization makes per-hour capacity cheaper.",
+      "tags": ["dynamodb", "capacity", "cost"]
+    },
+    {
+      "id": "21-dynamodb-apigw-cognito-fc-08",
+      "front": "Which DynamoDB capacity mode does AWS now document as the default and recommended choice?",
+      "back": "**On-demand**. After a 50 % on-demand price cut on 1 November 2024, AWS recommends it for most workloads; provisioned remains the cheaper option for steady, well-utilized tables.",
+      "tags": ["dynamodb", "capacity"],
+      "updated": "The slides list provisioned as the default; on-demand is now the documented default and recommended mode."
+    },
+    {
+      "id": "21-dynamodb-apigw-cognito-fc-09",
+      "front": "When does the DynamoDB Standard-IA table class save money?",
+      "back": "When **storage is the dominant cost** (rarely read data such as old order history). Storage is cheaper (USD 0.10 vs 0.25 per GB-month in us-east-1) but reads and writes cost more. Same performance and APIs.",
+      "tags": ["dynamodb", "cost"]
+    },
+    {
+      "id": "21-dynamodb-apigw-cognito-fc-10",
+      "front": "What is DAX and what latency does it give?",
+      "back": "**DynamoDB Accelerator**: a managed, write-through, in-memory cache cluster in your VPC that uses the same DynamoDB API (no logic changes). Cache hits return in **microseconds**; cached entries expire after **5 minutes** by default.",
+      "tags": ["dax", "performance"]
+    },
+    {
+      "id": "21-dynamodb-apigw-cognito-fc-11",
+      "front": "DAX or ElastiCache for caching in front of DynamoDB?",
+      "back": "**DAX** for caching DynamoDB items and Query/Scan results transparently. **ElastiCache** for results your code computes (aggregations, leaderboards) or data from several sources. They can be used together.",
+      "tags": ["dax", "elasticache"]
+    },
+    {
+      "id": "21-dynamodb-apigw-cognito-fc-12",
+      "front": "For which workloads does DAX not help?",
+      "back": "**Strongly consistent reads** (they bypass the cache), **write-heavy** tables, and traffic with few repeated reads. DAX pays off for read-heavy, bursty or hot-key workloads.",
+      "tags": ["dax"]
+    },
+    {
+      "id": "21-dynamodb-apigw-cognito-fc-13",
+      "front": "DynamoDB Streams: how long are records kept and how many readers per shard?",
+      "back": "**24 hours**, fixed. Up to **2** simultaneous readers per shard (1 recommended for global tables). Records are in order per item with no duplicates; consume them with Lambda triggers or the Kinesis Adapter/KCL.",
+      "tags": ["dynamodb-streams"]
+    },
+    {
+      "id": "21-dynamodb-apigw-cognito-fc-14",
+      "front": "Why send DynamoDB changes to Kinesis Data Streams instead of DynamoDB Streams?",
+      "back": "Longer retention (**up to 1 year**), more consumers (5 per shard, 20 with enhanced fan-out) and direct integration with Amazon Data Firehose, Managed Service for Apache Flink and Glue streaming ETL. Duplicates are possible.",
+      "tags": ["dynamodb-streams", "kinesis-data-streams"]
+    },
+    {
+      "id": "21-dynamodb-apigw-cognito-fc-15",
+      "front": "What is a DynamoDB global table?",
+      "back": "Replica tables in several Regions kept in sync **active-active**: every replica accepts reads and writes, giving local latency and Region failover. Streams are enabled automatically for the default (eventually consistent) mode.",
+      "tags": ["dynamodb-global-tables"],
+      "updated": "The slides say Streams must be enabled first; the current global tables version turns them on automatically."
+    },
+    {
+      "id": "21-dynamodb-apigw-cognito-fc-16",
+      "front": "Global tables: MREC vs MRSC?",
+      "back": "**MREC** (default): async replication within about a second, last writer wins, RPO of seconds. **MRSC**: synchronous replication, strongly consistent reads in every Region, **RPO zero**; exactly 3 Regions (or 2 + witness), no TTL or transactions.",
+      "tags": ["dynamodb-global-tables"],
+      "updated": "Multi-Region strong consistency (MRSC) is newer than the slides."
+    },
+    {
+      "id": "21-dynamodb-apigw-cognito-fc-17",
+      "front": "How does DynamoDB TTL work?",
+      "back": "Name a TTL attribute holding a **Number in Unix epoch seconds**. Expired items are deleted in the background, usually **within a few days**, consuming **no write capacity**. Filter on the attribute if exact expiry matters.",
+      "tags": ["dynamodb", "ttl"]
+    },
+    {
+      "id": "21-dynamodb-apigw-cognito-fc-18",
+      "front": "What recovery window does DynamoDB point-in-time recovery offer, and where does a restore go?",
+      "back": "Per-second restore points over a configurable **1 to 35 days** (default 35), up to about 5 minutes ago. Every restore creates a **new table**, in the same or another Region.",
+      "tags": ["dynamodb", "backup"],
+      "updated": "The recovery period is now configurable from 1 to 35 days."
+    },
+    {
+      "id": "21-dynamodb-apigw-cognito-fc-19",
+      "front": "What does AWS Backup add to DynamoDB on-demand backups?",
+      "back": "Backup plans and schedules, lifecycle to cold storage, **cross-Region and cross-account copies**, Vault Lock (WORM), tagging and audit reports.",
+      "tags": ["dynamodb", "aws-backup"]
+    },
+    {
+      "id": "21-dynamodb-apigw-cognito-fc-20",
+      "front": "What are the rules for exporting a DynamoDB table to S3?",
+      "back": "**PITR must be on**; export any point in the PITR window as a full or incremental export; output is DynamoDB JSON or Amazon Ion; it uses **no read capacity**. Typical next step: query with Athena.",
+      "tags": ["dynamodb", "s3"]
+    },
+    {
+      "id": "21-dynamodb-apigw-cognito-fc-21",
+      "front": "What are the rules for importing S3 data into DynamoDB?",
+      "back": "Source files in **CSV, DynamoDB JSON or Ion** (optionally GZIP/ZSTD); the import always creates a **new table**, consumes **no write capacity**, and logs parsing errors to **CloudWatch Logs**.",
+      "tags": ["dynamodb", "s3"]
+    },
+    {
+      "id": "21-dynamodb-apigw-cognito-fc-22",
+      "front": "What are the three API Gateway endpoint types?",
+      "back": "**Edge-optimized**: through CloudFront edge locations, for global clients (API still in one Region). **Regional**: clients in the same Region or your own CloudFront. **Private**: only from a VPC via an interface VPC endpoint, with a resource policy.",
+      "tags": ["api-gateway"]
+    },
+    {
+      "id": "21-dynamodb-apigw-cognito-fc-23",
+      "front": "Where must the ACM certificate live for an API Gateway custom domain?",
+      "back": "**us-east-1** for an edge-optimized endpoint; the **same Region as the API** for a Regional endpoint. Then add a Route 53 alias (or CNAME) record.",
+      "tags": ["api-gateway", "acm"]
+    },
+    {
+      "id": "21-dynamodb-apigw-cognito-fc-24",
+      "front": "Which three ways can API Gateway authenticate callers, and who is each for?",
+      "back": "**IAM** (SigV4): internal apps and AWS workloads. **Cognito user pool** authorizer: external web/mobile users. **Lambda authorizer** (formerly custom authorizer): your own logic or third-party tokens, returns an IAM policy.",
+      "tags": ["api-gateway", "security"]
+    },
+    {
+      "id": "21-dynamodb-apigw-cognito-fc-25",
+      "front": "Which three API Gateway integration targets are covered, and why use each?",
+      "back": "**Lambda**: easy serverless REST backend. **HTTP**: front an on-premises service or ALB to add throttling, caching, auth and API keys. **AWS service**: expose an AWS action (SQS, Step Functions, Kinesis) directly without a function.",
+      "tags": ["api-gateway"]
+    },
+    {
+      "id": "21-dynamodb-apigw-cognito-fc-26",
+      "front": "Name three API Gateway limits that shape designs.",
+      "back": "REST integration timeout **29 s** by default (raisable for Regional/private APIs), payload **10 MB**, and an account throttle of **10,000 requests/s** per Region (burst 5,000).",
+      "tags": ["api-gateway", "limits"],
+      "updated": "Regional and private REST APIs can now request an integration timeout above 29 seconds."
+    },
+    {
+      "id": "21-dynamodb-apigw-cognito-fc-27",
+      "front": "REST API or HTTP API in API Gateway?",
+      "back": "**REST API** when you need API keys and usage plans, per-client throttling, caching, request validation, AWS WAF, edge-optimized or private endpoints. **HTTP API** for simpler, cheaper Lambda or HTTP proxies with JWT auth.",
+      "tags": ["api-gateway"]
+    },
+    {
+      "id": "21-dynamodb-apigw-cognito-fc-28",
+      "front": "Step Functions: Standard or Express workflow?",
+      "back": "**Standard**: up to 1 year, exactly-once, 90-day visual history, supports task-token callbacks (human approval); priced per state transition. **Express**: up to 5 minutes, at-least-once (async) or at-most-once (sync), very high volume; priced per execution and duration.",
+      "tags": ["step-functions"]
+    },
+    {
+      "id": "21-dynamodb-apigw-cognito-fc-29",
+      "front": "Cognito user pools vs identity pools?",
+      "back": "**User pools**: user directory and sign-in (MFA, password reset, social/SAML/OIDC federation) that issues **JWTs**; integrates with API Gateway and ALB. **Identity pools**: exchange a token (or guest access) for **temporary AWS credentials** via an IAM role.",
+      "tags": ["cognito"]
+    },
+    {
+      "id": "21-dynamodb-apigw-cognito-fc-30",
+      "front": "How do you limit each app user to their own DynamoDB items?",
+      "back": "Use a Cognito identity pool and, on its authenticated role, an IAM policy with condition `dynamodb:LeadingKeys` = `${cognito-identity.amazonaws.com:sub}` (with `ForAllValues:StringEquals`). The partition key must hold the user's identity ID.",
+      "tags": ["cognito", "dynamodb", "security"]
+    }
+  ]
+}

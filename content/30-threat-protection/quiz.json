@@ -1,0 +1,234 @@
+{
+  "section": "30-threat-protection",
+  "questions": [
+    {
+      "id": "30-threat-protection-q01",
+      "type": "single",
+      "domain": "secure",
+      "difficulty": "easy",
+      "question": "An online store runs on EC2 instances behind an Application Load Balancer. The security team finds requests containing SQL injection strings in query parameters in the application logs. They want these requests stopped before they reach the instances, with minimal changes to the application. Which solution meets these requirements?",
+      "options": [
+        { "id": "A", "text": "Add inbound rules to the instances' security groups that deny traffic containing SQL keywords.", "correct": false, "explanation": "Security groups filter only by protocol, port and source; they cannot read query strings, and they have no deny rules at all." },
+        { "id": "B", "text": "Subscribe to AWS Shield Advanced and enable automatic application layer mitigation.", "correct": false, "explanation": "Shield Advanced targets DDoS floods; it does not provide SQL injection signatures, and it is far more expensive than needed for this requirement." },
+        { "id": "C", "text": "Create an AWS WAF web ACL with the AWS managed SQL database rule group and associate it with the ALB.", "correct": true, "explanation": "WAF inspects HTTP requests at layer 7 and the managed SQL database rule group blocks SQL injection patterns before the ALB forwards them, with no code change." },
+        { "id": "D", "text": "Enable Amazon GuardDuty and create an EventBridge rule that blocks the source IPs of its findings.", "correct": false, "explanation": "GuardDuty analyzes logs after the fact and does not inspect HTTP request content, so injected requests would still reach the application." }
+      ],
+      "explanation": "Content-level HTTP attacks such as SQL injection and XSS point to AWS WAF on the ALB, CloudFront or API Gateway, usually with AWS managed rule groups.",
+      "tags": ["waf", "alb", "sql-injection"]
+    },
+    {
+      "id": "30-threat-protection-q02",
+      "type": "single",
+      "domain": "secure",
+      "difficulty": "medium",
+      "question": "A company exposes an HTTPS application through a Network Load Balancer with Elastic IP addresses because several business partners allow-list fixed IP addresses in their firewalls. A new requirement says the application must be protected by AWS WAF. Partners must keep using fixed IP addresses. What should a solutions architect do?",
+      "options": [
+        { "id": "A", "text": "Replace the NLB with an Application Load Balancer protected by an AWS WAF web ACL, and put AWS Global Accelerator in front of the ALB to provide static IP addresses.", "correct": true, "explanation": "Global Accelerator provides two static anycast IPs and can use an ALB as its endpoint; the ALB supports a Regional WAF web ACL, so both requirements are met." },
+        { "id": "B", "text": "Associate an AWS WAF web ACL directly with the Network Load Balancer.", "correct": false, "explanation": "WAF cannot be associated with an NLB, which works at layer 4 and does not terminate HTTP." },
+        { "id": "C", "text": "Put Amazon CloudFront in front of the NLB and give partners the CloudFront IP ranges.", "correct": false, "explanation": "CloudFront edge IP addresses are many and change over time, so they are not suitable for a small, fixed allow-list." },
+        { "id": "D", "text": "Attach AWS WAF rules to the security groups of the targets behind the NLB.", "correct": false, "explanation": "WAF rules cannot be attached to security groups; security groups only filter by port and source." }
+      ],
+      "explanation": "Fixed IP addresses plus WAF means Global Accelerator in front of an ALB that carries the web ACL.",
+      "tags": ["waf", "global-accelerator", "alb", "nlb"]
+    },
+    {
+      "id": "30-threat-protection-q03",
+      "type": "single",
+      "domain": "resilient",
+      "difficulty": "medium",
+      "question": "A news website is served through Amazon CloudFront with an AWS WAF web ACL attached. During a breaking story, monitoring shows that a few hundred IP addresses are each sending thousands of HTTP requests per minute, slowing the origin for everyone. The company wants these clients blocked automatically while normal readers are unaffected. Which solution requires the LEAST ongoing effort?",
+      "options": [
+        { "id": "A", "text": "Manually add the offending IP addresses to an IP set and update it whenever new addresses appear.", "correct": false, "explanation": "This works only for addresses you already know and needs constant manual updates as attackers rotate IPs." },
+        { "id": "B", "text": "Add a geo match rule that blocks every country except the company's home country.", "correct": false, "explanation": "Blocking whole countries would cut off legitimate international readers and does not address abusive clients in the home country." },
+        { "id": "C", "text": "Increase the origin's Auto Scaling group maximum so it can absorb the traffic.", "correct": false, "explanation": "Scaling helps absorb load but keeps serving the abusive clients and raises cost; it does not block them." },
+        { "id": "D", "text": "Add a rate-based rule to the web ACL that blocks any IP address exceeding a set number of requests in the evaluation window.", "correct": true, "explanation": "A rate-based rule tracks each source IP and blocks it automatically while it is above the limit, then lets it back in when its rate drops, with no manual list maintenance." }
+      ],
+      "explanation": "A small set of clients flooding a site with HTTP requests is the classic use case for a WAF rate-based rule.",
+      "tags": ["waf", "rate-based", "cloudfront"]
+    },
+    {
+      "id": "30-threat-protection-q04",
+      "type": "single",
+      "domain": "secure",
+      "difficulty": "easy",
+      "question": "A company uses AWS Organizations with 40 member accounts and adds new accounts every month. The security team must make sure every Application Load Balancer in every account, including ALBs and accounts created in the future, uses the same baseline AWS WAF rules. Which solution meets this requirement with the LEAST operational overhead?",
+      "options": [
+        { "id": "A", "text": "Write a script that runs in each account every night, finds new ALBs and associates a web ACL with them.", "correct": false, "explanation": "Custom scripts work but must be built, deployed to every account and maintained, which is much more effort than a managed service." },
+        { "id": "B", "text": "Create an AWS Firewall Manager AWS WAF policy for the ALB resource type with automatic remediation, scoped to the organization.", "correct": true, "explanation": "Firewall Manager applies the policy's rule groups to all in-scope ALBs in all accounts and automatically covers new accounts and new resources." },
+        { "id": "C", "text": "Create one web ACL in the management account and associate it with the ALBs in all member accounts.", "correct": false, "explanation": "A web ACL can only be associated with resources in its own account and Region; Firewall Manager solves this by creating a managed web ACL in each in-scope account." },
+        { "id": "D", "text": "Subscribe every account to AWS Shield Advanced.", "correct": false, "explanation": "Shield Advanced adds DDoS protection but does not by itself deploy a baseline set of WAF rules to every ALB." }
+      ],
+      "explanation": "Same firewall rules across many accounts, including future ones, is AWS Firewall Manager (which requires Organizations and AWS Config).",
+      "tags": ["firewall-manager", "waf", "organizations"]
+    },
+    {
+      "id": "30-threat-protection-q05",
+      "type": "single",
+      "domain": "resilient",
+      "difficulty": "medium",
+      "question": "An online gaming company is regularly targeted by large DDoS attacks against its CloudFront distributions and Elastic IP addresses. After the last attack, the company received a large bill for the extra capacity its systems scaled out to. Management wants 24/7 access to DDoS specialists during attacks and financial protection from attack-related scaling charges. Which solution meets these requirements?",
+      "options": [
+        { "id": "A", "text": "Rely on AWS Shield Standard, which is already active on the account.", "correct": false, "explanation": "Shield Standard is free and automatic but offers no response team and no cost protection." },
+        { "id": "B", "text": "Add AWS WAF rate-based rules to the CloudFront distributions.", "correct": false, "explanation": "Rate-based rules help against HTTP floods but provide neither expert support nor refunds of scaling costs, and they do not cover the Elastic IPs." },
+        { "id": "C", "text": "Subscribe to AWS Shield Advanced and add the distributions and Elastic IP addresses as protected resources.", "correct": true, "explanation": "Shield Advanced provides the 24/7 Shield Response Team (engaging the SRT also needs a Business or Enterprise Support plan) and cost protection for scaling charges caused by DDoS attacks on protected resources such as CloudFront distributions and Elastic IPs." },
+        { "id": "D", "text": "Enable Amazon GuardDuty in every Region.", "correct": false, "explanation": "GuardDuty detects threats in logs; it does not mitigate DDoS attacks or offer cost protection." }
+      ],
+      "explanation": "SRT access and cost protection are Shield Advanced features; Shield Standard covers only common layer 3/4 attacks.",
+      "tags": ["shield", "ddos"]
+    },
+    {
+      "id": "30-threat-protection-q06",
+      "type": "single",
+      "domain": "secure",
+      "difficulty": "easy",
+      "question": "A company's AWS bill showed an unexpected spike in EC2 usage. The security team suspects an attacker launched instances to mine cryptocurrency. They want a managed service that continuously detects this kind of activity, without installing agents, and emails the team when it happens. Which solution meets these requirements?",
+      "options": [
+        { "id": "A", "text": "Enable Amazon GuardDuty and create an Amazon EventBridge rule for GuardDuty findings that targets an Amazon SNS topic with an email subscription.", "correct": true, "explanation": "GuardDuty analyzes CloudTrail, VPC Flow Logs and DNS logs without agents, has dedicated cryptocurrency finding types, and EventBridge with SNS delivers email alerts." },
+        { "id": "B", "text": "Enable Amazon Inspector and review its findings dashboard daily.", "correct": false, "explanation": "Inspector finds software vulnerabilities; it does not detect malicious behaviour such as crypto-mining, and daily manual review is not an alert." },
+        { "id": "C", "text": "Enable Amazon Macie on all S3 buckets.", "correct": false, "explanation": "Macie looks for sensitive data in S3 objects, not for compromised or abused compute." },
+        { "id": "D", "text": "Create a CloudWatch alarm on the CPUUtilization metric of every instance.", "correct": false, "explanation": "CPU alarms are noisy and need per-instance setup; instances the attacker launches would not have alarms, and the alarm cannot tell mining from legitimate load." }
+      ],
+      "explanation": "Crypto-mining, compromised instances and unusual API calls point to GuardDuty, with EventBridge for notification and automation.",
+      "tags": ["guardduty", "eventbridge", "sns"]
+    },
+    {
+      "id": "30-threat-protection-q07",
+      "type": "single",
+      "domain": "secure",
+      "difficulty": "medium",
+      "question": "A development team pushes container images to Amazon ECR and deploys several AWS Lambda functions. The compliance team requires that images are checked for known software vulnerabilities (CVEs) as soon as they are pushed, that Lambda function dependencies are checked when functions are deployed, and that resources are re-checked when new CVEs are published. Which AWS service meets these requirements with the LEAST effort?",
+      "options": [
+        { "id": "A", "text": "Amazon GuardDuty with Runtime Monitoring.", "correct": false, "explanation": "Runtime Monitoring detects suspicious behaviour of running workloads; it does not assess images or packages for CVEs." },
+        { "id": "B", "text": "Amazon Macie with custom data identifiers.", "correct": false, "explanation": "Macie inspects S3 objects for sensitive data; it does not scan container images or Lambda packages for vulnerabilities." },
+        { "id": "C", "text": "AWS Config with managed rules for ECR and Lambda.", "correct": false, "explanation": "AWS Config evaluates resource configurations, such as whether scanning is enabled, not the software vulnerabilities inside images or code packages." },
+        { "id": "D", "text": "Amazon Inspector with ECR scanning and Lambda standard scanning activated.", "correct": true, "explanation": "Inspector scans ECR images on push and Lambda functions on deployment, and automatically rescans when new relevant CVEs are added to its database." }
+      ],
+      "explanation": "Automated, continuous CVE scanning of EC2 instances, ECR images and Lambda functions is Amazon Inspector.",
+      "tags": ["inspector", "ecr", "lambda"]
+    },
+    {
+      "id": "30-threat-protection-q08",
+      "type": "single",
+      "domain": "secure",
+      "difficulty": "easy",
+      "question": "A healthcare company stores millions of exported files in dozens of S3 buckets. Before an audit, it must identify which buckets contain personally identifiable information such as names and passport numbers, and it wants to be alerted if any bucket becomes publicly accessible. Which service should the company use?",
+      "options": [
+        { "id": "A", "text": "Amazon GuardDuty with S3 Protection.", "correct": false, "explanation": "S3 Protection watches access patterns in CloudTrail S3 data events for threats such as exfiltration; it does not read object contents to find PII." },
+        { "id": "B", "text": "Amazon Macie.", "correct": true, "explanation": "Macie uses managed data identifiers (machine learning and pattern matching) to find PII in S3 objects and raises policy findings when a bucket becomes public." },
+        { "id": "C", "text": "Amazon Inspector.", "correct": false, "explanation": "Inspector scans compute resources for software vulnerabilities, not S3 data." },
+        { "id": "D", "text": "AWS WAF with a regex pattern set.", "correct": false, "explanation": "WAF inspects incoming HTTP requests; it cannot scan data already stored in S3." }
+      ],
+      "explanation": "Sensitive data or PII in S3 is Macie; it also monitors buckets for weakened security settings.",
+      "tags": ["macie", "s3"]
+    },
+    {
+      "id": "30-threat-protection-q09",
+      "type": "single",
+      "domain": "secure",
+      "difficulty": "medium",
+      "question": "A solutions architect working in the eu-west-1 Region creates an AWS WAF web ACL to protect a CloudFront distribution. When editing the distribution, the web ACL does not appear in the list of available web ACLs. What is the most likely reason?",
+      "options": [
+        { "id": "A", "text": "CloudFront distributions can only be protected by AWS Shield, not by AWS WAF.", "correct": false, "explanation": "CloudFront is one of the main resources WAF supports; it filters requests at the edge." },
+        { "id": "B", "text": "The web ACL must first be added to an AWS Firewall Manager policy.", "correct": false, "explanation": "Firewall Manager is optional; a web ACL can be associated with CloudFront directly." },
+        { "id": "C", "text": "Web ACLs for CloudFront must be created with the global (CloudFront) scope, which lives in us-east-1; a Regional web ACL in eu-west-1 cannot be used.", "correct": true, "explanation": "CloudFront web ACLs and the IP sets and rule groups they use must be created in US East (N. Virginia), shown in some interfaces as Global (CloudFront)." },
+        { "id": "D", "text": "The distribution must use a Network Load Balancer as its origin.", "correct": false, "explanation": "The origin type is irrelevant to WAF association, and an NLB origin would not help." }
+      ],
+      "explanation": "Regional web ACLs serve resources in the same Region; CloudFront needs a global-scope web ACL created in us-east-1.",
+      "tags": ["waf", "cloudfront", "regions"]
+    },
+    {
+      "id": "30-threat-protection-q10",
+      "type": "multi",
+      "domain": "resilient",
+      "difficulty": "hard",
+      "question": "A company is redesigning a public web application that runs on EC2 instances so that it can withstand DDoS attacks, following AWS best practices. Which combination of actions should a solutions architect recommend? (Select THREE.)",
+      "options": [
+        { "id": "A", "text": "Assign an Elastic IP address to every instance and publish those addresses in DNS so traffic is spread across instances.", "correct": false, "explanation": "Exposing every instance directly enlarges the attack surface and bypasses the load balancer and edge protections." },
+        { "id": "B", "text": "Serve the application through Amazon CloudFront with an AWS WAF web ACL that includes rate-based rules.", "correct": true, "explanation": "CloudFront absorbs floods at edge locations and caches content, and WAF filters malicious or excessive HTTP requests before they reach the Region." },
+        { "id": "C", "text": "Run the application on a single very large instance type so it has spare capacity.", "correct": false, "explanation": "A single instance is a single point of failure and has a hard capacity ceiling; horizontal scaling behind a load balancer is more resilient." },
+        { "id": "D", "text": "Place the instances in private subnets in an Auto Scaling group behind an Application Load Balancer, with security groups that only allow traffic from the load balancer.", "correct": true, "explanation": "This hides the instances, lets ELB spread load and lets Auto Scaling add capacity during surges, while security groups shrink the attack surface." },
+        { "id": "E", "text": "Host the domain's DNS in Amazon Route 53.", "correct": true, "explanation": "Route 53 answers DNS queries from edge locations with built-in DDoS protection, keeping name resolution available during an attack." },
+        { "id": "F", "text": "Set the subnet network ACLs to allow all inbound traffic so that legitimate users are never blocked.", "correct": false, "explanation": "Allowing everything removes a layer of filtering; best practice is to allow only the traffic the application expects." }
+      ],
+      "explanation": "DDoS resiliency combines edge services (CloudFront, Route 53, Global Accelerator), WAF filtering, a scalable load-balanced tier and a minimal attack surface.",
+      "tags": ["ddos", "cloudfront", "waf", "asg", "route53"]
+    },
+    {
+      "id": "30-threat-protection-q11",
+      "type": "multi",
+      "domain": "secure",
+      "difficulty": "medium",
+      "question": "A company enables Amazon GuardDuty in a Region for the first time. To control cost, it immediately turns off every optional protection plan. The company has never created a CloudTrail trail, a VPC flow log or Route 53 query logging. Which data sources does GuardDuty still analyze? (Select TWO.)",
+      "options": [
+        { "id": "A", "text": "S3 server access logs written to a logging bucket.", "correct": false, "explanation": "GuardDuty does not read S3 server access logs; S3 activity is covered by the optional S3 Protection plan (CloudTrail S3 data events), which the company turned off." },
+        { "id": "B", "text": "VPC Flow Logs for EC2 network traffic, even though the company has never created a flow log.", "correct": true, "explanation": "VPC Flow Logs are a foundational source; GuardDuty consumes its own independent copy without any flow log configuration, and it cannot be turned off while GuardDuty is enabled." },
+        { "id": "C", "text": "Application logs that the instances send to Amazon CloudWatch Logs.", "correct": false, "explanation": "GuardDuty does not analyze custom application logs in CloudWatch Logs." },
+        { "id": "D", "text": "Operating system process events from inside the EC2 instances.", "correct": false, "explanation": "OS-level events require the Runtime Monitoring protection plan and its security agent, which is off by default and was not enabled here." },
+        { "id": "E", "text": "AWS CloudTrail management events, even though the company has not created a trail.", "correct": true, "explanation": "Management events are a foundational source that GuardDuty reads directly from CloudTrail through an independent stream, with no trail required." }
+      ],
+      "explanation": "GuardDuty's foundational sources are CloudTrail management events, VPC Flow Logs and Route 53 Resolver DNS query logs, all consumed without extra setup.",
+      "tags": ["guardduty", "cloudtrail", "vpc-flow-logs"]
+    },
+    {
+      "id": "30-threat-protection-q12",
+      "type": "single",
+      "domain": "secure",
+      "difficulty": "hard",
+      "question": "A company exposes a public REST API built with Amazon API Gateway (edge-optimized endpoint) and Lambda. It wants to add AWS WAF rules at the edge, control caching behaviour itself, and stop clients from calling the API Gateway endpoint directly. Which approach follows AWS DDoS resiliency guidance?",
+      "options": [
+        { "id": "A", "text": "Switch to a Regional API endpoint, put the company's own CloudFront distribution with a WAF web ACL in front of it, have CloudFront add a secret x-api-key header, require that API key in API Gateway, and set throttling limits on the methods.", "correct": true, "explanation": "AWS recommends a Regional endpoint behind your own CloudFront distribution so you control caching and WAF; the API key header blocks direct calls, and throttling protects the backend." },
+        { "id": "B", "text": "Keep the edge-optimized endpoint and attach a WAF web ACL to the CloudFront distribution that API Gateway manages.", "correct": false, "explanation": "The CloudFront distribution behind an edge-optimized endpoint is managed by API Gateway, so you cannot configure it or control its caching." },
+        { "id": "C", "text": "Move the API to a Network Load Balancer and attach AWS WAF to it.", "correct": false, "explanation": "WAF cannot be attached to an NLB, and this removes API Gateway features such as throttling and authorizers." },
+        { "id": "D", "text": "Make the Lambda functions publicly invokable through function URLs and remove API Gateway.", "correct": false, "explanation": "This exposes the backend directly and increases the attack surface, the opposite of the guidance." }
+      ],
+      "explanation": "For API protection, AWS suggests a Regional API Gateway endpoint behind your own CloudFront distribution with WAF, API keys sent as an origin header, throttling and authentication.",
+      "tags": ["api-gateway", "cloudfront", "waf", "ddos"]
+    },
+    {
+      "id": "30-threat-protection-q13",
+      "type": "single",
+      "domain": "cost",
+      "difficulty": "medium",
+      "question": "A small company hosts a static marketing website on Amazon S3 behind Amazon CloudFront, with DNS in Amazon Route 53. It wants protection against common network and transport layer DDoS attacks such as SYN floods and UDP reflection, at the lowest possible cost. What should the company do?",
+      "options": [
+        { "id": "A", "text": "Subscribe to AWS Shield Advanced for the CloudFront distribution.", "correct": false, "explanation": "Shield Advanced costs USD 3,000 per month with a 1-year commitment, far more than needed for protection against common layer 3/4 attacks." },
+        { "id": "B", "text": "Nothing extra: AWS Shield Standard already protects CloudFront and Route 53 against these attacks at no additional charge.", "correct": true, "explanation": "Shield Standard is automatic and free, and CloudFront and Route 53 receive its strongest layer 3/4 protection." },
+        { "id": "C", "text": "Create an AWS Firewall Manager policy for the distribution.", "correct": false, "explanation": "Firewall Manager needs AWS Organizations and costs USD 100 per policy per Region per month; it centralizes rules but adds no DDoS capability by itself." },
+        { "id": "D", "text": "Enable Amazon GuardDuty to block the attacking IP addresses.", "correct": false, "explanation": "GuardDuty only produces findings; it does not block traffic or absorb floods." }
+      ],
+      "explanation": "Common layer 3/4 DDoS protection is included for free through Shield Standard, especially for CloudFront, Route 53 and Global Accelerator.",
+      "tags": ["shield", "cloudfront", "route53", "cost"]
+    },
+    {
+      "id": "30-threat-protection-q14",
+      "type": "multi",
+      "domain": "secure",
+      "difficulty": "medium",
+      "question": "The security team wants EC2 instances that Amazon GuardDuty reports as compromised to be isolated automatically by replacing their security groups with a quarantine security group. Which combination of steps should a solutions architect take? (Select TWO.)",
+      "options": [
+        { "id": "A", "text": "Configure GuardDuty to invoke a remediation AWS Lambda function directly from its detector settings.", "correct": false, "explanation": "GuardDuty has no direct Lambda trigger setting; automation is done through EventBridge rules." },
+        { "id": "B", "text": "Enable Amazon Inspector so it removes compromised instances from the Auto Scaling group.", "correct": false, "explanation": "Inspector reports vulnerabilities; it does not take remediation actions on instances." },
+        { "id": "C", "text": "Create an Amazon EventBridge rule that matches GuardDuty finding events for the relevant EC2 finding types.", "correct": true, "explanation": "GuardDuty publishes every finding to EventBridge, where a rule with an event pattern selects the findings that should trigger remediation." },
+        { "id": "D", "text": "Turn on VPC Flow Logs so that GuardDuty can see the traffic before automation works.", "correct": false, "explanation": "GuardDuty already reads flow log data through its own stream; enabling flow logs adds cost but nothing needed for this automation." },
+        { "id": "E", "text": "Write an AWS Lambda function that reads the instance ID from the finding and modifies the instance's security groups, and set it as the EventBridge rule's target.", "correct": true, "explanation": "The Lambda target receives the finding JSON, extracts the instance ID and calls the EC2 API to attach the quarantine security group." }
+      ],
+      "explanation": "GuardDuty finding → EventBridge rule → Lambda (or SNS, Step Functions, Systems Manager Automation) is the standard detect-and-respond pattern.",
+      "tags": ["guardduty", "eventbridge", "lambda"]
+    },
+    {
+      "id": "30-threat-protection-q15",
+      "type": "single",
+      "domain": "secure",
+      "difficulty": "easy",
+      "question": "A solutions architect is preparing to use AWS Firewall Manager to manage security group and AWS WAF policies centrally. Which prerequisites must be in place?",
+      "options": [
+        { "id": "A", "text": "AWS Shield Advanced must be active in every account.", "correct": false, "explanation": "Shield Advanced is optional; it only makes Firewall Manager policy fees free and enables Shield Advanced policies." },
+        { "id": "B", "text": "Amazon GuardDuty must be enabled with a delegated administrator.", "correct": false, "explanation": "GuardDuty is unrelated to Firewall Manager's ability to deploy policies." },
+        { "id": "C", "text": "Each account must have a CloudTrail trail delivering logs to a central bucket.", "correct": false, "explanation": "A central trail is good practice but is not a Firewall Manager prerequisite." },
+        { "id": "D", "text": "The accounts must belong to an organization in AWS Organizations, a Firewall Manager administrator account must be designated, and AWS Config must be enabled.", "correct": true, "explanation": "Firewall Manager depends on Organizations to find accounts, on an administrator account to own policies, and on AWS Config to detect resources and evaluate compliance." }
+      ],
+      "explanation": "Firewall Manager = AWS Organizations + a Firewall Manager administrator account + AWS Config.",
+      "tags": ["firewall-manager", "organizations", "config"]
+    }
+  ]
+}

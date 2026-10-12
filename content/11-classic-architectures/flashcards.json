@@ -1,0 +1,191 @@
+{
+  "section": "11-classic-architectures",
+  "cards": [
+    {
+      "id": "11-classic-architectures-fc-01",
+      "front": "What makes a web tier **stateless**, and why does it matter for scaling?",
+      "back": "No user data (sessions, carts, uploads) is kept on the instance itself. Any instance can then answer any request, so an Auto Scaling group can add, remove or replace instances freely.",
+      "tags": ["stateless", "scalability"]
+    },
+    {
+      "id": "11-classic-architectures-fc-02",
+      "front": "Why is an Elastic IP not a way to scale a web fleet?",
+      "back": "One Elastic IP maps to one instance, and accounts get **5 per Region** by default. It gives a fixed address (and can be remapped after a failure), but no load spreading. Every public IPv4 address, Elastic IPs included, is billed hourly.",
+      "tags": ["elastic-ip"],
+      "updated": "Public IPv4 addresses, including attached Elastic IPs, have been billed at USD 0.005 per hour since February 2024."
+    },
+    {
+      "id": "11-classic-architectures-fc-03",
+      "front": "What goes wrong when you scale out by listing every instance IP in a DNS A record with a 1-hour TTL?",
+      "back": "Clients cache the answer for up to an hour, so when an instance is terminated they keep calling a dead IP and get errors; you also have to edit the record whenever the fleet changes.",
+      "tags": ["route53", "ttl"]
+    },
+    {
+      "id": "11-classic-architectures-fc-04",
+      "front": "Which Route 53 record type should point a domain at a load balancer, and what is special about its TTL?",
+      "back": "An **alias** record (type A or AAAA). You cannot set its TTL; Route 53 follows the load balancer's changing IPs itself. It works at the zone apex and alias queries to AWS resources are free.",
+      "tags": ["route53", "alias"]
+    },
+    {
+      "id": "11-classic-architectures-fc-05",
+      "front": "In the WhatIsTheTime.com design, what does the load balancer add, and what does the Auto Scaling group add?",
+      "back": "**ELB**: one endpoint, health checks that skip broken instances, private instances behind it. **Auto Scaling group**: launches, registers and replaces instances automatically and follows the load.",
+      "tags": ["elb", "asg"]
+    },
+    {
+      "id": "11-classic-architectures-fc-06",
+      "front": "Which part of a web fleet is worth covering with Reserved Instances or Savings Plans?",
+      "back": "The **minimum capacity** that runs 24/7 (for example min 2 instances across two AZs). Capacity above the baseline stays On-Demand, or Spot if the app tolerates interruptions.",
+      "tags": ["cost", "ec2-reserved", "savings-plans"],
+      "updated": "Today compare RIs with Savings Plans: EC2 Instance Savings Plans up to 72% off, Compute Savings Plans up to 66% off and flexible across families, Regions, Fargate and Lambda."
+    },
+    {
+      "id": "11-classic-architectures-fc-07",
+      "front": "How do sticky sessions keep a shopping cart, and what are their two weaknesses?",
+      "back": "The ALB sets a cookie (`AWSALB` or an application cookie) and keeps sending the client to the same instance. Weaknesses: load can become uneven, and the session is lost if that instance fails or is scaled in.",
+      "tags": ["sticky-sessions", "alb"]
+    },
+    {
+      "id": "11-classic-architectures-fc-08",
+      "front": "What are the downsides of storing the whole shopping cart in a browser cookie?",
+      "back": "Every request gets heavier, users can tamper with the cookie (so it must be validated), and browsers only guarantee about **4 KB** per cookie.",
+      "tags": ["cookies", "stateless"]
+    },
+    {
+      "id": "11-classic-architectures-fc-09",
+      "front": "What is a server-side session store, and which AWS services fit it?",
+      "back": "The browser keeps only a `session_id` cookie; the session data lives in a shared store keyed by that ID. Use **ElastiCache** (Valkey, Redis OSS, Memcached) or **DynamoDB**, whose TTL can expire old sessions for free.",
+      "tags": ["elasticache", "dynamodb", "sessions"]
+    },
+    {
+      "id": "11-classic-architectures-fc-10",
+      "front": "Two ways to take read load off an RDS primary in the MyClothes.com design?",
+      "back": "**Read replicas** (asynchronous copies, up to 15 for MySQL, MariaDB and PostgreSQL; the app sends reads to them) or a **cache** such as ElastiCache with lazy loading in front of RDS.",
+      "tags": ["rds", "read-replicas", "elasticache"]
+    },
+    {
+      "id": "11-classic-architectures-fc-11",
+      "front": "Describe **lazy loading** and its main drawbacks.",
+      "back": "Read the cache first; on a miss, query the database and write the result into the cache (ideally with a TTL). Drawbacks: a slow first request (three round trips) and possibly stale data until the TTL expires.",
+      "tags": ["elasticache", "caching"]
+    },
+    {
+      "id": "11-classic-architectures-fc-12",
+      "front": "Does a classic RDS Multi-AZ standby help with read scaling?",
+      "back": "No. The Multi-AZ DB instance standby is synchronous and only takes over on failure; it serves no queries. (The newer Multi-AZ DB cluster deployment has two standbys that can serve reads.)",
+      "tags": ["rds", "multi-az"],
+      "updated": "Multi-AZ DB cluster deployments (two readable standbys in three AZs) are newer than the slides."
+    },
+    {
+      "id": "11-classic-architectures-fc-13",
+      "front": "Write the security group chain for a three-tier web app (ALB, app instances, RDS).",
+      "back": "ALB SG: 80/443 from `0.0.0.0/0`. App SG: app port from the **ALB SG**. RDS SG: 3306 (or engine port) from the **app SG**. Same pattern for ElastiCache.",
+      "tags": ["security-groups"]
+    },
+    {
+      "id": "11-classic-architectures-fc-14",
+      "front": "Why did MyWordPress.com move from RDS MySQL to Aurora MySQL?",
+      "back": "Aurora gives easy high availability and read scaling: storage replicated across three AZs, up to 15 Aurora Replicas on the shared volume with a reader endpoint, and automatic promotion of a replica if the writer fails.",
+      "tags": ["aurora"]
+    },
+    {
+      "id": "11-classic-architectures-fc-15",
+      "front": "Why do uploaded images go missing when a multi-AZ WordPress fleet stores them on EBS?",
+      "back": "Each instance writes to its own EBS volume, which lives in one AZ and attaches to one instance. A reader routed to another instance has a different disk without the file.",
+      "tags": ["ebs", "efs"]
+    },
+    {
+      "id": "11-classic-architectures-fc-16",
+      "front": "How does EFS let instances in several AZs share the same files?",
+      "back": "You create a **mount target** (an ENI with a private IP) in each AZ; instances mount the file system over NFS (port 2049) through the mount target in their AZ. A Regional file system stores data redundantly across AZs.",
+      "tags": ["efs"]
+    },
+    {
+      "id": "11-classic-architectures-fc-17",
+      "front": "What are the limits of EBS Multi-Attach?",
+      "back": "Only Provisioned IOPS `io1`/`io2` volumes, only instances in the **same AZ**, up to **16** Nitro-based instances, and you need a cluster-aware file system. Not a substitute for EFS.",
+      "tags": ["ebs"]
+    },
+    {
+      "id": "11-classic-architectures-fc-18",
+      "front": "Golden AMI versus user data: what does each speed up?",
+      "back": "**Golden AMI**: OS packages, runtime and app pre-installed, so boot-to-ready is fast. **User data**: per-launch dynamic configuration (runs as root, first boot only by default, 16 KB limit). Combining both is the hybrid approach Elastic Beanstalk uses.",
+      "tags": ["ami", "user-data"]
+    },
+    {
+      "id": "11-classic-architectures-fc-19",
+      "front": "What happens when you restore an RDS DB snapshot?",
+      "back": "RDS creates a **new** DB instance (new endpoint) with schemas and data already present; you cannot restore into an existing instance. Data loads lazily in the background, so first queries can be slower.",
+      "tags": ["rds", "snapshots"]
+    },
+    {
+      "id": "11-classic-architectures-fc-20",
+      "front": "How can you avoid slow first reads on an EBS volume restored from a snapshot?",
+      "back": "Use **fast snapshot restore**, set a **Provisioned Rate for Volume Initialization** (100 to 300 MiB/s, extra fee), or read every block once with `fio` or `dd`.",
+      "tags": ["ebs-snapshots"],
+      "updated": "The provisioned volume initialization rate is newer than the slides."
+    },
+    {
+      "id": "11-classic-architectures-fc-21",
+      "front": "What does AWS Elastic Beanstalk cost, and what does it manage?",
+      "back": "No extra charge: you pay only for the EC2, ELB, RDS and other resources it creates. It handles provisioning, load balancing, scaling, health monitoring and platform updates; you bring the code and keep control of settings.",
+      "tags": ["elastic-beanstalk"]
+    },
+    {
+      "id": "11-classic-architectures-fc-22",
+      "front": "Define Beanstalk **application**, **application version** and **environment**.",
+      "back": "**Application**: container for versions, environments and saved configurations. **Version**: one labelled build of your code stored in S3. **Environment**: the AWS resources running exactly one version at a time (for example dev and prod).",
+      "tags": ["elastic-beanstalk"]
+    },
+    {
+      "id": "11-classic-architectures-fc-23",
+      "front": "How does a Beanstalk **worker environment** receive work?",
+      "back": "It has no load balancer. A daemon on each instance pulls messages from an **SQS queue** and HTTP POSTs them to the app on localhost; `200 OK` deletes the message, failures retry and end in a dead-letter queue. `cron.yaml` adds periodic tasks.",
+      "tags": ["elastic-beanstalk", "sqs"]
+    },
+    {
+      "id": "11-classic-architectures-fc-24",
+      "front": "Beanstalk single-instance versus load-balanced environment?",
+      "back": "**Single instance**: one EC2 with an Elastic IP, Auto Scaling group fixed at 1, for dev and test. **Load balanced**: ALB plus an Auto Scaling group across AZs (and optionally Multi-AZ RDS), for production.",
+      "tags": ["elastic-beanstalk"]
+    },
+    {
+      "id": "11-classic-architectures-fc-25",
+      "front": "Which Beanstalk platforms from the slides no longer exist?",
+      "back": "Packer Builder (custom platforms), multi-container Docker (now the **ECS** platform) and Preconfigured Docker were retired with Amazon Linux AMI in July 2022. Current Linux platforms all run on Amazon Linux 2023.",
+      "tags": ["elastic-beanstalk", "platforms"],
+      "updated": "AL1 branches retired 18 July 2022; the last Amazon Linux 2 branches retired 6 August 2026."
+    },
+    {
+      "id": "11-classic-architectures-fc-26",
+      "front": "Which Beanstalk deployment options avoid downtime and allow a fast rollback?",
+      "back": "**Immutable** (new instances in a temporary Auto Scaling group), **traffic splitting** (canary share of traffic, needs an ALB) and **blue/green** with **Swap environment URLs**. All at once (the default) causes brief downtime.",
+      "tags": ["elastic-beanstalk", "deployments"]
+    },
+    {
+      "id": "11-classic-architectures-fc-27",
+      "front": "Why should a production Beanstalk app not rely on a database coupled to its environment?",
+      "back": "A coupled RDS instance follows the environment's lifecycle (deletion policy Delete, Snapshot or Retain on termination) and is not carried across a blue/green swap. Keep production data in a decoupled or separately created database.",
+      "tags": ["elastic-beanstalk", "rds"]
+    },
+    {
+      "id": "11-classic-architectures-fc-28",
+      "front": "What is Elastic Beanstalk Cluster mode?",
+      "back": "Launched 17 September 2026: environments run as container replicas on a Beanstalk-operated **EKS** cluster (EKS Auto Mode nodes) shared by environments on the same subnets. The EC2-based model is now called Beanstalk Standard.",
+      "tags": ["elastic-beanstalk", "eks"],
+      "updated": "New feature announced 17 September 2026, after the slides."
+    },
+    {
+      "id": "11-classic-architectures-fc-29",
+      "front": "Which Elastic Beanstalk environment settings are fixed once the environment is created?",
+      "back": "The **environment tier** (web server or worker) and the **load balancer type** (ALB, NLB or CLB). The environment type, single instance or load balanced, can still be switched later.",
+      "tags": ["elastic-beanstalk"]
+    },
+    {
+      "id": "11-classic-architectures-fc-30",
+      "front": "In the typical three-tier web architecture, what goes in the public, private and data subnets?",
+      "back": "**Public**: the load balancer, which Route 53 targets with an alias record. **Private**: the Auto Scaling group of app instances, with no public IPs. **Data**: RDS and ElastiCache, reachable only from the app tier's security group.",
+      "tags": ["subnet", "security-groups"]
+    }
+  ]
+}

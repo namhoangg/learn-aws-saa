@@ -1,0 +1,192 @@
+{
+  "section": "30-threat-protection",
+  "cards": [
+    {
+      "id": "30-threat-protection-fc-01",
+      "front": "At which OSI layer does AWS WAF work, and what does that let it inspect?",
+      "back": "**Layer 7 (HTTP/HTTPS).** It can read the URI, query string, headers, cookies, body, source IP and country of each web request, so it can stop attacks such as SQL injection and cross-site scripting.",
+      "tags": ["waf"]
+    },
+    {
+      "id": "30-threat-protection-fc-02",
+      "front": "Name five resource types you can attach an AWS WAF web ACL to.",
+      "back": "**CloudFront** distributions, **Application Load Balancers**, **API Gateway REST APIs**, **AppSync GraphQL APIs** and **Cognito user pools** (also App Runner, Verified Access, Amplify and Bedrock AgentCore Gateway).",
+      "tags": ["waf"],
+      "updated": "App Runner, Verified Access, Amplify and Bedrock AgentCore Gateway were added after the slides."
+    },
+    {
+      "id": "30-threat-protection-fc-03",
+      "front": "Can you attach AWS WAF to a Network Load Balancer?",
+      "back": "**No.** An NLB works at layer 4 and WAF needs an HTTP-terminating resource. For static IPs plus WAF, put **Global Accelerator** in front of an **ALB** that carries the web ACL.",
+      "tags": ["waf", "nlb", "global-accelerator"]
+    },
+    {
+      "id": "30-threat-protection-fc-04",
+      "front": "In which Region must you create a WAF web ACL for a CloudFront distribution? And for an ALB?",
+      "back": "CloudFront: **US East (N. Virginia), us-east-1** (the global \"CloudFront\" scope). ALB and other Regional resources: the **same Region as the resource**.",
+      "tags": ["waf", "cloudfront"]
+    },
+    {
+      "id": "30-threat-protection-fc-05",
+      "front": "How many IP addresses (CIDR ranges) can one WAF IP set hold, and what do you do if you need more?",
+      "back": "Up to **10,000** CIDR ranges per IP set. For more, create additional IP sets and reference them from additional rules.",
+      "tags": ["waf", "ip-set"]
+    },
+    {
+      "id": "30-threat-protection-fc-06",
+      "front": "What does a WAF rate-based rule do, and what windows and minimum limit can you choose?",
+      "back": "It counts requests per aggregation key (by default each source IP) and applies an action, usually Block, once a key exceeds the limit. Windows: **1, 2, 5 (default) or 10 minutes**; lowest limit **10**.",
+      "tags": ["waf", "rate-based"],
+      "updated": "Older material shows only a 5-minute window and a minimum of 100."
+    },
+    {
+      "id": "30-threat-protection-fc-07",
+      "front": "What is a WAF rule group?",
+      "back": "A **reusable set of rules** you can add to one or many web ACLs: your own, **AWS Managed Rules** (core rule set, SQL database, IP reputation and more) or AWS Marketplace groups.",
+      "tags": ["waf", "rule-group"]
+    },
+    {
+      "id": "30-threat-protection-fc-08",
+      "front": "Which WAF rule action lets you test a new rule against live traffic without affecting it?",
+      "back": "**Count.** It records matches (metrics, sampled requests, logs) and continues evaluating the remaining rules, so nothing is blocked.",
+      "tags": ["waf", "rule-actions"]
+    },
+    {
+      "id": "30-threat-protection-fc-10",
+      "front": "What does AWS Shield Standard cost and what does it protect against?",
+      "back": "It is **free and automatic** for every AWS customer. It defends against common **layer 3/4** DDoS attacks such as **SYN floods and UDP reflection**, with the strongest coverage for CloudFront, Route 53 and Global Accelerator.",
+      "tags": ["shield"]
+    },
+    {
+      "id": "30-threat-protection-fc-11",
+      "front": "What does Shield Advanced cost?",
+      "back": "**USD 3,000 per month** with a **1-year commitment**, billed once per organization's payer account, plus data transfer out fees for protected resources.",
+      "tags": ["shield", "pricing"]
+    },
+    {
+      "id": "30-threat-protection-fc-12",
+      "front": "List four things Shield Advanced adds on top of Shield Standard.",
+      "back": "24/7 **Shield Response Team (SRT)**; **cost protection** against DDoS-driven scaling charges; detailed **attack visibility** and alarms; **layer 7 DDoS protection** (now the included WAF Anti-DDoS managed rule group). WAF fees and Firewall Manager policies for protected resources are also included.",
+      "tags": ["shield"]
+    },
+    {
+      "id": "30-threat-protection-fc-13",
+      "front": "Which resource types can Shield Advanced protect?",
+      "back": "**CloudFront** distributions, **Route 53** hosted zones, **Global Accelerator** standard accelerators, **ALB** and **CLB**, and **Elastic IP addresses** (which covers EC2 instances and NLBs attached to them).",
+      "tags": ["shield"]
+    },
+    {
+      "id": "30-threat-protection-fc-14",
+      "front": "What replaced Shield Advanced's layer 7 automatic mitigation as the default for HTTP floods in 2026?",
+      "back": "The AWS WAF **Anti-DDoS managed rule group** (`AWSManagedRulesAntiDDoSRuleSet`), default since 26 March 2026. It reacts within seconds and is included for Shield Advanced subscribers; existing customers can keep the older automatic mitigation.",
+      "tags": ["shield", "waf", "anti-ddos"],
+      "updated": "Change made in March 2026, after the slides."
+    },
+    {
+      "id": "30-threat-protection-fc-15",
+      "front": "What are the prerequisites for AWS Firewall Manager?",
+      "back": "An organization in **AWS Organizations** (all features), a designated Firewall Manager **administrator account**, and **AWS Config** enabled in the accounts and Regions you want to protect.",
+      "tags": ["firewall-manager"]
+    },
+    {
+      "id": "30-threat-protection-fc-16",
+      "front": "Which policy types can Firewall Manager apply across an organization?",
+      "back": "**AWS WAF**, **Shield Advanced**, **VPC security groups**, **VPC network ACLs**, **AWS Network Firewall**, **Route 53 Resolver DNS Firewall** and **third-party firewalls** (Palo Alto Cloud NGFW, Fortigate CNF).",
+      "tags": ["firewall-manager"],
+      "updated": "Network ACL and third-party firewall policies are newer than the slides."
+    },
+    {
+      "id": "30-threat-protection-fc-17",
+      "front": "WAF alone or Firewall Manager with WAF: how do you choose?",
+      "back": "**WAF alone** for granular rules on your own resources. **Firewall Manager + WAF** when the same rules must cover many accounts and be applied automatically to new accounts and resources.",
+      "tags": ["firewall-manager", "waf"]
+    },
+    {
+      "id": "30-threat-protection-fc-18",
+      "front": "Which AWS services make up the edge layer of the DDoS best practices (BP1, BP3)?",
+      "back": "**CloudFront** and **Global Accelerator** (BP1) and **Route 53** (BP3). They absorb and filter floods at edge locations before traffic reaches your Region; Global Accelerator suits non-HTTP backends.",
+      "tags": ["ddos", "cloudfront", "global-accelerator", "route53"]
+    },
+    {
+      "id": "30-threat-protection-fc-19",
+      "front": "How do you reduce the attack surface of an application in AWS?",
+      "back": "Hide backends (EC2, Lambda) behind **CloudFront, API Gateway or ELB**; keep instances in private subnets; restrict **security groups and NACLs** to expected traffic; protect APIs with throttling, authentication and WAF.",
+      "tags": ["ddos", "attack-surface"]
+    },
+    {
+      "id": "30-threat-protection-fc-20",
+      "front": "Which three data sources does GuardDuty analyze as soon as you enable it?",
+      "back": "**CloudTrail management events**, **VPC Flow Logs** and **Route 53 Resolver DNS query logs**. It reads its own copy, so you do not need to enable these logs yourself.",
+      "tags": ["guardduty"]
+    },
+    {
+      "id": "30-threat-protection-fc-21",
+      "front": "Name four optional GuardDuty protection plans.",
+      "back": "Any four of: **S3 Protection**, **EKS Protection**, **Runtime Monitoring**, **Malware Protection** (EC2, S3, AWS Backup), **RDS Protection**, **Lambda Protection**, **AI Protection**.",
+      "tags": ["guardduty"],
+      "updated": "Runtime Monitoring, Malware Protection for S3 and AWS Backup, and AI Protection are newer than the slides."
+    },
+    {
+      "id": "30-threat-protection-fc-22",
+      "front": "How do you get an email or trigger a fix automatically when GuardDuty raises a finding?",
+      "back": "Create an **EventBridge rule** matching `source: aws.guardduty` (detail-type `GuardDuty Finding`) and target an **SNS topic** for email or a **Lambda function** for remediation.",
+      "tags": ["guardduty", "eventbridge"]
+    },
+    {
+      "id": "30-threat-protection-fc-23",
+      "front": "How long is the GuardDuty free trial?",
+      "back": "**30 days** per Region, starting the first time you enable GuardDuty there. Protection plans switched on at that moment (all except Runtime Monitoring) are included.",
+      "tags": ["guardduty"]
+    },
+    {
+      "id": "30-threat-protection-fc-31",
+      "front": "How long does GuardDuty keep findings?",
+      "back": "**90 days.** To keep them longer, configure findings export to an **S3 bucket** (or forward the EventBridge events to your own storage).",
+      "tags": ["guardduty"]
+    },
+    {
+      "id": "30-threat-protection-fc-24",
+      "front": "Which three resource types does Amazon Inspector scan for vulnerabilities?",
+      "back": "**EC2 instances** (packages and network reachability), **container images in Amazon ECR** (on push and continuously) and **Lambda functions** (dependencies and, optionally, code).",
+      "tags": ["inspector"]
+    },
+    {
+      "id": "30-threat-protection-fc-25",
+      "front": "How does Inspector collect the software inventory of an EC2 instance?",
+      "back": "**Agent-based** through the **SSM Agent** (the instance must be an SSM managed instance), or **agentless** from **EBS snapshots** for instances without the agent (hybrid scanning).",
+      "tags": ["inspector", "systems-manager"],
+      "updated": "Agentless EBS-snapshot scanning is newer than the slides."
+    },
+    {
+      "id": "30-threat-protection-fc-26",
+      "front": "What is the Amazon Inspector risk score?",
+      "back": "A per-finding score in CVSS format: the CVE's base score **adjusted to your environment**, for example lowered when a network-exploitable flaw sits on an instance with no network path from outside.",
+      "tags": ["inspector"]
+    },
+    {
+      "id": "30-threat-protection-fc-27",
+      "front": "What does Amazon Macie do?",
+      "back": "It uses **machine learning and pattern matching** to find **sensitive data (PII, financial data, credentials) in Amazon S3**, and raises policy findings when a bucket's security weakens, such as becoming public.",
+      "tags": ["macie", "s3"]
+    },
+    {
+      "id": "30-threat-protection-fc-28",
+      "front": "Macie: automated sensitive data discovery versus a sensitive data discovery job?",
+      "back": "**Automated discovery** samples objects across all buckets continuously for broad visibility. A **job** analyzes buckets you choose, once or on a schedule, with your own scope and sampling depth.",
+      "tags": ["macie"]
+    },
+    {
+      "id": "30-threat-protection-fc-29",
+      "front": "GuardDuty, Inspector or Macie: which one for (a) crypto-mining on EC2, (b) a CVE in an ECR image, (c) credit card numbers in S3?",
+      "back": "(a) **GuardDuty** (behaviour in logs, it has crypto-mining finding types), (b) **Inspector** (software vulnerabilities), (c) **Macie** (sensitive data in S3).",
+      "tags": ["guardduty", "inspector", "macie"]
+    },
+    {
+      "id": "30-threat-protection-fc-30",
+      "front": "What is AWS Security Hub CSPM?",
+      "back": "The posture-management service (formerly just \"Security Hub\") that runs best-practice checks and **aggregates findings** from GuardDuty, Inspector, Macie and partners in one place.",
+      "tags": ["security-hub"],
+      "updated": "Renamed Security Hub CSPM after the slides."
+    }
+  ]
+}

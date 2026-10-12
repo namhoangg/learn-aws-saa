@@ -1,0 +1,219 @@
+{
+  "section": "08-asg",
+  "questions": [
+    {
+      "id": "08-asg-q01",
+      "type": "single",
+      "domain": "resilient",
+      "difficulty": "easy",
+      "question": "A web application runs on EC2 instances in an Auto Scaling group behind an Application Load Balancer. Occasionally the web server process on an instance crashes while the operating system keeps running. The ALB stops routing to that instance, but the instance stays in the group for days until an engineer terminates it. The company wants such instances replaced automatically. What should a solutions architect do?",
+      "options": [
+        { "id": "A", "text": "Increase the minimum capacity of the Auto Scaling group by one instance.", "correct": false, "explanation": "A larger minimum adds a spare instance but the broken one is still never replaced, so the problem remains." },
+        { "id": "B", "text": "Create a CloudWatch alarm on the StatusCheckFailed_System metric with an EC2 recover action for each instance.", "correct": false, "explanation": "System status checks still pass because the virtual machine is healthy; only the application failed, so the alarm never fires." },
+        { "id": "C", "text": "Turn on Elastic Load Balancing health checks for the Auto Scaling group.", "correct": true, "explanation": "With ELB health checks enabled, the group marks an instance unhealthy when the target group health check fails and replaces it automatically." },
+        { "id": "D", "text": "Enable cross-zone load balancing on the Application Load Balancer.", "correct": false, "explanation": "Cross-zone load balancing changes how traffic is spread across AZs; it has nothing to do with replacing failed instances." }
+      ],
+      "explanation": "By default an Auto Scaling group only acts on EC2 status checks; turn on Elastic Load Balancing health checks so application-level failures seen by the load balancer trigger replacement.",
+      "tags": ["health-checks", "alb"]
+    },
+    {
+      "id": "08-asg-q02",
+      "type": "single",
+      "domain": "performant",
+      "difficulty": "easy",
+      "question": "A company runs a CPU-bound API on EC2 instances in an Auto Scaling group. The operations team wants the group to keep average CPU utilization at about 50% as traffic changes, with the LEAST operational overhead. Which solution meets these requirements?",
+      "options": [
+        { "id": "A", "text": "Create a target tracking scaling policy on the ASGAverageCPUUtilization metric with a target value of 50.", "correct": true, "explanation": "Target tracking is built for 'keep this metric near this value'; AWS creates and manages the alarms and calculates the adjustments." },
+        { "id": "B", "text": "Create two CloudWatch alarms at 60% and 40% CPU and attach simple scaling policies that add and remove one instance.", "correct": false, "explanation": "This works but you must create and tune the alarms yourself, and simple scaling pauses for the cooldown after every action, so it is more work and less responsive." },
+        { "id": "C", "text": "Create scheduled actions that raise the desired capacity during business hours and lower it at night.", "correct": false, "explanation": "A schedule ignores real CPU usage, so unexpected spikes or quiet business hours would leave the group wrongly sized." },
+        { "id": "D", "text": "Run a cron job on one instance that reads CPU metrics and calls SetDesiredCapacity.", "correct": false, "explanation": "A home-made scaler adds code to maintain and a single point of failure; it is the opposite of least operational overhead." }
+      ],
+      "explanation": "'Keep a metric at about X' with minimal effort is the signature of a target tracking scaling policy.",
+      "tags": ["target-tracking", "metrics"]
+    },
+    {
+      "id": "08-asg-q03",
+      "type": "single",
+      "domain": "performant",
+      "difficulty": "easy",
+      "question": "A retailer's web tier runs in an Auto Scaling group with a target tracking policy. Every Friday at 18:00 local time a weekly flash sale starts and traffic jumps tenfold within a minute. Target tracking reacts too late and customers see errors for the first few minutes. Which change BEST solves the problem?",
+      "options": [
+        { "id": "A", "text": "Lower the target value of the target tracking policy so instances run at lower utilization all week.", "correct": false, "explanation": "A lower target adds permanent spare capacity all week (higher cost) and still may not absorb a tenfold jump within a minute." },
+        { "id": "B", "text": "Add a recurring scheduled action shortly before 18:00 on Fridays that raises the minimum and desired capacity, and another that lowers them after the sale.", "correct": true, "explanation": "The event time is known, so a scheduled action pre-provisions capacity before the spike while target tracking keeps handling anything beyond it." },
+        { "id": "C", "text": "Replace the target tracking policy with a simple scaling policy that adds 10 instances when CPU exceeds 80%.", "correct": false, "explanation": "Simple scaling is still reactive: the alarm fires only after CPU is already high, so the first minutes are still overloaded." },
+        { "id": "D", "text": "Increase the health check grace period to 600 seconds.", "correct": false, "explanation": "The grace period only delays health-check replacements; it does not add capacity before the sale starts." }
+      ],
+      "explanation": "A spike at a known date and time is solved by scheduled scaling, which moves capacity (often the minimum) ahead of the event.",
+      "tags": ["scheduled-scaling"]
+    },
+    {
+      "id": "08-asg-q04",
+      "type": "single",
+      "domain": "performant",
+      "difficulty": "medium",
+      "question": "An internal reporting application on EC2 has a clear pattern: load rises sharply every weekday between 07:30 and 09:00 and falls in the evening, with smaller differences between days of the week. New instances need about 10 minutes to load reference data before they can serve requests. The team does not want to maintain schedules by hand. Which scaling approach should a solutions architect recommend?",
+      "options": [
+        { "id": "A", "text": "A step scaling policy with large step adjustments when CPU exceeds 70%.", "correct": false, "explanation": "Step scaling reacts after the load arrives; with a 10-minute warm-up users would wait during every morning ramp." },
+        { "id": "B", "text": "Scheduled actions for each weekday that set the desired capacity at 07:15.", "correct": false, "explanation": "This could work, but someone must keep the schedule in line with changing patterns, which the team explicitly wants to avoid." },
+        { "id": "C", "text": "Set the minimum capacity to the peak size so the group never needs to scale out.", "correct": false, "explanation": "Running peak capacity around the clock removes the scaling problem by paying for idle instances every night and weekend." },
+        { "id": "D", "text": "A predictive scaling policy in forecast and scale mode with pre-launch, combined with a target tracking policy.", "correct": true, "explanation": "Predictive scaling learns the daily and weekly cycle and launches instances ahead of the forecast; target tracking handles scale-in and unexpected load." }
+      ],
+      "explanation": "Recurring cycles plus slow-starting instances and no manual schedules point to predictive scaling, paired with a dynamic policy because predictive scaling never scales in.",
+      "tags": ["predictive-scaling"]
+    },
+    {
+      "id": "08-asg-q05",
+      "type": "single",
+      "domain": "resilient",
+      "difficulty": "medium",
+      "question": "A team created an Auto Scaling group with the AWS CLI, attached it to an ALB target group and set --health-check-type ELB. The launch template's user data installs and configures the application, which takes about 5 minutes. Since then, instances are terminated and replaced in an endless loop shortly after they launch. What is the MOST likely fix?",
+      "options": [
+        { "id": "A", "text": "Switch the health check type back to EC2 so the load balancer's health checks are ignored.", "correct": false, "explanation": "This stops the loop but also stops replacement of instances whose application fails later, giving up the reason ELB checks were enabled." },
+        { "id": "B", "text": "Increase the default cooldown of the group from 300 to 900 seconds.", "correct": false, "explanation": "The default cooldown only affects simple scaling policies; it does not delay health check replacements." },
+        { "id": "C", "text": "Enable detailed monitoring in the launch template.", "correct": false, "explanation": "Detailed monitoring changes metric granularity for scaling; it has no influence on when health checks start counting." },
+        { "id": "D", "text": "Set a health check grace period longer than the bootstrap time, for example 400 seconds.", "correct": true, "explanation": "Groups created with the CLI default to a 0-second grace period, so ELB failures during bootstrap are acted on at once; a grace period longer than setup time stops the loop." }
+      ],
+      "explanation": "The health check grace period defaults to 300 seconds in the console but 0 with the CLI or SDK; set it longer than bootstrap time (or use a launch lifecycle hook).",
+      "tags": ["health-checks", "grace-period"]
+    },
+    {
+      "id": "08-asg-q06",
+      "type": "single",
+      "domain": "performant",
+      "difficulty": "medium",
+      "question": "A media company resizes uploaded images with worker instances in an Auto Scaling group that poll an Amazon SQS queue. Processing a message takes about 2 seconds, and the business accepts that an image waits at most 2 minutes. The number of messages in the queue varies widely through the day. How should the group be scaled?",
+      "options": [
+        { "id": "A", "text": "Target tracking on the queue's ApproximateNumberOfMessagesVisible metric with a target value of 60.", "correct": false, "explanation": "Raw queue length does not fall in proportion to the number of instances, so target tracking on it scales badly; AWS lists it as unsuitable." },
+        { "id": "B", "text": "Target tracking on a backlog-per-instance metric (queue length divided by in-service instances) with a target value of 60.", "correct": true, "explanation": "Backlog per instance falls as workers are added, and 120 s acceptable latency divided by 2 s per message gives a target of 60 messages per instance." },
+        { "id": "C", "text": "Target tracking on ASGAverageCPUUtilization with a target value of 60.", "correct": false, "explanation": "CPU on queue workers does not reflect how far behind the queue is; workers can look busy or idle regardless of the backlog." },
+        { "id": "D", "text": "A scheduled action every hour that sets the desired capacity to the current queue length divided by 60.", "correct": false, "explanation": "Hourly updates react far too slowly to a queue that changes throughout the day, and the calculation would need custom automation." }
+      ],
+      "explanation": "Scale queue workers on backlog per instance, with the target equal to acceptable latency divided by average processing time per message.",
+      "tags": ["metrics", "sqs", "target-tracking"]
+    },
+    {
+      "id": "08-asg-q07",
+      "type": "multi",
+      "domain": "performant",
+      "difficulty": "medium",
+      "question": "A solutions architect is choosing metrics for target tracking scaling policies on an Auto Scaling group behind an Application Load Balancer. Which metrics are appropriate for target tracking? (Select TWO.)",
+      "options": [
+        { "id": "A", "text": "ALBRequestCountPerTarget for the group's target group", "correct": true, "explanation": "Requests per target drop in proportion as instances are added, so it is a predefined target tracking metric." },
+        { "id": "B", "text": "The load balancer's total RequestCount", "correct": false, "explanation": "Total requests measure incoming demand and do not change when instances are added, so the policy could never bring it back to target." },
+        { "id": "C", "text": "ASGAverageCPUUtilization", "correct": true, "explanation": "Average CPU across the group falls as load is shared by more instances, which is exactly what target tracking needs." },
+        { "id": "D", "text": "The load balancer's TargetResponseTime (latency)", "correct": false, "explanation": "Latency rises with load but not proportionally to capacity, so AWS documents it as unsuitable for target tracking." },
+        { "id": "E", "text": "The number of instances in the Pending state (GroupPendingInstances)", "correct": false, "explanation": "This metric describes the group's own scaling activity, not how busy the instances are, so it cannot steer capacity." }
+      ],
+      "explanation": "A target tracking metric must describe per-instance utilization that decreases as instances are added: average CPU and ALB requests per target qualify; total requests and latency do not.",
+      "tags": ["metrics", "target-tracking"]
+    },
+    {
+      "id": "08-asg-q08",
+      "type": "single",
+      "domain": "resilient",
+      "difficulty": "medium",
+      "question": "An Auto Scaling group uses the default termination policy and spans two Availability Zones. AZ a runs three instances: i-1 and i-2 launched from launch template version 1, and i-3 from version 2. AZ b runs two instances launched from version 2. The current launch template version is 2 and no instance is protected from scale-in. The group now scales in by one instance. Which instance is terminated?",
+      "options": [
+        { "id": "A", "text": "One of the instances in AZ b, because they are the most recently launched.", "correct": false, "explanation": "The default policy first balances AZs, so it chooses the AZ with more instances (AZ a), not the newest instances." },
+        { "id": "B", "text": "i-3, because it uses the current launch template version.", "correct": false, "explanation": "Instances on the current version are kept in preference to those on an outdated version." },
+        { "id": "C", "text": "i-1 or i-2, because AZ a has the most instances and they use the oldest launch template version.", "correct": true, "explanation": "The policy picks the AZ with the most instances, then the instances with the oldest configuration; a remaining tie is broken by billing hour or at random." },
+        { "id": "D", "text": "An instance chosen at random from all five instances.", "correct": false, "explanation": "Random choice is only the last tie-breaker after AZ balance, configuration age and billing hour are considered." }
+      ],
+      "explanation": "Default termination policy: AZ with the most instances first, then the oldest launch configuration or template version, then closest to the next billing hour, then random.",
+      "tags": ["termination-policy"]
+    },
+    {
+      "id": "08-asg-q09",
+      "type": "single",
+      "domain": "performant",
+      "difficulty": "hard",
+      "question": "An Auto Scaling group uses a simple scaling policy that adds two instances when average CPU exceeds 70%. During a traffic surge the group adds two instances, but CPU stays above 90% and nothing more happens for five minutes, even though the alarm is still in the ALARM state and the group is well below its maximum capacity. The architect wants the group to keep scaling out while the surge lasts without overreacting to booting instances. What should the architect do?",
+      "options": [
+        { "id": "A", "text": "Replace the simple scaling policy with a target tracking (or step scaling) policy and enable a default instance warmup that matches the instances' start-up time.", "correct": true, "explanation": "Simple scaling waits for the 300-second default cooldown; target tracking and step scaling can scale out again immediately, and warmup stops booting instances from skewing the average." },
+        { "id": "B", "text": "Increase the health check grace period to 600 seconds.", "correct": false, "explanation": "The grace period controls when health checks start to count; it does not affect how often scaling policies can act." },
+        { "id": "C", "text": "Change the alarm to evaluate a single 10-second data point.", "correct": false, "explanation": "The alarm is already in ALARM; the pause comes from the simple scaling cooldown, so a faster alarm changes nothing." },
+        { "id": "D", "text": "Increase the group's maximum capacity.", "correct": false, "explanation": "The group is well below its maximum, so the ceiling is not what stops it; the five-minute pause is the simple scaling cooldown." }
+      ],
+      "explanation": "The default 300-second cooldown only blocks simple scaling; AWS recommends target tracking or step scaling with a default instance warmup instead.",
+      "tags": ["cooldown", "warmup", "simple-scaling"],
+      "updated": "Current AWS docs scope the default cooldown to simple scaling policies only."
+    },
+    {
+      "id": "08-asg-q10",
+      "type": "multi",
+      "domain": "resilient",
+      "difficulty": "medium",
+      "question": "A company's Auto Scaling group of 20 instances uses a launch template. The security team has produced a patched AMI that must replace the current AMI on every instance, with no more than 10% of capacity out of service at any time and minimal manual work. Which actions should a solutions architect take? (Select TWO.)",
+      "options": [
+        { "id": "A", "text": "Edit the existing launch configuration and replace the AMI ID in place.", "correct": false, "explanation": "The group uses a launch template, and launch configurations cannot be edited anyway; you would have to create a new one." },
+        { "id": "B", "text": "Create a new version of the launch template that uses the patched AMI and set the group to use that version.", "correct": true, "explanation": "New launches use the new version; this is the supported way to change the AMI for the group." },
+        { "id": "C", "text": "Set the desired capacity to 0 and then back to 20.", "correct": false, "explanation": "This would take the whole application offline, breaking the 10% availability requirement." },
+        { "id": "D", "text": "Stop each instance, change its root volume to the new AMI and start it again.", "correct": false, "explanation": "Stopping instances makes the group replace them from the old configuration, and the manual work is exactly what the company wants to avoid." },
+        { "id": "E", "text": "Start an instance refresh with a minimum healthy percentage of 90%.", "correct": true, "explanation": "An instance refresh replaces running instances in a rolling way while keeping at least 90% of desired capacity healthy, so no more than 2 of the 20 instances are out of service at once." }
+      ],
+      "explanation": "Changing a launch template only affects new launches; pair a new template version with an instance refresh to roll it across running instances.",
+      "tags": ["launch-template", "instance-refresh"]
+    },
+    {
+      "id": "08-asg-q11",
+      "type": "single",
+      "domain": "cost",
+      "difficulty": "medium",
+      "question": "A stateless web application behind an ALB runs in an Auto Scaling group of On-Demand m6i.large instances, scaling between 4 and 40 instances. The application tolerates the loss of individual instances, but at least 4 instances must always be available and not subject to interruption. Which solution reduces cost the MOST while meeting these requirements?",
+      "options": [
+        { "id": "A", "text": "Purchase Reserved Instances for 40 m6i.large instances.", "correct": false, "explanation": "Reserving for the peak commits you to paying for up to 36 instances that sit unused most of the time." },
+        { "id": "B", "text": "Move the entire group to Spot Instances of a single instance type.", "correct": false, "explanation": "A Spot-only group with one instance type risks losing the guaranteed minimum of 4 instances when that Spot pool is interrupted." },
+        { "id": "C", "text": "Reduce the maximum capacity to 10 instances.", "correct": false, "explanation": "Capping capacity saves money by failing to serve peak traffic, which does not meet the application's needs." },
+        { "id": "D", "text": "Use a mixed instances policy with an On-Demand base capacity of 4, Spot above the base across several similar instance types, and the price-capacity-optimized allocation strategy.", "correct": true, "explanation": "The base keeps 4 uninterrupted On-Demand instances; burst capacity comes from diversified Spot at a steep discount with lower interruption risk." }
+      ],
+      "explanation": "Mixed instances policies combine a guaranteed On-Demand base with diversified Spot capacity above it, the usual cost answer for fault-tolerant stateless fleets.",
+      "tags": ["mixed-instances", "spot", "cost"]
+    },
+    {
+      "id": "08-asg-q12",
+      "type": "single",
+      "domain": "resilient",
+      "difficulty": "easy",
+      "question": "Instances in an Auto Scaling group write application logs to local disk. When the group scales in, these logs are lost before they can be shipped. The company needs the logs from every terminating instance to be copied to Amazon S3 before the instance is shut down. What should a solutions architect use?",
+      "options": [
+        { "id": "A", "text": "Enable instance scale-in protection on every instance.", "correct": false, "explanation": "Scale-in protection stops the group from terminating protected instances at all, which defeats scaling in rather than saving logs." },
+        { "id": "B", "text": "A lifecycle hook for instance termination that holds instances in Terminating:Wait while a script or Lambda function copies the logs, then completes the lifecycle action.", "correct": true, "explanation": "A termination lifecycle hook pauses the instance so custom actions such as copying logs can finish before termination continues." },
+        { "id": "C", "text": "Increase the deregistration delay on the ALB target group to 3,600 seconds.", "correct": false, "explanation": "Deregistration delay only lets in-flight requests finish; it runs nothing on the instance and the logs are still not copied." },
+        { "id": "D", "text": "Change the termination policy to NewestInstance.", "correct": false, "explanation": "The termination policy decides which instance goes, not what happens on it before it is terminated." }
+      ],
+      "explanation": "Running custom actions before an Auto Scaling instance is terminated (or before a new one enters service) is the job of lifecycle hooks.",
+      "tags": ["lifecycle-hooks"]
+    },
+    {
+      "id": "08-asg-q13",
+      "type": "multi",
+      "domain": "resilient",
+      "difficulty": "easy",
+      "question": "Which statements about Amazon EC2 Auto Scaling groups are correct? (Select TWO.)",
+      "options": [
+        { "id": "A", "text": "A single Auto Scaling group can launch instances in several AWS Regions for disaster recovery.", "correct": false, "explanation": "A group lives in one Region; multi-Region designs need a group per Region." },
+        { "id": "B", "text": "There is no additional charge for EC2 Auto Scaling; you pay for the resources the group launches.", "correct": true, "explanation": "The service is free; costs come from the instances, volumes, alarms and other resources it uses." },
+        { "id": "C", "text": "Attaching a target group makes the group act on the load balancer's health checks automatically.", "correct": false, "explanation": "Elastic Load Balancing health checks must be turned on separately; by default only EC2 status checks count." },
+        { "id": "D", "text": "A single Auto Scaling group can spread instances across multiple Availability Zones in its Region.", "correct": true, "explanation": "Choosing subnets in several AZs lets the group balance instances across them for high availability." },
+        { "id": "E", "text": "Predictive scaling removes capacity when it forecasts lower load.", "correct": false, "explanation": "Predictive scaling only scales out; a dynamic policy must handle scale-in." }
+      ],
+      "explanation": "Auto Scaling is free and regional across multiple AZs; ELB health checks are opt-in and predictive scaling never scales in.",
+      "tags": ["asg", "high-availability"]
+    },
+    {
+      "id": "08-asg-q14",
+      "type": "single",
+      "domain": "performant",
+      "difficulty": "hard",
+      "question": "A financial analytics application runs on EC2 in an Auto Scaling group. Each new instance must download and index about 200 GB of data before it can serve requests, which takes 25 minutes. Traffic spikes are unpredictable, and scale-out is far too slow. The company does not want to keep extra instances running just in case. Which solution meets these requirements MOST cost-effectively?",
+      "options": [
+        { "id": "A", "text": "Add a warm pool that keeps pre-initialized instances in the Stopped state, with a launch lifecycle hook so instances finish initializing before they are stopped.", "correct": true, "explanation": "Stopped warm pool instances cost only their EBS volumes (and any Elastic IPs) yet start far faster than a cold launch, giving quick scale-out without paying for idle running instances." },
+        { "id": "B", "text": "Raise the minimum capacity so that enough instances for the largest spike are always running.", "correct": false, "explanation": "This solves the speed problem by paying for idle running instances, which the company explicitly does not want." },
+        { "id": "C", "text": "Use predictive scaling in forecast and scale mode.", "correct": false, "explanation": "Predictive scaling relies on recurring patterns; unpredictable spikes cannot be forecast, so instances would still launch cold." },
+        { "id": "D", "text": "Shorten the default instance warmup to 30 seconds.", "correct": false, "explanation": "Warmup only changes when new instances count in metrics; the 25 minutes of data loading still has to happen before they can serve traffic." }
+      ],
+      "explanation": "For very long initialization with unpredictable demand, a warm pool of stopped, pre-initialized instances gives fast scale-out at low standby cost.",
+      "tags": ["warm-pools", "lifecycle-hooks"]
+    }
+  ]
+}

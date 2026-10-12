@@ -1,0 +1,178 @@
+{
+  "section": "07-elb",
+  "cards": [
+    {
+      "id": "07-elb-fc-01",
+      "front": "What is the difference between vertical and horizontal scaling?",
+      "back": "**Vertical** (scale up/down) = a bigger or smaller instance, e.g. `t3.micro` to `m7i.2xlarge`; capped by the largest size. **Horizontal** (scale out/in, elasticity) = more or fewer instances behind a load balancer; needs a distributed, ideally stateless app.",
+      "tags": ["scalability"]
+    },
+    {
+      "id": "07-elb-fc-02",
+      "front": "What does high availability mean for an EC2 application?",
+      "back": "Running the same application in **at least two Availability Zones** (multi-AZ Auto Scaling group + multi-AZ load balancer) so the loss of one data center does not take it down.",
+      "tags": ["high-availability"]
+    },
+    {
+      "id": "07-elb-fc-03",
+      "front": "Name four benefits of putting a load balancer in front of EC2 instances.",
+      "back": "Any four of: one DNS entry point, spreads load, removes unhealthy instances via health checks, terminates TLS (HTTPS), cookie stickiness, spans AZs, separates public traffic from private traffic.",
+      "tags": ["elb"]
+    },
+    {
+      "id": "07-elb-fc-04",
+      "front": "What are the default ALB health check thresholds and interval?",
+      "back": "Interval **30 s**, timeout **5 s**, **5** consecutive successes to become healthy, **2** consecutive failures to become unhealthy, success code **200** (configurable within 200–499).",
+      "tags": ["alb", "health-checks"]
+    },
+    {
+      "id": "07-elb-fc-05",
+      "front": "Which load balancer works at layer 7 and routes by URL path, hostname, header, method, query string or source IP?",
+      "back": "The **Application Load Balancer** (ALB).",
+      "tags": ["alb"]
+    },
+    {
+      "id": "07-elb-fc-06",
+      "front": "What target types can an ALB target group use?",
+      "back": "**Instances** (often via an Auto Scaling group), **private IP addresses** (including on-premises over VPN/Direct Connect), and a **Lambda function** (request becomes a JSON event). ECS tasks register as instance or IP targets.",
+      "tags": ["alb", "target-groups"]
+    },
+    {
+      "id": "07-elb-fc-07",
+      "front": "Behind an ALB, how does the application find the client's real IP address?",
+      "back": "From the **X-Forwarded-For** header. **X-Forwarded-Proto** gives the client's protocol and **X-Forwarded-Port** the port. The TCP source the app sees is the ALB's private IP.",
+      "tags": ["alb", "headers"]
+    },
+    {
+      "id": "07-elb-fc-08",
+      "front": "Which load balancer gives you one static IP per AZ and lets you attach Elastic IPs?",
+      "back": "The **Network Load Balancer** (NLB). Useful when clients must allow-list fixed IP addresses.",
+      "tags": ["nlb"]
+    },
+    {
+      "id": "07-elb-fc-09",
+      "front": "What protocols and target types does a Network Load Balancer support?",
+      "back": "Listeners: **TCP, UDP, TCP_UDP, TLS**, plus newer **QUIC/TCP_QUIC**. Targets: EC2 **instances**, private **IPs**, or an **ALB**. Health checks: TCP, HTTP or HTTPS.",
+      "tags": ["nlb"],
+      "updated": "QUIC and TCP_QUIC listeners are newer than the slides."
+    },
+    {
+      "id": "07-elb-fc-10",
+      "front": "You need static IPs for allow-listing AND HTTP path-based routing. What do you build?",
+      "back": "An **NLB with the ALB registered as its target** (NLB supplies static/Elastic IPs, ALB does layer 7 routing). **Global Accelerator** in front of the ALB is the other common answer.",
+      "tags": ["nlb", "alb"]
+    },
+    {
+      "id": "07-elb-fc-11",
+      "front": "What is the Gateway Load Balancer for, and which protocol and port does it use?",
+      "back": "Deploying and scaling fleets of third-party **virtual appliances** (firewalls, IDS/IPS, deep packet inspection) as a transparent layer 3 gateway. It uses **GENEVE on port 6081**.",
+      "tags": ["gwlb"]
+    },
+    {
+      "id": "07-elb-fc-12",
+      "front": "How does traffic get sent to a Gateway Load Balancer?",
+      "back": "Through **Gateway Load Balancer endpoints** (a VPC endpoint type) that you set as the next hop in **route tables**.",
+      "tags": ["gwlb"]
+    },
+    {
+      "id": "07-elb-fc-13",
+      "front": "What is the recommended security group setup for EC2 instances behind a load balancer?",
+      "back": "Load balancer SG allows 80/443 from `0.0.0.0/0`; the instance SG allows the app port (and health check port) with the **load balancer's security group as the source**, so nobody can bypass the load balancer.",
+      "tags": ["security-groups"]
+    },
+    {
+      "id": "07-elb-fc-14",
+      "front": "Can a Network Load Balancer have security groups?",
+      "back": "Yes, but only if you attach at least one when you **create** it; an NLB created without security groups cannot get them later. (Gateway Load Balancers do not use security groups.)",
+      "tags": ["nlb", "security-groups"],
+      "updated": "NLB security group support was added after the original NLB design."
+    },
+    {
+      "id": "07-elb-fc-15",
+      "front": "What do sticky sessions do, and what is their main downside?",
+      "back": "They send the same client to the same target (session affinity) so locally stored session data is not lost. Downside: **uneven load** across targets, and the session is still lost if that target fails.",
+      "tags": ["stickiness"]
+    },
+    {
+      "id": "07-elb-fc-16",
+      "front": "Name the stickiness cookies: ALB duration-based, ALB application-based, ALB target-group-level, and CLB.",
+      "back": "ALB duration-based: **AWSALB**. ALB application-based: your own app cookie plus **AWSALBAPP**. Weighted target group stickiness: **AWSALBTG**. CLB: **AWSELB**. Don't use the AWSALB names for your own cookies.",
+      "tags": ["stickiness"]
+    },
+    {
+      "id": "07-elb-fc-17",
+      "front": "How does an NLB implement stickiness?",
+      "back": "By **source IP** affinity. It is not supported on TLS or QUIC listeners, and all clients behind one NAT share a source IP, so they land on the same target.",
+      "tags": ["nlb", "stickiness"]
+    },
+    {
+      "id": "07-elb-fc-18",
+      "front": "What does cross-zone load balancing do?",
+      "back": "Each load balancer node spreads its traffic over **all registered targets in all enabled AZs**, not only those in its own AZ. Example: 1 target in AZ a, 4 in AZ b: on = 20% each; off = 50% for the AZ a target and 12.5% for each AZ b target.",
+      "tags": ["cross-zone"]
+    },
+    {
+      "id": "07-elb-fc-19",
+      "front": "Cross-zone load balancing defaults and charges for ALB, NLB/GWLB and CLB?",
+      "back": "**ALB**: always on at LB level (can be turned off per target group), no inter-AZ charge. **NLB/GWLB**: off by default, inter-AZ data billed when on. **CLB**: on via console, off via API/CLI, no inter-AZ charge.",
+      "tags": ["cross-zone"],
+      "updated": "AWS docs say the CLB console pre-selects cross-zone; the slides say it is off by default."
+    },
+    {
+      "id": "07-elb-fc-20",
+      "front": "What is SNI and which load balancers support it?",
+      "back": "**Server Name Indication**: the client names the hostname in the TLS handshake so the server can present the matching certificate from several. Supported by **ALB, NLB and CloudFront**, not the CLB.",
+      "tags": ["sni", "tls"]
+    },
+    {
+      "id": "07-elb-fc-21",
+      "front": "How do you serve several HTTPS domains with different certificates on a Classic Load Balancer?",
+      "back": "You can't use SNI on a CLB: each HTTPS listener has **one certificate**. Use one CLB per certificate, a single certificate covering all names (SAN or wildcard), or migrate to an ALB.",
+      "tags": ["clb", "tls"]
+    },
+    {
+      "id": "07-elb-fc-22",
+      "front": "What does an HTTPS listener need, and where do the certificates come from?",
+      "back": "Exactly one **default certificate**, an optional **certificate list** (up to 25 by default) and a **security policy** for TLS versions/ciphers. Certificates come from **ACM** (free, auto-renewed public certs) or are imported/uploaded to ACM or IAM.",
+      "tags": ["tls", "acm"]
+    },
+    {
+      "id": "07-elb-fc-23",
+      "front": "How long are ACM public certificates valid today?",
+      "back": "**198 days** (since 18 February 2026, previously 395), to meet the CA/Browser Forum 200-day limit. ACM renews them automatically.",
+      "tags": ["acm", "tls"],
+      "updated": "Validity changed from 395 to 198 days in February 2026."
+    },
+    {
+      "id": "07-elb-fc-24",
+      "front": "What is deregistration delay (connection draining) and its range and default?",
+      "back": "Time for in-flight requests to finish while a target is deregistering; no new requests go to it. ALB/NLB/GWLB **deregistration delay**: 0–3600 s (0 disables). CLB **connection draining**: 1–3600 s. Default **300 s** for both.",
+      "tags": ["deregistration"]
+    },
+    {
+      "id": "07-elb-fc-25",
+      "front": "When would you lower the deregistration delay, and when would you raise it?",
+      "back": "**Lower** it (e.g. 10–30 s) when requests are short, so deployments and scale-in finish faster. **Raise** it for long-running requests such as large uploads or downloads, so they are not cut off.",
+      "tags": ["deregistration"]
+    },
+    {
+      "id": "07-elb-fc-26",
+      "front": "What happens when every target in an ALB or NLB target group fails its health checks?",
+      "back": "The load balancer **fails open**: it sends traffic to all targets regardless of health, rather than returning nothing.",
+      "tags": ["health-checks"]
+    },
+    {
+      "id": "07-elb-fc-27",
+      "front": "Internet-facing vs internal load balancer: what is the difference?",
+      "back": "**Internet-facing** nodes have public IPs and serve internet clients. **Internal** nodes have only private IPs and serve clients inside the VPC or connected networks. Both reach targets using **private IPs**, so targets need no public IPs.",
+      "tags": ["elb"]
+    },
+    {
+      "id": "07-elb-fc-28",
+      "front": "What is the status of the Classic Load Balancer today?",
+      "back": "AWS calls it the **previous generation** and recommends migrating to an ALB or NLB. It supports HTTP, HTTPS, TCP and SSL, has no target groups or content-based routing, and no SNI.",
+      "tags": ["clb"],
+      "updated": "AWS docs now label the CLB as previous generation with a migration recommendation."
+    }
+  ]
+}

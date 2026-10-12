@@ -1,0 +1,455 @@
+{
+  "id": "25-machine-learning",
+  "order": 25,
+  "title": "Machine Learning",
+  "courseSection": "Machine Learning",
+  "slides": [
+    560,
+    574
+  ],
+  "estimatedMinutes": 40,
+  "summary": "The managed AI services you call through an API without ML expertise: Rekognition for images and video, Transcribe and Polly for speech, Translate, Comprehend and Comprehend Medical for text, Lex and Amazon Connect for conversations, Textract for documents, Kendra for search and Personalize for recommendations. Then SageMaker AI for custom models, how to map scenario keywords to the right service, and the 2025-2026 retirements and renames.",
+  "services": [
+    "rekognition",
+    "transcribe",
+    "polly",
+    "translate",
+    "lex",
+    "connect",
+    "comprehend",
+    "comprehend-medical",
+    "sagemaker",
+    "kendra",
+    "personalize",
+    "textract",
+    "bedrock",
+    "s3",
+    "lambda",
+    "data-firehose"
+  ],
+  "relations": [
+    {
+      "from": "rekognition",
+      "to": "s3",
+      "label": "analyzes images and videos stored in"
+    },
+    {
+      "from": "rekognition",
+      "to": "sagemaker",
+      "label": "hands borderline moderation results to Augmented AI human review in"
+    },
+    {
+      "from": "connect",
+      "to": "lex",
+      "label": "passes caller speech and chat to"
+    },
+    {
+      "from": "lex",
+      "to": "lambda",
+      "label": "invokes to fulfil a recognized intent"
+    },
+    {
+      "from": "transcribe",
+      "to": "comprehend",
+      "label": "produces transcripts analyzed by"
+    },
+    {
+      "from": "transcribe",
+      "to": "comprehend-medical",
+      "label": "turns patient conversations into text for"
+    },
+    {
+      "from": "translate",
+      "to": "comprehend",
+      "label": "calls for automatic source-language detection"
+    },
+    {
+      "from": "polly",
+      "to": "s3",
+      "label": "writes long speech synthesis tasks to"
+    },
+    {
+      "from": "textract",
+      "to": "s3",
+      "label": "reads multi-page documents from"
+    },
+    {
+      "from": "personalize",
+      "to": "s3",
+      "label": "imports historical interaction data from"
+    },
+    {
+      "from": "kendra",
+      "to": "s3",
+      "label": "indexes documents from"
+    },
+    {
+      "from": "bedrock",
+      "to": "kendra",
+      "label": "offers Knowledge Bases as the recommended successor to"
+    },
+    {
+      "from": "sagemaker",
+      "to": "s3",
+      "label": "reads training data and stores model artifacts in"
+    },
+    {
+      "from": "data-firehose",
+      "to": "s3",
+      "label": "lands streaming text for later ML analysis in"
+    }
+  ],
+  "examDomains": [
+    "performant",
+    "secure",
+    "cost"
+  ],
+  "lastVerified": "2026-10-04",
+  "sources": [
+    {
+      "title": "SAA-C03 exam guide: in-scope AWS services",
+      "url": "https://docs.aws.amazon.com/aws-certification/latest/solutions-architect-associate-03/saa-03-in-scope-services.html"
+    },
+    {
+      "title": "What is Amazon Rekognition?",
+      "url": "https://docs.aws.amazon.com/rekognition/latest/dg/what-is.html"
+    },
+    {
+      "title": "Amazon Rekognition: Moderating content",
+      "url": "https://docs.aws.amazon.com/rekognition/latest/dg/moderation.html"
+    },
+    {
+      "title": "Amazon Rekognition: Using the image and video moderation APIs (taxonomy, MinConfidence)",
+      "url": "https://docs.aws.amazon.com/rekognition/latest/dg/moderation-api.html"
+    },
+    {
+      "title": "Amazon Rekognition: Reviewing inappropriate content with Amazon Augmented AI",
+      "url": "https://docs.aws.amazon.com/rekognition/latest/dg/a2i-rekognition.html"
+    },
+    {
+      "title": "Amazon Rekognition: People pathing (end of support notice)",
+      "url": "https://docs.aws.amazon.com/rekognition/latest/dg/persons.html"
+    },
+    {
+      "title": "Amazon Rekognition: Detecting and analyzing faces",
+      "url": "https://docs.aws.amazon.com/rekognition/latest/dg/faces.html"
+    },
+    {
+      "title": "Amazon Rekognition: Getting started using the console",
+      "url": "https://docs.aws.amazon.com/rekognition/latest/dg/getting-started-console.html"
+    },
+    {
+      "title": "Amazon Rekognition: Exercise 1, detect objects and scenes (console)",
+      "url": "https://docs.aws.amazon.com/rekognition/latest/dg/detect-labels-console.html"
+    },
+    {
+      "title": "Amazon Rekognition pricing",
+      "url": "https://aws.amazon.com/rekognition/pricing/"
+    },
+    {
+      "title": "What is Amazon Transcribe?",
+      "url": "https://docs.aws.amazon.com/transcribe/latest/dg/what-is.html"
+    },
+    {
+      "title": "Amazon Transcribe: Redacting or identifying PII",
+      "url": "https://docs.aws.amazon.com/transcribe/latest/dg/pii-redaction.html"
+    },
+    {
+      "title": "Amazon Transcribe: Redacting PII in your batch job",
+      "url": "https://docs.aws.amazon.com/transcribe/latest/dg/pii-redaction-batch.html"
+    },
+    {
+      "title": "Amazon Transcribe: Identifying the dominant languages in your media",
+      "url": "https://docs.aws.amazon.com/transcribe/latest/dg/lang-id.html"
+    },
+    {
+      "title": "Amazon Transcribe: Transcribing with the AWS Management Console",
+      "url": "https://docs.aws.amazon.com/transcribe/latest/dg/getting-started-console.html"
+    },
+    {
+      "title": "Amazon Transcribe API: StartTranscriptionJob",
+      "url": "https://docs.aws.amazon.com/transcribe/latest/APIReference/API_StartTranscriptionJob.html"
+    },
+    {
+      "title": "Amazon Transcribe identity-based policy examples (S3 input and output permissions)",
+      "url": "https://docs.aws.amazon.com/transcribe/latest/dg/security_iam_id-based-policy-examples.html"
+    },
+    {
+      "title": "Amazon Transcribe pricing",
+      "url": "https://aws.amazon.com/transcribe/pricing/"
+    },
+    {
+      "title": "Amazon Polly voice engines",
+      "url": "https://docs.aws.amazon.com/polly/latest/dg/voice-engines-polly.html"
+    },
+    {
+      "title": "Amazon Polly: Managing lexicons",
+      "url": "https://docs.aws.amazon.com/polly/latest/dg/managing-lexicons.html"
+    },
+    {
+      "title": "Amazon Polly: Using multiple lexicons",
+      "url": "https://docs.aws.amazon.com/polly/latest/dg/lexicons-applying.html"
+    },
+    {
+      "title": "Amazon Polly: Uploading a lexicon",
+      "url": "https://docs.aws.amazon.com/polly/latest/dg/managing-lexicons-console-upload.html"
+    },
+    {
+      "title": "Amazon Polly: Applying lexicons (synthesizing speech)",
+      "url": "https://docs.aws.amazon.com/polly/latest/dg/managing-lexicons-console-synthesize-speech.html"
+    },
+    {
+      "title": "Amazon Polly: Supported SSML tags",
+      "url": "https://docs.aws.amazon.com/polly/latest/dg/supportedtags.html"
+    },
+    {
+      "title": "Amazon Polly: Newscaster speaking style",
+      "url": "https://docs.aws.amazon.com/polly/latest/dg/newscaster-tag.html"
+    },
+    {
+      "title": "Amazon Polly: Whispering",
+      "url": "https://docs.aws.amazon.com/polly/latest/dg/whispered-tag.html"
+    },
+    {
+      "title": "Amazon Polly: Using SSML on the console",
+      "url": "https://docs.aws.amazon.com/polly/latest/dg/ssml-to-speech-console.html"
+    },
+    {
+      "title": "Amazon Polly: Choosing a voice engine",
+      "url": "https://docs.aws.amazon.com/polly/latest/dg/using-voices.html"
+    },
+    {
+      "title": "Quotas in Amazon Polly",
+      "url": "https://docs.aws.amazon.com/polly/latest/dg/limits.html"
+    },
+    {
+      "title": "Amazon Polly pricing",
+      "url": "https://aws.amazon.com/polly/pricing/"
+    },
+    {
+      "title": "What is Amazon Translate?",
+      "url": "https://docs.aws.amazon.com/translate/latest/dg/what-is.html"
+    },
+    {
+      "title": "Amazon Translate: How it works (auto detection uses Comprehend, customization)",
+      "url": "https://docs.aws.amazon.com/translate/latest/dg/how-it-works.html"
+    },
+    {
+      "title": "Amazon Translate: Supported languages and language codes",
+      "url": "https://docs.aws.amazon.com/translate/latest/dg/what-is-languages.html"
+    },
+    {
+      "title": "Amazon Translate: Real-time translation using the console",
+      "url": "https://docs.aws.amazon.com/translate/latest/dg/sync-console.html"
+    },
+    {
+      "title": "Amazon Translate pricing",
+      "url": "https://aws.amazon.com/translate/pricing/"
+    },
+    {
+      "title": "What is Amazon Lex V2?",
+      "url": "https://docs.aws.amazon.com/lexv2/latest/dg/what-is.html"
+    },
+    {
+      "title": "Amazon Lex V2 core concepts",
+      "url": "https://docs.aws.amazon.com/lexv2/latest/dg/how-it-works.html"
+    },
+    {
+      "title": "Amazon Lex V1 guidelines and quotas (end of support notice, 15 September 2025)",
+      "url": "https://docs.aws.amazon.com/lex/latest/dg/guidelines-and-limits.html"
+    },
+    {
+      "title": "What is Connect Customer? (formerly Amazon Connect)",
+      "url": "https://docs.aws.amazon.com/connect/latest/adminguide/what-is-amazon-connect.html"
+    },
+    {
+      "title": "Connect Customer feature overview",
+      "url": "https://docs.aws.amazon.com/connect/latest/adminguide/connect-feature-overview.html"
+    },
+    {
+      "title": "Add an Amazon Lex bot to Connect Customer",
+      "url": "https://docs.aws.amazon.com/connect/latest/adminguide/amazon-lex.html"
+    },
+    {
+      "title": "Amazon Connect Customer pricing",
+      "url": "https://aws.amazon.com/connect/pricing/"
+    },
+    {
+      "title": "Amazon Connect FAQs",
+      "url": "https://aws.amazon.com/connect/faqs/"
+    },
+    {
+      "title": "Top announcements of What's Next with AWS 2026 (Amazon Connect family)",
+      "url": "https://aws.amazon.com/blogs/aws/top-announcements-of-the-whats-next-with-aws-2026/"
+    },
+    {
+      "title": "What is Amazon Comprehend?",
+      "url": "https://docs.aws.amazon.com/comprehend/latest/dg/what-is.html"
+    },
+    {
+      "title": "Amazon Comprehend: Topic modeling",
+      "url": "https://docs.aws.amazon.com/comprehend/latest/dg/topic-modeling.html"
+    },
+    {
+      "title": "Amazon Comprehend feature availability change",
+      "url": "https://docs.aws.amazon.com/comprehend/latest/dg/comprehend-availability-change.html"
+    },
+    {
+      "title": "Amazon Comprehend features (availability change effective 30 April 2026)",
+      "url": "https://aws.amazon.com/comprehend/features/"
+    },
+    {
+      "title": "Amazon Comprehend: Real-time analysis using the built-in models (console)",
+      "url": "https://docs.aws.amazon.com/comprehend/latest/dg/realtime-console-analysis.html"
+    },
+    {
+      "title": "Amazon Comprehend pricing",
+      "url": "https://aws.amazon.com/comprehend/pricing/"
+    },
+    {
+      "title": "What is Amazon Comprehend Medical?",
+      "url": "https://docs.aws.amazon.com/comprehend-medical/latest/dev/comprehendmedical-welcome.html"
+    },
+    {
+      "title": "What is Amazon SageMaker AI? (rename and unified Amazon SageMaker)",
+      "url": "https://docs.aws.amazon.com/sagemaker/latest/dg/whatis.html"
+    },
+    {
+      "title": "Amazon SageMaker AI features",
+      "url": "https://docs.aws.amazon.com/sagemaker/latest/dg/whatis-features.html"
+    },
+    {
+      "title": "Amazon SageMaker AI: Deploy models for inference",
+      "url": "https://docs.aws.amazon.com/sagemaker/latest/dg/deploy-model.html"
+    },
+    {
+      "title": "AWS service availability updates (30 June 2026): Kendra and SageMaker AI features to maintenance",
+      "url": "https://aws.amazon.com/about-aws/whats-new/2026/06/aws-service-availability/"
+    },
+    {
+      "title": "What is Amazon Kendra?",
+      "url": "https://docs.aws.amazon.com/kendra/latest/dg/what-is-kendra.html"
+    },
+    {
+      "title": "Amazon Kendra availability change",
+      "url": "https://docs.aws.amazon.com/kendra/latest/dg/kendra-availability-change.html"
+    },
+    {
+      "title": "What is Amazon Personalize?",
+      "url": "https://docs.aws.amazon.com/personalize/latest/dg/what-is-personalize.html"
+    },
+    {
+      "title": "What is Amazon Textract?",
+      "url": "https://docs.aws.amazon.com/textract/latest/dg/what-is.html"
+    },
+    {
+      "title": "Set quotas in Amazon Textract (formats, sizes, pages, languages)",
+      "url": "https://docs.aws.amazon.com/textract/latest/dg/limits-document.html"
+    },
+    {
+      "title": "AWS CLI reference: aws textract analyze-document",
+      "url": "https://docs.aws.amazon.com/cli/latest/reference/textract/analyze-document.html"
+    },
+    {
+      "title": "Amazon Textract pricing",
+      "url": "https://aws.amazon.com/textract/pricing/"
+    },
+    {
+      "title": "What is Amazon Bedrock?",
+      "url": "https://docs.aws.amazon.com/bedrock/latest/userguide/what-is-bedrock.html"
+    },
+    {
+      "title": "Transitioning from Amazon Rekognition people pathing (AWS Machine Learning blog)",
+      "url": "https://aws.amazon.com/blogs/machine-learning/transitioning-from-amazon-rekognition-people-pathing-exploring-other-alternatives/"
+    },
+    {
+      "title": "Amazon Transcribe API: ContentRedaction",
+      "url": "https://docs.aws.amazon.com/transcribe/latest/APIReference/API_ContentRedaction.html"
+    },
+    {
+      "title": "Amazon Transcribe API: Transcript (redacted and unredacted URIs)",
+      "url": "https://docs.aws.amazon.com/transcribe/latest/APIReference/API_Transcript.html"
+    },
+    {
+      "title": "Amazon Transcribe API: TranscriptionJob (status values)",
+      "url": "https://docs.aws.amazon.com/transcribe/latest/APIReference/API_TranscriptionJob.html"
+    },
+    {
+      "title": "Amazon Transcribe: Example PII redaction and identification output",
+      "url": "https://docs.aws.amazon.com/transcribe/latest/dg/pii-redaction-output.html"
+    },
+    {
+      "title": "Amazon Polly: Long audio files (asynchronous synthesis)",
+      "url": "https://docs.aws.amazon.com/polly/latest/dg/asynchronous.html"
+    },
+    {
+      "title": "Amazon Polly: Creating long audio files (console Save to S3)",
+      "url": "https://docs.aws.amazon.com/polly/latest/dg/longer-console.html"
+    },
+    {
+      "title": "Amazon Polly API: SynthesisTask (status values, OutputUri)",
+      "url": "https://docs.aws.amazon.com/polly/latest/dg/API_SynthesisTask.html"
+    },
+    {
+      "title": "AWS CLI reference: aws polly start-speech-synthesis-task",
+      "url": "https://docs.aws.amazon.com/cli/v1/reference/polly/start-speech-synthesis-task.html"
+    },
+    {
+      "title": "Amazon Lex V2: Exercise 1, create a chatbot from a template (OrderFlowers)",
+      "url": "https://docs.aws.amazon.com/lexv2/latest/dg/exercise-1.html"
+    },
+    {
+      "title": "Amazon Lex V2: Testing a bot using the console",
+      "url": "https://docs.aws.amazon.com/lexv2/latest/dg/test-bot.html"
+    },
+    {
+      "title": "Amazon Lex V2: Using service-linked roles",
+      "url": "https://docs.aws.amazon.com/lexv2/latest/dg/using-service-linked-roles.html"
+    },
+    {
+      "title": "Amazon Lex V2 runtime API: Intent (intent states)",
+      "url": "https://docs.aws.amazon.com/lexv2/latest/APIReference/API_runtime_Intent.html"
+    },
+    {
+      "title": "AWS CLI reference: aws lexv2-runtime recognize-text",
+      "url": "https://docs.aws.amazon.com/cli/latest/reference/lexv2-runtime/recognize-text.html"
+    },
+    {
+      "title": "AWS CLI reference: aws lexv2-models delete-bot",
+      "url": "https://docs.aws.amazon.com/cli/latest/reference/lexv2-models/delete-bot.html"
+    },
+    {
+      "title": "Amazon Lex pricing",
+      "url": "https://aws.amazon.com/lex/pricing/"
+    },
+    {
+      "title": "Amazon Polly API: StartSpeechSynthesisTask (task object kept 72 hours, character limits)",
+      "url": "https://docs.aws.amazon.com/polly/latest/dg/API_StartSpeechSynthesisTask.html"
+    },
+    {
+      "title": "Amazon Transcribe: Data input and output (media formats, service-managed bucket, 90-day expiry)",
+      "url": "https://docs.aws.amazon.com/transcribe/latest/dg/how-input.html"
+    },
+    {
+      "title": "Amazon SageMaker AI: Asynchronous inference (1 GB payloads, one-hour processing)",
+      "url": "https://docs.aws.amazon.com/sagemaker/latest/dg/async-inference.html"
+    },
+    {
+      "title": "Amazon Lex V2: Assisted NLU",
+      "url": "https://docs.aws.amazon.com/lexv2/latest/dg/assisted-nlu.html"
+    },
+    {
+      "title": "Amazon Rekognition feature availability changes (Streaming Video, Bulk Image Analysis, 30 April 2026)",
+      "url": "https://docs.aws.amazon.com/rekognition/latest/dg/rekognition-availability-changes.html"
+    },
+    {
+      "title": "AWS service availability updates (31 March 2026): Comprehend and Rekognition features to maintenance",
+      "url": "https://aws.amazon.com/about-aws/whats-new/2026/03/aws-service-availability/"
+    },
+    {
+      "title": "Amazon Connect costs less (AWS Contact Center blog, 2019)",
+      "url": "https://aws.amazon.com/blogs/contact-center/amazon-connect-costs-less/"
+    }
+  ],
+  "newServices": []
+}

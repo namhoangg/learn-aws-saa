@@ -1,0 +1,196 @@
+{
+  "section": "23-databases",
+  "cards": [
+    {
+      "id": "23-databases-fc-01",
+      "front": "What is the difference between **OLTP** and **OLAP**, and which AWS services fit each?",
+      "back": "**OLTP**: many short transactions on a few rows (RDS, Aurora, DynamoDB). **OLAP**: few long queries scanning and aggregating huge datasets (Redshift, Athena, EMR).",
+      "tags": ["database-types"]
+    },
+    {
+      "id": "23-databases-fc-02",
+      "front": "A **transactional (OLTP)** requirement mentions **complex joins** across several tables. Which AWS databases qualify?",
+      "back": "The relational ones: **Amazon RDS** or **Amazon Aurora**. NoSQL services (DynamoDB, DocumentDB, Keyspaces, ElastiCache) are built for key-based access without joins; Redshift and Athena join too, but they are for analytics, not transactions.",
+      "tags": ["rds", "aurora"]
+    },
+    {
+      "id": "23-databases-fc-03",
+      "front": "Which six database engines does **Amazon RDS** run?",
+      "back": "PostgreSQL, MySQL, MariaDB, Oracle, Microsoft SQL Server and IBM Db2. (Aurora is a separate engine family, compatible with MySQL and PostgreSQL.)",
+      "tags": ["rds"]
+    },
+    {
+      "id": "23-databases-fc-04",
+      "front": "How does **Aurora** store data, and how large can a cluster volume grow?",
+      "back": "One shared, self-healing cluster volume with **6 copies across 3 AZs**, separate from compute. It grows automatically up to **128 TiB**, or **256 TiB** on recent engine versions.",
+      "tags": ["aurora"],
+      "updated": "256 TiB maximum on Aurora PostgreSQL 15.13+, 16.9+ and 17.5+ and on Aurora MySQL 3.10+"
+    },
+    {
+      "id": "23-databases-fc-05",
+      "front": "**Aurora Global Database**: how many secondary Regions, how many readers per secondary, and what replication lag?",
+      "back": "Up to **10 secondary Regions**, up to **16 read replicas** in each secondary, storage-level replication typically **under 1 second**.",
+      "tags": ["aurora-global"],
+      "updated": "Raised from 5 to 10 secondary Regions in May 2025"
+    },
+    {
+      "id": "23-databases-fc-06",
+      "front": "Why choose **Aurora database cloning** over restoring a snapshot for a staging copy?",
+      "back": "A clone is **copy-on-write**: it is created much faster than a snapshot restore and only stores pages that change, so it is quicker and cheaper.",
+      "tags": ["aurora"]
+    },
+    {
+      "id": "23-databases-fc-07",
+      "front": "Which AWS ML services can **Aurora machine learning** call from SQL?",
+      "back": "**Amazon SageMaker AI**, **Amazon Comprehend** (for example sentiment analysis) and **Amazon Bedrock** (foundation models).",
+      "tags": ["aurora", "sagemaker", "comprehend", "bedrock"],
+      "updated": "Bedrock support added since the slides"
+    },
+    {
+      "id": "23-databases-fc-08",
+      "front": "What is the maximum **point-in-time recovery** window for RDS, Aurora, DynamoDB, DocumentDB and Keyspaces?",
+      "back": "**35 days.** For longer retention use manual snapshots or AWS Backup. DynamoDB lets you shorten its PITR window to anywhere from 1 to 35 days.",
+      "tags": ["backups"],
+      "updated": "DynamoDB's PITR recovery period became configurable (1 to 35 days) after the slides"
+    },
+    {
+      "id": "23-databases-fc-09",
+      "front": "Which engines does **Amazon ElastiCache** support today, and what is its main limitation as a database?",
+      "back": "**Valkey, Redis OSS and Memcached.** It is an in-memory cache with no SQL; the application code must be changed to use it, and it should not be the only copy of critical data.",
+      "tags": ["elasticache"],
+      "updated": "Valkey added as an engine since the slides"
+    },
+    {
+      "id": "23-databases-fc-10",
+      "front": "How can **DynamoDB** replace ElastiCache as a session store?",
+      "back": "Store sessions as items keyed by session ID and set a **TTL** attribute so expired sessions are deleted automatically; DynamoDB is serverless, durable and Multi-AZ.",
+      "tags": ["dynamodb"]
+    },
+    {
+      "id": "23-databases-fc-11",
+      "front": "DynamoDB **export to S3** and **import from S3**: do they consume table capacity?",
+      "back": "No. Export (from any point in the PITR window, PITR must be on) uses **no RCUs**; import creates a **new table** and uses **no WCUs**.",
+      "tags": ["dynamodb", "s3"]
+    },
+    {
+      "id": "23-databases-fc-12",
+      "front": "When is **S3** a good \"database\", and when is it a poor one?",
+      "back": "Good: large objects (up to **50 TB**), static files, data lakes, key-value storage for big blobs. Poor: millions of tiny, frequently updated records needing low latency.",
+      "tags": ["s3"],
+      "updated": "The slides already show 50 TB; the limit rose from 5 TB in December 2025, so older material may still say 5 TB"
+    },
+    {
+      "id": "23-databases-fc-13",
+      "front": "What is **Amazon DocumentDB** in one sentence?",
+      "back": "A managed, **MongoDB-compatible** document database built on an Aurora-style architecture, so MongoDB drivers and code keep working while AWS handles storage, replication and failover.",
+      "tags": ["documentdb"]
+    },
+    {
+      "id": "23-databases-fc-14",
+      "front": "DocumentDB storage: how many copies, how does it grow, and how many replicas can a cluster have?",
+      "back": "**6 copies across 3 AZs**, grows automatically in **10 GB increments** (to 128 TiB, or 256 TiB on engine 8.0+), with **1 primary + up to 15 replicas**.",
+      "tags": ["documentdb"],
+      "updated": "256 TiB maximum on engine version 8.0 and later"
+    },
+    {
+      "id": "23-databases-fc-15",
+      "front": "Which **DocumentDB** cluster option handles millions of reads and writes per second or petabytes of data?",
+      "back": "**Elastic clusters**, which shard the data for you. Instance-based clusters suit steady workloads; DocumentDB serverless suits spiky ones.",
+      "tags": ["documentdb"]
+    },
+    {
+      "id": "23-databases-fc-16",
+      "front": "What kind of database is **Amazon Neptune**, and name four classic use cases.",
+      "back": "A fully managed **graph** database for highly connected data. Use cases: social networks, **fraud detection**, **recommendation engines**, **knowledge graphs** (also network security).",
+      "tags": ["neptune"]
+    },
+    {
+      "id": "23-databases-fc-17",
+      "front": "Which query languages does **Neptune** support?",
+      "back": "**Gremlin** and **openCypher** for property graphs, and **SPARQL** for RDF graphs.",
+      "tags": ["neptune"]
+    },
+    {
+      "id": "23-databases-fc-18",
+      "front": "Neptune high availability: how many read replicas, and how far can storage grow?",
+      "back": "One primary plus **up to 15 read replicas** across AZs, on a cluster volume replicated across AZs that grows to **128 TiB**.",
+      "tags": ["neptune"]
+    },
+    {
+      "id": "23-databases-fc-19",
+      "front": "What guarantees does **Neptune Streams** give, and how do apps read it?",
+      "back": "Every graph change is logged **in strict order**, with **no duplicates** and nothing missing, available right after commit. Apps poll the cluster's **HTTP REST streams endpoint**; it does not trigger Lambda by itself.",
+      "tags": ["neptune"]
+    },
+    {
+      "id": "23-databases-fc-20",
+      "front": "Name three use cases for **Neptune Streams**.",
+      "back": "Send notifications on specific graph changes; keep another store in sync (OpenSearch, ElastiCache, S3); replicate the graph to Neptune in another Region.",
+      "tags": ["neptune"]
+    },
+    {
+      "id": "23-databases-fc-21",
+      "front": "How long does **Neptune Streams** keep change records?",
+      "back": "**7 days** by default; configurable from **1 to 90 days** (parameter `neptune_streams_expiry_days`, engine 1.2.0.0+).",
+      "tags": ["neptune"],
+      "updated": "Configurable retention is not in the slides"
+    },
+    {
+      "id": "23-databases-fc-22",
+      "front": "What is **Amazon Keyspaces**, and which query language does it use?",
+      "back": "A **serverless, Apache Cassandra-compatible** wide-column database. It uses **CQL** (Cassandra Query Language) and existing Cassandra drivers on port 9142 with TLS.",
+      "tags": ["keyspaces"]
+    },
+    {
+      "id": "23-databases-fc-23",
+      "front": "Keyspaces durability, capacity modes and backups?",
+      "back": "Tables kept as **3 copies across multiple AZs**; **on-demand** or **provisioned with auto scaling** capacity; encryption always on; **PITR up to 35 days**; optional active-active multi-Region replication.",
+      "tags": ["keyspaces"]
+    },
+    {
+      "id": "23-databases-fc-24",
+      "front": "In Keyspaces (Cassandra), what do the **partition key** and **clustering columns** do?",
+      "back": "The partition key (required) decides which partition stores the row; clustering columns (optional) sort rows within the partition. Queries must target the partition key or need `ALLOW FILTERING`.",
+      "tags": ["keyspaces"]
+    },
+    {
+      "id": "23-databases-fc-25",
+      "front": "Which Timestream engine should a **new** customer use for a time series workload, and why?",
+      "back": "**Timestream for InfluxDB** (InfluxDB 2 or InfluxDB 3). **Timestream for LiveAnalytics** closed to new customers on **20 June 2025**; only existing customers can keep using it.",
+      "tags": ["timestream"],
+      "updated": "LiveAnalytics availability change, June 2025"
+    },
+    {
+      "id": "23-databases-fc-26",
+      "front": "How does **Timestream for LiveAnalytics** tier its storage?",
+      "back": "Recent data sits in a fast **memory store**; older data moves automatically to a cheaper **magnetic store** by retention policy, and one SQL query can read both tiers.",
+      "tags": ["timestream"]
+    },
+    {
+      "id": "23-databases-fc-27",
+      "front": "Name three ways data reaches **Timestream** and three ways it is consumed.",
+      "back": "In: AWS IoT Core rules, Kinesis Data Streams via Lambda, Managed Service for Apache Flink (from Kinesis or MSK), Telegraf, Prometheus. Out: QuickSight (now Amazon Quick Sight), SageMaker AI, Grafana, any JDBC tool.",
+      "tags": ["timestream"]
+    },
+    {
+      "id": "23-databases-fc-28",
+      "front": "What happened to **Amazon QLDB**, and what does AWS suggest instead?",
+      "back": "QLDB reached **end of support on 31 July 2025** and is fully shut down. AWS guides ledger-style workloads to **Aurora PostgreSQL** with audit logging and history tables.",
+      "tags": ["qldb"],
+      "updated": "QLDB retired since the slides"
+    },
+    {
+      "id": "23-databases-fc-29",
+      "front": "A team wants to move a self-managed **MongoDB** or **Cassandra** cluster to AWS with minimal code changes. What do you choose?",
+      "back": "MongoDB → **Amazon DocumentDB**. Cassandra → **Amazon Keyspaces**. Both keep the existing drivers and query language; DynamoDB would require a rewrite.",
+      "tags": ["documentdb", "keyspaces"]
+    },
+    {
+      "id": "23-databases-fc-30",
+      "front": "Can **ElastiCache** restore a cache to an arbitrary point in time?",
+      "back": "No. It takes **snapshot backups** (daily automatic or manual) of Valkey, Redis OSS and Serverless Memcached caches, stored in S3, and a restore always creates a **new cache**. Node-based Memcached clusters cannot be backed up.",
+      "tags": ["elasticache", "backups"],
+      "updated": "The slides list point-in-time restore; AWS documents snapshot backup and restore only, now including Serverless Memcached"
+    }
+  ]
+}

@@ -1,0 +1,363 @@
+{
+  "id": "10-route53",
+  "order": 10,
+  "title": "Route 53",
+  "courseSection": "Amazon Route 53",
+  "slides": [
+    193,
+    226
+  ],
+  "estimatedMinutes": 55,
+  "summary": "DNS fundamentals and Amazon Route 53: public and private hosted zones, record types and TTL, CNAME versus alias records, the eight routing policies (simple, weighted, latency, failover, geolocation, geoproximity, IP-based, multivalue), health checks for public and private resources, registrar versus DNS service, and hybrid DNS with Route 53 VPC Resolver endpoints.",
+  "services": [
+    "route53",
+    "route53-resolver",
+    "route53-global-resolver",
+    "ec2",
+    "elastic-ip",
+    "elb",
+    "alb",
+    "cloudfront",
+    "s3",
+    "api-gateway",
+    "elastic-beanstalk",
+    "vpc-endpoints",
+    "global-accelerator",
+    "app-runner",
+    "opensearch",
+    "appsync",
+    "cloudwatch",
+    "cloudwatch-alarms",
+    "vpc",
+    "site-to-site-vpn",
+    "direct-connect",
+    "ram",
+    "security-groups",
+    "regions-azs"
+  ],
+  "relations": [
+    {
+      "from": "route53",
+      "to": "alb",
+      "label": "answers alias queries with the current IPs of"
+    },
+    {
+      "from": "route53",
+      "to": "cloudfront",
+      "label": "points apex alias records at"
+    },
+    {
+      "from": "route53",
+      "to": "s3",
+      "label": "aliases static website endpoints of"
+    },
+    {
+      "from": "route53",
+      "to": "api-gateway",
+      "label": "aliases custom domain names of"
+    },
+    {
+      "from": "route53",
+      "to": "global-accelerator",
+      "label": "aliases accelerators of"
+    },
+    {
+      "from": "route53",
+      "to": "ec2",
+      "label": "returns A records and health-checks public IPs of"
+    },
+    {
+      "from": "route53",
+      "to": "cloudwatch-alarms",
+      "label": "bases private-resource health checks on"
+    },
+    {
+      "from": "route53",
+      "to": "vpc",
+      "label": "serves private hosted zones to associated"
+    },
+    {
+      "from": "route53-resolver",
+      "to": "vpc",
+      "label": "resolves DNS at the +2 address of every"
+    },
+    {
+      "from": "route53-resolver",
+      "to": "route53",
+      "label": "looks up private hosted zone records in"
+    },
+    {
+      "from": "route53-resolver",
+      "to": "site-to-site-vpn",
+      "label": "forwards hybrid DNS queries over"
+    },
+    {
+      "from": "route53-resolver",
+      "to": "direct-connect",
+      "label": "forwards hybrid DNS queries over"
+    },
+    {
+      "from": "ram",
+      "to": "route53-resolver",
+      "label": "shares forwarding rules across accounts for"
+    },
+    {
+      "from": "route53-global-resolver",
+      "to": "route53",
+      "label": "resolves private hosted zones from anywhere for"
+    }
+  ],
+  "examDomains": [
+    "resilient",
+    "performant",
+    "cost"
+  ],
+  "lastVerified": "2026-10-04",
+  "sources": [
+    {
+      "title": "How internet traffic is routed to your website or web application (Route 53)",
+      "url": "https://docs.aws.amazon.com/Route53/latest/DeveloperGuide/welcome-dns-service.html"
+    },
+    {
+      "title": "Supported DNS record types",
+      "url": "https://docs.aws.amazon.com/Route53/latest/DeveloperGuide/ResourceRecordTypes.html"
+    },
+    {
+      "title": "Choosing between alias and non-alias records",
+      "url": "https://docs.aws.amazon.com/Route53/latest/DeveloperGuide/resource-record-sets-choosing-alias-non-alias.html"
+    },
+    {
+      "title": "Values specific for simple alias records",
+      "url": "https://docs.aws.amazon.com/Route53/latest/DeveloperGuide/resource-record-sets-values-alias.html"
+    },
+    {
+      "title": "Values that are common for alias records for all routing policies",
+      "url": "https://docs.aws.amazon.com/Route53/latest/DeveloperGuide/resource-record-sets-values-alias-common.html"
+    },
+    {
+      "title": "Choosing a routing policy",
+      "url": "https://docs.aws.amazon.com/Route53/latest/DeveloperGuide/routing-policy.html"
+    },
+    {
+      "title": "Simple routing",
+      "url": "https://docs.aws.amazon.com/Route53/latest/DeveloperGuide/routing-policy-simple.html"
+    },
+    {
+      "title": "Weighted routing",
+      "url": "https://docs.aws.amazon.com/Route53/latest/DeveloperGuide/routing-policy-weighted.html"
+    },
+    {
+      "title": "Values specific for weighted records",
+      "url": "https://docs.aws.amazon.com/Route53/latest/DeveloperGuide/resource-record-sets-values-weighted.html"
+    },
+    {
+      "title": "Latency-based routing",
+      "url": "https://docs.aws.amazon.com/Route53/latest/DeveloperGuide/routing-policy-latency.html"
+    },
+    {
+      "title": "Latency-based routing in private hosted zones",
+      "url": "https://docs.aws.amazon.com/Route53/latest/DeveloperGuide/routing-policy-latency-phz.html"
+    },
+    {
+      "title": "Failover routing",
+      "url": "https://docs.aws.amazon.com/Route53/latest/DeveloperGuide/routing-policy-failover.html"
+    },
+    {
+      "title": "Values specific for failover records",
+      "url": "https://docs.aws.amazon.com/Route53/latest/DeveloperGuide/resource-record-sets-values-failover.html"
+    },
+    {
+      "title": "Active-active and active-passive failover",
+      "url": "https://docs.aws.amazon.com/Route53/latest/DeveloperGuide/dns-failover-types.html"
+    },
+    {
+      "title": "Geolocation routing",
+      "url": "https://docs.aws.amazon.com/Route53/latest/DeveloperGuide/routing-policy-geo.html"
+    },
+    {
+      "title": "Geoproximity routing",
+      "url": "https://docs.aws.amazon.com/Route53/latest/DeveloperGuide/routing-policy-geoproximity.html"
+    },
+    {
+      "title": "Values specific for geoproximity records",
+      "url": "https://docs.aws.amazon.com/Route53/latest/DeveloperGuide/resource-record-sets-values-geoprox.html"
+    },
+    {
+      "title": "Amazon Route 53 expands geoproximity routing (January 2024)",
+      "url": "https://aws.amazon.com/about-aws/whats-new/2024/01/amazon-route-53-expands-geoproximity-routing"
+    },
+    {
+      "title": "IP-based routing",
+      "url": "https://docs.aws.amazon.com/Route53/latest/DeveloperGuide/routing-policy-ipbased.html"
+    },
+    {
+      "title": "Multivalue answer routing",
+      "url": "https://docs.aws.amazon.com/Route53/latest/DeveloperGuide/routing-policy-multivalue.html"
+    },
+    {
+      "title": "How Amazon Route 53 chooses records when health checking is configured",
+      "url": "https://docs.aws.amazon.com/Route53/latest/DeveloperGuide/health-checks-how-route-53-chooses-records.html"
+    },
+    {
+      "title": "Deleting health checks",
+      "url": "https://docs.aws.amazon.com/Route53/latest/DeveloperGuide/health-checks-deleting.html"
+    },
+    {
+      "title": "Editing records",
+      "url": "https://docs.aws.amazon.com/Route53/latest/DeveloperGuide/resource-record-sets-editing.html"
+    },
+    {
+      "title": "Deleting a public hosted zone",
+      "url": "https://docs.aws.amazon.com/Route53/latest/DeveloperGuide/DeleteHostedZone.html"
+    },
+    {
+      "title": "Create a CloudWatch alarm based on a static threshold",
+      "url": "https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/ConsoleAlarms.html"
+    },
+    {
+      "title": "Types of Amazon Route 53 health checks",
+      "url": "https://docs.aws.amazon.com/Route53/latest/DeveloperGuide/health-checks-types.html"
+    },
+    {
+      "title": "How Amazon Route 53 determines whether a health check is healthy",
+      "url": "https://docs.aws.amazon.com/Route53/latest/DeveloperGuide/dns-failover-determining-health-of-endpoints.html"
+    },
+    {
+      "title": "Values that you specify when you create or update health checks",
+      "url": "https://docs.aws.amazon.com/Route53/latest/DeveloperGuide/health-checks-creating-values.html"
+    },
+    {
+      "title": "Creating and updating health checks",
+      "url": "https://docs.aws.amazon.com/Route53/latest/DeveloperGuide/health-checks-creating.html"
+    },
+    {
+      "title": "HealthCheckConfig (Route 53 API Reference)",
+      "url": "https://docs.aws.amazon.com/Route53/latest/APIReference/API_HealthCheckConfig.html"
+    },
+    {
+      "title": "Configuring router and firewall rules for Amazon Route 53 health checks",
+      "url": "https://docs.aws.amazon.com/Route53/latest/DeveloperGuide/dns-failover-router-firewall-rules.html"
+    },
+    {
+      "title": "AWS-managed prefix lists (Amazon VPC User Guide)",
+      "url": "https://docs.aws.amazon.com/vpc/latest/userguide/working-with-aws-managed-prefix-lists.html"
+    },
+    {
+      "title": "Creating a public hosted zone",
+      "url": "https://docs.aws.amazon.com/Route53/latest/DeveloperGuide/CreatingHostedZone.html"
+    },
+    {
+      "title": "Working with private hosted zones",
+      "url": "https://docs.aws.amazon.com/Route53/latest/DeveloperGuide/hosted-zones-private.html"
+    },
+    {
+      "title": "Considerations when working with a private hosted zone",
+      "url": "https://docs.aws.amazon.com/Route53/latest/DeveloperGuide/hosted-zone-private-considerations.html"
+    },
+    {
+      "title": "Creating a private hosted zone",
+      "url": "https://docs.aws.amazon.com/Route53/latest/DeveloperGuide/hosted-zone-private-creating.html"
+    },
+    {
+      "title": "Creating records by using the Amazon Route 53 console",
+      "url": "https://docs.aws.amazon.com/Route53/latest/DeveloperGuide/resource-record-sets-creating.html"
+    },
+    {
+      "title": "TestDNSAnswer (Route 53 API Reference)",
+      "url": "https://docs.aws.amazon.com/Route53/latest/APIReference/API_TestDNSAnswer.html"
+    },
+    {
+      "title": "Quotas (Route 53)",
+      "url": "https://docs.aws.amazon.com/Route53/latest/DeveloperGuide/DNSLimitations.html"
+    },
+    {
+      "title": "Transferring registration for a domain to Amazon Route 53",
+      "url": "https://docs.aws.amazon.com/Route53/latest/DeveloperGuide/domain-transfer-to-route-53.html"
+    },
+    {
+      "title": "Making Amazon Route 53 the DNS service for an existing domain",
+      "url": "https://docs.aws.amazon.com/Route53/latest/DeveloperGuide/MigratingDNS.html"
+    },
+    {
+      "title": "Making Route 53 the DNS service for a domain that's in use",
+      "url": "https://docs.aws.amazon.com/Route53/latest/DeveloperGuide/migrate-dns-domain-in-use.html"
+    },
+    {
+      "title": "What is Route 53 VPC Resolver?",
+      "url": "https://docs.aws.amazon.com/Route53/latest/DeveloperGuide/resolver.html"
+    },
+    {
+      "title": "Resolving DNS queries between VPCs and your network",
+      "url": "https://docs.aws.amazon.com/Route53/latest/DeveloperGuide/resolver-overview-DSN-queries-to-vpc.html"
+    },
+    {
+      "title": "Values that you specify when you create or edit inbound endpoints",
+      "url": "https://docs.aws.amazon.com/Route53/latest/DeveloperGuide/resolver-forwarding-inbound-queries-values.html"
+    },
+    {
+      "title": "How Resolver endpoints forward DNS queries from your VPCs to your network",
+      "url": "https://docs.aws.amazon.com/Route53/latest/DeveloperGuide/resolver-overview-forward-vpc-to-network.html"
+    },
+    {
+      "title": "Using rules to control which queries are forwarded to your network",
+      "url": "https://docs.aws.amazon.com/Route53/latest/DeveloperGuide/resolver-overview-forward-vpc-to-network-using-rules.html"
+    },
+    {
+      "title": "What are Amazon Route 53 Profiles?",
+      "url": "https://docs.aws.amazon.com/Route53/latest/DeveloperGuide/profiles.html"
+    },
+    {
+      "title": "Understanding Amazon DNS (Amazon VPC User Guide)",
+      "url": "https://docs.aws.amazon.com/vpc/latest/userguide/AmazonDNS-concepts.html"
+    },
+    {
+      "title": "Introducing Amazon Route 53 Global Resolver (preview, November 2025)",
+      "url": "https://aws.amazon.com/about-aws/whats-new/2025/11/amazon-route-53-global-resolver-secure-anycast-dns-resolution-preview"
+    },
+    {
+      "title": "Amazon Route 53 Global Resolver is now generally available (March 2026)",
+      "url": "https://aws.amazon.com/about-aws/whats-new/2026/03/amazon-route-53-global-resolver"
+    },
+    {
+      "title": "Amazon Route 53 announces accelerated recovery for managing public DNS records (November 2025)",
+      "url": "https://aws.amazon.com/about-aws/whats-new/2025/11/amazon-route-53-accelerated-recovery-managing-public-dns-records"
+    },
+    {
+      "title": "Amazon Route 53 pricing",
+      "url": "https://aws.amazon.com/route53/pricing/"
+    },
+    {
+      "title": "Amazon Route 53 Service Level Agreement",
+      "url": "https://aws.amazon.com/route53/sla/"
+    },
+    {
+      "title": "create-hosted-zone (AWS CLI Command Reference)",
+      "url": "https://docs.aws.amazon.com/cli/latest/reference/route53/create-hosted-zone.html"
+    },
+    {
+      "title": "Prerequisites for EC2 Instance Connect",
+      "url": "https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-instance-connect-prerequisites.html"
+    },
+    {
+      "title": "Connect to a Linux instance using EC2 Instance Connect",
+      "url": "https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-instance-connect-methods.html"
+    },
+    {
+      "title": "Install EC2 Instance Connect on your EC2 instances (preinstalled AMIs)",
+      "url": "https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-instance-connect-set-up.html"
+    },
+    {
+      "title": "Updating or deleting health checks when DNS failover is configured",
+      "url": "https://docs.aws.amazon.com/Route53/latest/DeveloperGuide/health-checks-updating-deleting-tasks.html"
+    },
+    {
+      "title": "CreateHostedZone (Route 53 API Reference)",
+      "url": "https://docs.aws.amazon.com/Route53/latest/APIReference/API_CreateHostedZone.html"
+    },
+    {
+      "title": "AWS Free Tier FAQs (legacy 12-month Free Tier)",
+      "url": "https://aws.amazon.com/free/legacy/free-tier-faqs/"
+    }
+  ],
+  "newServices": []
+}

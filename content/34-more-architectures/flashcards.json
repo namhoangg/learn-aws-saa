@@ -1,0 +1,191 @@
+{
+  "section": "34-more-architectures",
+  "cards": [
+    {
+      "id": "34-more-architectures-fc-01",
+      "front": "Lambda reads from a standard SQS queue and keeps failing on one message. Where do you configure the dead-letter queue?",
+      "back": "On the **SQS source queue**: a redrive policy naming the DLQ and a `maxReceiveCount` (AWS suggests **at least 5**). SQS owns the message, so a DLQ set on the Lambda function never sees it.",
+      "tags": ["sqs", "lambda", "dlq"]
+    },
+    {
+      "id": "34-more-architectures-fc-02",
+      "front": "How should the SQS visibility timeout relate to the timeout of the Lambda function that consumes the queue?",
+      "back": "Set the visibility timeout to **at least six times the function timeout** (plus any batching window), so a throttled or slow batch does not reappear while it is still being worked on.",
+      "tags": ["sqs", "lambda"]
+    },
+    {
+      "id": "34-more-architectures-fc-03",
+      "front": "What happens in an SQS FIFO queue feeding Lambda when one message keeps failing?",
+      "back": "Lambda retries it before taking anything newer **from the same message group**, so that group is blocked until the message succeeds or moves to the (FIFO) DLQ. Other groups keep flowing; concurrency is capped by the number of active groups.",
+      "tags": ["sqs-fifo", "lambda"]
+    },
+    {
+      "id": "34-more-architectures-fc-04",
+      "front": "What does `ReportBatchItemFailures` change for an SQS event source mapping?",
+      "back": "It turns on **partial batch responses**: the function returns only the failed message IDs, so successful messages in the batch are deleted instead of all of them coming back to the queue.",
+      "tags": ["sqs", "lambda"]
+    },
+    {
+      "id": "34-more-architectures-fc-05",
+      "front": "SNS invokes a Lambda function and the function throws an error. What does Lambda do by default?",
+      "back": "It is an **asynchronous** invocation: Lambda retries **2 more times** (about 1 minute, then 2 minutes later) and keeps throttled events for up to **6 hours**. Then the event goes to the function's **DLQ or on-failure destination**, or is discarded.",
+      "tags": ["sns", "lambda", "async"]
+    },
+    {
+      "id": "34-more-architectures-fc-06",
+      "front": "Compare a Lambda function's dead-letter queue with an on-failure destination.",
+      "back": "**DLQ**: standard SQS queue or SNS topic; gets the original event, with just the request ID, error code and error message as attributes. **On-failure destination**: SQS, SNS, Lambda, EventBridge or S3; gets a JSON record with the event **plus** the full request and response details. FIFO queues and topics work for neither.",
+      "tags": ["lambda", "dlq", "destinations"],
+      "updated": "Amazon S3 is now a supported on-failure destination."
+    },
+    {
+      "id": "34-more-architectures-fc-07",
+      "front": "What is the SNS + SQS fan-out pattern and why use it?",
+      "back": "The producer publishes **once** to an SNS topic; every subscribed SQS queue gets its own copy and is processed independently. Adding a consumer is a new subscription, not a producer code change. Each queue's access policy must allow the topic to call `sqs:SendMessage`.",
+      "tags": ["sns", "sqs", "fan-out"]
+    },
+    {
+      "id": "34-more-architectures-fc-08",
+      "front": "Which destinations can native S3 event notifications target, and which popular targets are NOT supported?",
+      "back": "SNS topics, SQS queues and Lambda functions (same Region), plus the on/off EventBridge delivery. **SQS FIFO queues and SNS FIFO topics are not supported**; route through EventBridge for a FIFO queue.",
+      "tags": ["s3", "event-notifications"]
+    },
+    {
+      "id": "34-more-architectures-fc-09",
+      "front": "How can you filter native S3 event notifications, and can one event type with the same prefix go to two destinations?",
+      "back": "Only by literal key **prefix and suffix** (no `*` wildcards). Configurations for the same event type cannot have overlapping filters, and each configuration has one destination, so send it to **SNS and fan out** (or use EventBridge).",
+      "tags": ["s3", "event-notifications"]
+    },
+    {
+      "id": "34-more-architectures-fc-10",
+      "front": "How many event notification configurations can one S3 bucket have?",
+      "back": "**100** per bucket, and the quota cannot be raised.",
+      "tags": ["s3", "quotas"],
+      "updated": "The slides say you can create as many S3 events as you like; the current quota is 100 per bucket."
+    },
+    {
+      "id": "34-more-architectures-fc-11",
+      "front": "What delivery guarantees do S3 event notifications give?",
+      "back": "**At least once**, typically within seconds but sometimes a minute or longer. Events are **not guaranteed to arrive in order** and can occasionally be duplicated, so consumers must be idempotent.",
+      "tags": ["s3", "event-notifications"]
+    },
+    {
+      "id": "34-more-architectures-fc-12",
+      "front": "What do you gain by sending S3 events to Amazon EventBridge instead of using native notifications?",
+      "back": "Every bucket event goes to the default bus; rules filter on **any field** (object size, key wildcard, requester...) and send to up to **5 targets per rule** (Step Functions, Kinesis, FIFO SQS...). Plus **archive and replay** and retries for up to 24 hours / 185 attempts.",
+      "tags": ["s3", "eventbridge"]
+    },
+    {
+      "id": "34-more-architectures-fc-13",
+      "front": "How do you get an alert within minutes whenever someone calls a specific AWS API, such as DynamoDB `DeleteTable`?",
+      "back": "Keep a **CloudTrail trail** logging, then create an **EventBridge rule** on the default bus matching `detail-type: AWS API Call via CloudTrail` and `eventName: DeleteTable`, with an **SNS topic** (or Lambda for remediation) as target.",
+      "tags": ["cloudtrail", "eventbridge", "sns"]
+    },
+    {
+      "id": "34-more-architectures-fc-14",
+      "front": "Which EventBridge rule state is needed to match read-only CloudTrail calls such as `Describe*` or `List*`?",
+      "back": "`ENABLED_WITH_ALL_CLOUDTRAIL_MANAGEMENT_EVENTS`. A rule in the default `ENABLED` state matches write (mutating) management events and data events, but never read-only management events.",
+      "tags": ["cloudtrail", "eventbridge"]
+    },
+    {
+      "id": "34-more-architectures-fc-15",
+      "front": "What is an API Gateway AWS service integration?",
+      "back": "A REST API method that calls another AWS API directly (for example Kinesis `PutRecord`, SQS `SendMessage`, Step Functions `StartExecution`) using an **IAM execution role** and a **mapping template**, with **no Lambda** in between.",
+      "tags": ["api-gateway", "kinesis"]
+    },
+    {
+      "id": "34-more-architectures-fc-16",
+      "front": "What are the REST API payload and integration timeout limits in API Gateway?",
+      "back": "Payload **10 MB** (hard limit). Integration timeout **50 ms to 29 s** by default; for **Regional and private** APIs it can be raised above 29 s (possibly lowering the account throttle quota), but not for edge-optimized APIs.",
+      "tags": ["api-gateway", "quotas"],
+      "updated": "Regional and private REST APIs can now have integration timeouts above 29 seconds."
+    },
+    {
+      "id": "34-more-architectures-fc-17",
+      "front": "Key facts about API Gateway response caching?",
+      "back": "**REST APIs only**, per stage, cache size **0.5 GB to 237 GB**, TTL default **300 s**, maximum **3,600 s** (0 disables it), only `GET` cached by default, billed hourly and **not Free Tier**.",
+      "tags": ["api-gateway", "caching"]
+    },
+    {
+      "id": "34-more-architectures-fc-18",
+      "front": "What is the trade-off between caching close to the user and caching close to the database?",
+      "back": "Near the user (CloudFront) saves the most latency, network and compute but data can be stale and invalidation is harder. Near the database (ElastiCache, DAX) is fresher and easy to invalidate in code, but every request still travels through your application.",
+      "tags": ["caching", "cloudfront", "elasticache"]
+    },
+    {
+      "id": "34-more-architectures-fc-19",
+      "front": "Can a security group block one specific attacking IP address?",
+      "back": "**No.** Security groups only have allow rules. Use a **network ACL deny rule** numbered lower than the allow rules (subnet level), AWS WAF for HTTP traffic, or a host firewall.",
+      "tags": ["security-groups", "nacl"]
+    },
+    {
+      "id": "34-more-architectures-fc-20",
+      "front": "An EC2 instance sits behind an Application Load Balancer. What source IP does it see, and how do you block an attacker?",
+      "back": "It sees the **ALB's private IP**; the client IP is in `X-Forwarded-For`. Block with an **AWS WAF IP set on the ALB** (best for HTTP) or a NACL deny rule on the **ALB's subnets**, which still see the client IP.",
+      "tags": ["alb", "waf", "nacl"]
+    },
+    {
+      "id": "34-more-architectures-fc-21",
+      "front": "CloudFront sits in front of your ALB. Why does a NACL deny rule fail to block an attacker, and what works?",
+      "back": "Traffic reaching the VPC comes from **CloudFront IPs**, so the NACL never sees the client. Use an **AWS WAF web ACL on the distribution** (IP set, rate-based rules) or **CloudFront geo restriction** (blocked viewers get HTTP 403).",
+      "tags": ["cloudfront", "waf"]
+    },
+    {
+      "id": "34-more-architectures-fc-22",
+      "front": "Which resources can AWS WAF protect, and which common ones can it NOT?",
+      "back": "CloudFront, ALB, API Gateway REST APIs, AppSync, Cognito user pools, App Runner, Verified Access, Amplify and more. **Not a Network Load Balancer and not an EC2 instance directly** (use NACLs, Shield or Network Firewall there).",
+      "tags": ["waf", "nlb"]
+    },
+    {
+      "id": "34-more-architectures-fc-23",
+      "front": "When can you add a security group to a Network Load Balancer?",
+      "back": "Only **when the NLB is created**. An NLB created without a security group can never get one; once it has one, you can change the groups at any time. NLB security groups are allow-only, like all security groups.",
+      "tags": ["nlb", "security-groups"],
+      "updated": "NLBs have supported security groups since 2023."
+    },
+    {
+      "id": "34-more-architectures-fc-24",
+      "front": "What is an Elastic Fabric Adapter (EFA) and when do you use it?",
+      "back": "An ENA plus an **OS-bypass** device (Libfabric, SRD protocol) for **tightly coupled** HPC and ML jobs using **MPI** or NCCL. Linux for OS-bypass, no extra charge; EFA traffic cannot cross AZs or VPCs and is not routable.",
+      "tags": ["efa", "hpc"]
+    },
+    {
+      "id": "34-more-architectures-fc-25",
+      "front": "What does a cluster placement group give HPC nodes?",
+      "back": "Instances packed in **one AZ** on a high-bisection-bandwidth network segment: lowest latency and up to **10 Gbps per single flow** (5 Gbps outside the group). Launch all nodes in one request with one instance type.",
+      "tags": ["placement-groups", "hpc"],
+      "updated": "The slides say 'same rack'; the EC2 docs now state instances are not isolated to a single rack."
+    },
+    {
+      "id": "34-more-architectures-fc-26",
+      "front": "ENA versus Intel 82599 VF enhanced networking?",
+      "back": "Both use **SR-IOV** for more bandwidth, more packets per second and lower latency at no extra cost. **ENA**: up to 100 Gbps, used by all Nitro instances. **Intel 82599 VF**: up to 10 Gbps, legacy families only (C3, C4, D2, I2, M4, R3).",
+      "tags": ["enhanced-networking", "hpc"]
+    },
+    {
+      "id": "34-more-architectures-fc-27",
+      "front": "Which storage is the purpose-built parallel file system for HPC on AWS?",
+      "back": "**Amazon FSx for Lustre**: sub-millisecond latency, up to multiple TB/s and millions of IOPS, POSIX, and it can link to an **S3 bucket** as a data repository, presenting objects as files and writing results back.",
+      "tags": ["fsx-lustre", "hpc"]
+    },
+    {
+      "id": "34-more-architectures-fc-28",
+      "front": "What are AWS Batch multi-node parallel jobs, and what are their limits?",
+      "back": "One job that spans **many EC2 instances** (a main node plus child nodes) for MPI-style or distributed training work. Use a **cluster placement group** in one AZ; **not supported** on Spot or unmanaged compute environments.",
+      "tags": ["batch", "hpc"]
+    },
+    {
+      "id": "34-more-architectures-fc-29",
+      "front": "AWS ParallelCluster versus AWS Parallel Computing Service (PCS)?",
+      "back": "**ParallelCluster**: free, open-source tool that builds an HPC cluster (Slurm, EFA, FSx for Lustre) from a YAML config; you run the head node. **PCS** (2024): managed service that operates the Slurm controller for you, billed per controller and per node plus EC2.",
+      "tags": ["parallelcluster", "pcs", "hpc"],
+      "updated": "ParallelCluster dropped AWS Batch as a scheduler from version 3.16.0; AWS PCS is new since the slides."
+    },
+    {
+      "id": "34-more-architectures-fc-30",
+      "front": "Only one EC2 instance may run, clients use a fixed public IP, and it must survive an AZ failure. Design?",
+      "back": "An **Auto Scaling group with min = max = desired = 1** across **two or more AZs**; the launch template's **user data** finds the **Elastic IP** (by tag) and calls `AssociateAddress`, using an **instance role**. To carry disk data, add **lifecycle hooks** that snapshot and restore the EBS volume.",
+      "tags": ["asg", "elastic-ip", "high-availability"]
+    }
+  ]
+}

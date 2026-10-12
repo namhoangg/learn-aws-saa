@@ -1,0 +1,434 @@
+{
+  "id": "19-containers",
+  "order": 19,
+  "title": "Containers on AWS",
+  "courseSection": "Containers on AWS",
+  "slides": [
+    414,
+    437
+  ],
+  "estimatedMinutes": 55,
+  "summary": "Docker basics, then how AWS runs containers: Amazon ECS with the EC2, Fargate and Managed Instances capacity options, its three IAM roles, load balancing, EFS and EBS storage, service and cluster auto scaling and event-driven tasks; Amazon ECR for images (scanning, lifecycle, replication); Amazon EKS for Kubernetes with its node types and CSI storage; plus ECS/EKS Anywhere and ECS Express Mode.",
+  "services": [
+    "ecs",
+    "fargate",
+    "eks",
+    "ecr",
+    "ec2",
+    "asg",
+    "alb",
+    "nlb",
+    "gwlb",
+    "clb",
+    "efs",
+    "ebs",
+    "fsx-lustre",
+    "fsx-ontap",
+    "fsx-windows",
+    "s3",
+    "dynamodb",
+    "iam-roles",
+    "secrets-manager",
+    "ssm-parameter-store",
+    "cloudwatch",
+    "cloudwatch-logs",
+    "eventbridge",
+    "sqs",
+    "sns",
+    "inspector",
+    "app-runner",
+    "nat-gateway",
+    "privatelink",
+    "cloudshell",
+    "application-auto-scaling",
+    "ecs-anywhere",
+    "eks-anywhere"
+  ],
+  "relations": [
+    {
+      "from": "fargate",
+      "to": "ecs",
+      "label": "runs serverless tasks for"
+    },
+    {
+      "from": "fargate",
+      "to": "eks",
+      "label": "runs pods without nodes for"
+    },
+    {
+      "from": "ecr",
+      "to": "ecs",
+      "label": "stores and serves container images to"
+    },
+    {
+      "from": "ecr",
+      "to": "eks",
+      "label": "stores and serves container images to"
+    },
+    {
+      "from": "alb",
+      "to": "ecs",
+      "label": "routes HTTP traffic to the tasks of"
+    },
+    {
+      "from": "efs",
+      "to": "ecs",
+      "label": "mounts as shared multi-AZ storage into tasks of"
+    },
+    {
+      "from": "asg",
+      "to": "ecs",
+      "label": "supplies EC2 container instances through a capacity provider to"
+    },
+    {
+      "from": "application-auto-scaling",
+      "to": "ecs",
+      "label": "adjusts the desired task count of services in"
+    },
+    {
+      "from": "eventbridge",
+      "to": "ecs",
+      "label": "starts tasks on events or schedules in"
+    },
+    {
+      "from": "sqs",
+      "to": "ecs",
+      "label": "buffers jobs for worker tasks in"
+    },
+    {
+      "from": "iam-roles",
+      "to": "ecs",
+      "label": "give per-task AWS permissions to"
+    },
+    {
+      "from": "inspector",
+      "to": "ecr",
+      "label": "runs enhanced vulnerability scans for"
+    },
+    {
+      "from": "eks",
+      "to": "ec2",
+      "label": "runs Kubernetes worker nodes on"
+    },
+    {
+      "from": "cloudwatch",
+      "to": "eks",
+      "label": "collects Container Insights metrics and logs from"
+    },
+    {
+      "from": "ecs-anywhere",
+      "to": "ecs",
+      "label": "registers on-premises servers into clusters of"
+    }
+  ],
+  "examDomains": [
+    "performant",
+    "resilient",
+    "cost",
+    "secure"
+  ],
+  "lastVerified": "2026-10-04",
+  "sources": [
+    {
+      "title": "Architect your solution for Amazon ECS (capacity options: Managed Instances, Fargate, EC2)",
+      "url": "https://docs.aws.amazon.com/AmazonECS/latest/developerguide/launch_types.html"
+    },
+    {
+      "title": "Architect for Amazon ECS Managed Instances",
+      "url": "https://docs.aws.amazon.com/AmazonECS/latest/developerguide/ManagedInstances.html"
+    },
+    {
+      "title": "Amazon ECS Managed Instances now available in all commercial AWS Regions (October 2025)",
+      "url": "https://aws.amazon.com/about-aws/whats-new/2025/10/amazon-ecs-managed-instances-commercial-regions/"
+    },
+    {
+      "title": "Announcing Amazon EKS Auto Mode (December 2024)",
+      "url": "https://aws.amazon.com/about-aws/whats-new/2024/12/amazon-eks-auto-mode/"
+    },
+    {
+      "title": "Amazon ECS task definition differences for Fargate (task sizes, awsvpc, logging, SOCI)",
+      "url": "https://docs.aws.amazon.com/AmazonECS/latest/developerguide/fargate-tasks-services.html"
+    },
+    {
+      "title": "Fargate task ephemeral storage for Amazon ECS",
+      "url": "https://docs.aws.amazon.com/AmazonECS/latest/developerguide/fargate-task-storage.html"
+    },
+    {
+      "title": "Amazon ECS clusters for Fargate (Fargate Spot, capacity provider strategy)",
+      "url": "https://docs.aws.amazon.com/AmazonECS/latest/developerguide/fargate-capacity-providers.html"
+    },
+    {
+      "title": "AWS Fargate pricing",
+      "url": "https://aws.amazon.com/fargate/pricing/"
+    },
+    {
+      "title": "Amazon ECS pricing (no charge for EC2 launch type, Managed Instances management fee, ECS Anywhere)",
+      "url": "https://aws.amazon.com/ecs/pricing/"
+    },
+    {
+      "title": "Amazon ECS task execution IAM role",
+      "url": "https://docs.aws.amazon.com/AmazonECS/latest/developerguide/task_execution_IAM_role.html"
+    },
+    {
+      "title": "Amazon ECS container instance IAM role",
+      "url": "https://docs.aws.amazon.com/AmazonECS/latest/developerguide/instance_IAM_role.html"
+    },
+    {
+      "title": "Amazon ECS task IAM role",
+      "url": "https://docs.aws.amazon.com/AmazonECS/latest/developerguide/task-iam-roles.html"
+    },
+    {
+      "title": "Use load balancing to distribute Amazon ECS service traffic",
+      "url": "https://docs.aws.amazon.com/AmazonECS/latest/developerguide/service-load-balancing.html"
+    },
+    {
+      "title": "Amazon ECS API reference: LoadBalancer (target type ip for awsvpc)",
+      "url": "https://docs.aws.amazon.com/AmazonECS/latest/APIReference/API_LoadBalancer.html"
+    },
+    {
+      "title": "Storage options for Amazon ECS tasks",
+      "url": "https://docs.aws.amazon.com/AmazonECS/latest/developerguide/using_data_volumes.html"
+    },
+    {
+      "title": "Use Amazon EFS volumes with Amazon ECS",
+      "url": "https://docs.aws.amazon.com/AmazonECS/latest/developerguide/efs-volumes.html"
+    },
+    {
+      "title": "Configuring S3 Files for Amazon ECS",
+      "url": "https://docs.aws.amazon.com/AmazonECS/latest/developerguide/s3files-volumes.html"
+    },
+    {
+      "title": "Mounting your S3 buckets on compute resources (S3 Files: EC2, Lambda, EKS, ECS over NFS 2049)",
+      "url": "https://docs.aws.amazon.com/AmazonS3/latest/userguide/s3-files-attach-compute.html"
+    },
+    {
+      "title": "Announcing Amazon S3 Files, making S3 buckets accessible as file systems (April 2026)",
+      "url": "https://aws.amazon.com/about-aws/whats-new/2026/04/amazon-s3-files/"
+    },
+    {
+      "title": "Amazon ECS extends Amazon S3 Files support to the Amazon EC2 compute type (September 2026)",
+      "url": "https://aws.amazon.com/about-aws/whats-new/2026/09/amazon-ecs-s3-files-ec2/"
+    },
+    {
+      "title": "Automatically scale your Amazon ECS service",
+      "url": "https://docs.aws.amazon.com/AmazonECS/latest/developerguide/service-auto-scaling.html"
+    },
+    {
+      "title": "Amazon ECS capacity providers for EC2 workloads",
+      "url": "https://docs.aws.amazon.com/AmazonECS/latest/developerguide/asg-capacity-providers.html"
+    },
+    {
+      "title": "Using Amazon EventBridge Scheduler to schedule Amazon ECS tasks",
+      "url": "https://docs.aws.amazon.com/AmazonECS/latest/developerguide/tasks-scheduled-eventbridge-scheduler.html"
+    },
+    {
+      "title": "Automate responses to Amazon ECS errors using EventBridge",
+      "url": "https://docs.aws.amazon.com/AmazonECS/latest/developerguide/cloudwatch_event_stream.html"
+    },
+    {
+      "title": "Amazon ECS task state change events",
+      "url": "https://docs.aws.amazon.com/AmazonECS/latest/developerguide/ecs_task_events.html"
+    },
+    {
+      "title": "Amazon ECS Express Mode",
+      "url": "https://docs.aws.amazon.com/AmazonECS/latest/developerguide/express-service-overview.html"
+    },
+    {
+      "title": "AWS News Blog: Build production-ready applications without infrastructure complexity using Amazon ECS Express Mode (up to 25 services per ALB)",
+      "url": "https://aws.amazon.com/blogs/aws/build-production-ready-applications-without-infrastructure-complexity-using-amazon-ecs-express-mode"
+    },
+    {
+      "title": "Amazon ECS Managed Instances now supports Amazon EC2 Spot Instances (December 2025)",
+      "url": "https://aws.amazon.com/about-aws/whats-new/2025/12/amazon-ecs-managed-instances-ec2-spot-instances"
+    },
+    {
+      "title": "Amazon ECS Managed Instances now integrates with Amazon EC2 Capacity Reservations (February 2026)",
+      "url": "https://aws.amazon.com/about-aws/whats-new/2026/02/ecs-mi-ec2-capacity-reservations"
+    },
+    {
+      "title": "Amazon ECS events (sent to EventBridge automatically)",
+      "url": "https://docs.aws.amazon.com/AmazonECS/latest/developerguide/ecs_cwe_events.html"
+    },
+    {
+      "title": "Announcing Amazon ECS Express Mode (21 November 2025)",
+      "url": "https://aws.amazon.com/about-aws/whats-new/2025/11/announcing-amazon-ecs-express-mode/"
+    },
+    {
+      "title": "AWS App Runner availability change (closed to new customers from 30 April 2026)",
+      "url": "https://docs.aws.amazon.com/apprunner/latest/dg/apprunner-availability-change.html"
+    },
+    {
+      "title": "Amazon ECS clusters for external instances (ECS Anywhere)",
+      "url": "https://docs.aws.amazon.com/AmazonECS/latest/developerguide/ecs-anywhere.html"
+    },
+    {
+      "title": "Learn how to create an Amazon ECS Linux task for Fargate (console)",
+      "url": "https://docs.aws.amazon.com/AmazonECS/latest/developerguide/getting-started-fargate.html"
+    },
+    {
+      "title": "Creating an Amazon ECS cluster for Fargate workloads (console)",
+      "url": "https://docs.aws.amazon.com/AmazonECS/latest/developerguide/create-cluster-console-v2.html"
+    },
+    {
+      "title": "Creating an Amazon ECS task definition using the console",
+      "url": "https://docs.aws.amazon.com/AmazonECS/latest/developerguide/create-task-definition.html"
+    },
+    {
+      "title": "Creating an Amazon ECS rolling update deployment (create service console)",
+      "url": "https://docs.aws.amazon.com/AmazonECS/latest/developerguide/create-service-console-v2.html"
+    },
+    {
+      "title": "What is Amazon Elastic Container Registry?",
+      "url": "https://docs.aws.amazon.com/AmazonECR/latest/userguide/what-is-ecr.html"
+    },
+    {
+      "title": "What is Amazon ECR Public? (gallery.ecr.aws)",
+      "url": "https://docs.aws.amazon.com/AmazonECR/latest/public/what-is-ecr.html"
+    },
+    {
+      "title": "Scan images for software vulnerabilities in Amazon ECR",
+      "url": "https://docs.aws.amazon.com/AmazonECR/latest/userguide/image-scanning.html"
+    },
+    {
+      "title": "Scan images for OS vulnerabilities in Amazon ECR (basic scanning limits)",
+      "url": "https://docs.aws.amazon.com/AmazonECR/latest/userguide/image-scanning-basic.html"
+    },
+    {
+      "title": "Configuring basic scanning for images in Amazon ECR",
+      "url": "https://docs.aws.amazon.com/AmazonECR/latest/userguide/image-scanning-basic-enabling.html"
+    },
+    {
+      "title": "Automate the cleanup of images by using lifecycle policies in Amazon ECR",
+      "url": "https://docs.aws.amazon.com/AmazonECR/latest/userguide/LifecyclePolicies.html"
+    },
+    {
+      "title": "Creating a lifecycle policy preview in Amazon ECR (console labels)",
+      "url": "https://docs.aws.amazon.com/AmazonECR/latest/userguide/lpp_creation.html"
+    },
+    {
+      "title": "Archiving an image in Amazon ECR (archival storage class)",
+      "url": "https://docs.aws.amazon.com/AmazonECR/latest/userguide/archive_restore_image.html"
+    },
+    {
+      "title": "Preventing image tags from being overwritten in Amazon ECR",
+      "url": "https://docs.aws.amazon.com/AmazonECR/latest/userguide/image-tag-mutability.html"
+    },
+    {
+      "title": "Sync an upstream registry with an Amazon ECR private registry (pull through cache)",
+      "url": "https://docs.aws.amazon.com/AmazonECR/latest/userguide/pull-through-cache.html"
+    },
+    {
+      "title": "Creating an Amazon ECR private repository",
+      "url": "https://docs.aws.amazon.com/AmazonECR/latest/userguide/repository-create.html"
+    },
+    {
+      "title": "Pushing an image to an Amazon ECR private repository",
+      "url": "https://docs.aws.amazon.com/AmazonECR/latest/userguide/image-push.html"
+    },
+    {
+      "title": "Private registry authentication in Amazon ECR (12-hour token)",
+      "url": "https://docs.aws.amazon.com/AmazonECR/latest/userguide/registry_auth.html"
+    },
+    {
+      "title": "Amazon ECR pricing",
+      "url": "https://aws.amazon.com/ecr/pricing/"
+    },
+    {
+      "title": "Amazon ECR FAQs (S3-backed storage, encryption)",
+      "url": "https://aws.amazon.com/ecr/faqs/"
+    },
+    {
+      "title": "What is Amazon EKS?",
+      "url": "https://docs.aws.amazon.com/eks/latest/userguide/what-is-eks.html"
+    },
+    {
+      "title": "Amazon EKS architecture (control plane across three AZs)",
+      "url": "https://docs.aws.amazon.com/eks/latest/userguide/eks-architecture.html"
+    },
+    {
+      "title": "Manage compute resources by using nodes (EKS compute comparison)",
+      "url": "https://docs.aws.amazon.com/eks/latest/userguide/eks-compute.html"
+    },
+    {
+      "title": "Simplify node lifecycle with managed node groups",
+      "url": "https://docs.aws.amazon.com/eks/latest/userguide/managed-node-groups.html"
+    },
+    {
+      "title": "Simplify compute management with AWS Fargate (EKS)",
+      "url": "https://docs.aws.amazon.com/eks/latest/userguide/fargate.html"
+    },
+    {
+      "title": "Automate cluster infrastructure with EKS Auto Mode",
+      "url": "https://docs.aws.amazon.com/eks/latest/userguide/automode.html"
+    },
+    {
+      "title": "Use application data storage for your cluster (EKS CSI drivers)",
+      "url": "https://docs.aws.amazon.com/eks/latest/userguide/storage.html"
+    },
+    {
+      "title": "Deploy Amazon EKS clusters across cloud and on-premises environments (Anywhere, Hybrid Nodes, Distro)",
+      "url": "https://docs.aws.amazon.com/eks/latest/userguide/eks-deployment-options.html"
+    },
+    {
+      "title": "Amazon EKS Anywhere overview",
+      "url": "https://anywhere.eks.amazonaws.com/docs/overview/"
+    },
+    {
+      "title": "Amazon EKS pricing",
+      "url": "https://aws.amazon.com/eks/pricing/"
+    },
+    {
+      "title": "Container Insights (Amazon CloudWatch User Guide)",
+      "url": "https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/ContainerInsights.html"
+    },
+    {
+      "title": "In-scope AWS services for SAA-C03 (containers)",
+      "url": "https://docs.aws.amazon.com/aws-certification/latest/solutions-architect-associate-03/saa-03-in-scope-services.html"
+    },
+    {
+      "title": "Building a Docker container inside CloudShell and pushing it to Amazon ECR",
+      "url": "https://docs.aws.amazon.com/cloudshell/latest/userguide/tutorial-docker-cli.html"
+    },
+    {
+      "title": "AWS CloudShell compute environment: specifications and software",
+      "url": "https://docs.aws.amazon.com/cloudshell/latest/userguide/vm-specs.html"
+    },
+    {
+      "title": "Using resource-based policies for Amazon EventBridge (CloudWatch Logs targets)",
+      "url": "https://docs.aws.amazon.com/eventbridge/latest/userguide/eb-use-resource-based.html"
+    },
+    {
+      "title": "Elastic Load Balancing pricing",
+      "url": "https://aws.amazon.com/elasticloadbalancing/pricing/"
+    },
+    {
+      "title": "Creating rules using the Advanced Builder (EventBridge console labels)",
+      "url": "https://docs.aws.amazon.com/eventbridge/latest/userguide/eb-create-rule-wizard.html"
+    },
+    {
+      "title": "Amazon ECS event capture in the console (task events option creates a rule and log group)",
+      "url": "https://docs.aws.amazon.com/AmazonECS/latest/developerguide/task-lifecycle-events.html"
+    },
+    {
+      "title": "Amazon CloudWatch launches OTel Container Insights for Amazon EKS (June 2026)",
+      "url": "https://aws.amazon.com/about-aws/whats-new/2026/06/amazon-cloudwatch-otel-amazon-eks/"
+    },
+    {
+      "title": "Supported Regions for Amazon ECS on AWS Fargate (use1-az3 limits apply to ARM and Windows only)",
+      "url": "https://docs.aws.amazon.com/AmazonECS/latest/developerguide/AWS_Fargate-Regions.html"
+    },
+    {
+      "title": "Amazon VPC pricing (public IPv4 addresses)",
+      "url": "https://aws.amazon.com/vpc/pricing/"
+    },
+    {
+      "title": "Tracking your AWS Free Tier usage (Free plan accounts have only Always Free offers)",
+      "url": "https://docs.aws.amazon.com/awsaccountbilling/latest/aboutv2/tracking-free-tier-usage.html"
+    },
+    {
+      "title": "Explore AWS services with AWS Free Tier (offer types by account plan)",
+      "url": "https://docs.aws.amazon.com/awsaccountbilling/latest/aboutv2/free-tier.html"
+    }
+  ],
+  "newServices": []
+}

@@ -1,0 +1,217 @@
+{
+  "section": "01-getting-started",
+  "questions": [
+    {
+      "id": "01-getting-started-q01",
+      "type": "single",
+      "domain": "secure",
+      "difficulty": "easy",
+      "question": "A German hospital group is moving its patient portal to AWS. National regulations require that patient records are stored and processed only in Germany. Most portal users are in Germany, but some patients log in while travelling abroad. Which AWS Region should the solutions architect choose for the portal's data?",
+      "options": [
+        { "id": "A", "text": "Europe (Ireland), eu-west-1, because it is one of the largest European Regions with the widest service selection.", "correct": false, "explanation": "Ireland is outside Germany, so it breaks the residency rule no matter how many services it offers." },
+        { "id": "B", "text": "US East (N. Virginia), us-east-1, because new features launch there first and prices are often low.", "correct": false, "explanation": "Feature availability and price only matter among Regions that satisfy the legal requirement; the US fails it." },
+        { "id": "C", "text": "Europe (Frankfurt), eu-central-1, because it is located in Germany.", "correct": true, "explanation": "Compliance is a hard constraint. Frankfurt keeps the data in Germany and is also close to most users." },
+        { "id": "D", "text": "Whichever Region is closest to each travelling patient, using a separate copy of the data in every Region.", "correct": false, "explanation": "Copying patient records to Regions abroad is exactly what the regulation forbids; travelling users can still reach a German Region over the internet." }
+      ],
+      "explanation": "Data residency requirements are applied first and override latency, feature availability and price when choosing a Region.",
+      "tags": ["regions-azs", "region-choice", "compliance"]
+    },
+    {
+      "id": "01-getting-started-q02",
+      "type": "single",
+      "domain": "resilient",
+      "difficulty": "easy",
+      "question": "A company runs its order-processing web application on a single Amazon EC2 instance in us-east-2. Last month a power problem in one data center took the application offline for several hours. The company wants the application to keep running if a single data center fails, at the lowest reasonable cost. What should the solutions architect recommend?",
+      "options": [
+        { "id": "A", "text": "Run at least two instances in different Availability Zones of us-east-2 behind a load balancer.", "correct": true, "explanation": "AZs are separate failure domains in the same Region. Spreading instances across two AZs survives the loss of one data center without the cost and complexity of a second Region." },
+        { "id": "B", "text": "Move the instance to a larger instance type in the same Availability Zone.", "correct": false, "explanation": "A bigger instance still sits in one AZ, so the same data center failure would take it down." },
+        { "id": "C", "text": "Run a second instance in another subnet in the same Availability Zone.", "correct": false, "explanation": "Two subnets in one AZ share the same physical failure domain; an AZ-wide outage stops both instances." },
+        { "id": "D", "text": "Deploy a full copy of the application in a second Region and replicate data continuously.", "correct": false, "explanation": "Multi-Region protects against Region-wide disasters, but it costs much more than needed when the requirement is only to survive a data center failure." }
+      ],
+      "explanation": "To survive a data center or AZ failure, spread the workload across multiple AZs in one Region; multi-Region is for Region-wide events.",
+      "tags": ["regions-azs", "high-availability", "multi-az"]
+    },
+    {
+      "id": "01-getting-started-q03",
+      "type": "single",
+      "domain": "performant",
+      "difficulty": "medium",
+      "question": "A media company hosts its website, including large product videos and images, in us-east-1. Users in Asia and Australia report slow page loads, while users in the United States are satisfied. The company wants to improve load times for international users without running servers in additional Regions. Which solution meets these requirements?",
+      "options": [
+        { "id": "A", "text": "Move the whole website from us-east-1 to ap-southeast-2 so it is closer to the users who complain.", "correct": false, "explanation": "This only shifts the problem: US users would now be far from the origin and get the slow experience, and Asian users outside Australia would still be distant." },
+        { "id": "B", "text": "Launch larger EC2 instances in us-east-1 to process requests faster.", "correct": false, "explanation": "The delay comes from the distance data travels, not from server capacity, so bigger instances do not fix it." },
+        { "id": "C", "text": "Run EC2 instances at AWS edge locations in Asia and Australia.", "correct": false, "explanation": "Edge locations run edge services such as CloudFront and Route 53; you cannot launch EC2 instances there." },
+        { "id": "D", "text": "Put an Amazon CloudFront distribution in front of the website so content is cached at edge locations near users.", "correct": true, "explanation": "CloudFront serves cached videos and images from points of presence close to each user, cutting latency worldwide while the origin stays in us-east-1." }
+      ],
+      "explanation": "Global users plus cacheable content plus 'no extra Regions' points to CloudFront and AWS's edge network.",
+      "tags": ["edge-locations", "cloudfront", "latency"]
+    },
+    {
+      "id": "01-getting-started-q04",
+      "type": "single",
+      "domain": "performant",
+      "difficulty": "medium",
+      "question": "A visual-effects studio in Los Angeles wants artists to use cloud-based render workstations. The workstations need single-digit millisecond latency to the artists' offices. The studio's AWS environment runs in us-west-2 (Oregon), and connecting from Los Angeles to any AWS Region adds too much latency. Which AWS option should the studio use?",
+      "options": [
+        { "id": "A", "text": "AWS Wavelength Zones in a 5G carrier network.", "correct": false, "explanation": "Wavelength targets mobile devices on 5G networks. The artists use wired office connections, so a metro-area site is the better fit." },
+        { "id": "B", "text": "An AWS Local Zone in Los Angeles, extended from the us-west-2 parent Region.", "correct": true, "explanation": "Local Zones place compute and storage in large metro areas for single-digit millisecond latency, managed as part of a parent Region." },
+        { "id": "C", "text": "Amazon CloudFront edge locations in Los Angeles.", "correct": false, "explanation": "CloudFront caches content; it cannot run interactive render workstations." },
+        { "id": "D", "text": "A second Availability Zone in us-west-2.", "correct": false, "explanation": "All us-west-2 AZs are in the Oregon area, so another AZ does not move compute closer to Los Angeles." }
+      ],
+      "explanation": "Low latency to users in one specific city, using standard EC2, is the Local Zones use case.",
+      "tags": ["local-zones", "latency"]
+    },
+    {
+      "id": "01-getting-started-q05",
+      "type": "single",
+      "domain": "resilient",
+      "difficulty": "medium",
+      "question": "A company has two AWS accounts that were both created in 2019. The networking account shares subnets in us-east-1 with the application account. The team wants the application account's latency-sensitive servers to run in exactly the same physical Availability Zone as a database in the networking account. How should the team identify the correct zone?",
+      "options": [
+        { "id": "A", "text": "Use the same AZ name, such as us-east-1a, in both accounts.", "correct": false, "explanation": "In us-east-1, accounts created before November 2025 have independently mapped AZ names, so us-east-1a can be a different physical zone in each account." },
+        { "id": "B", "text": "Ask AWS Support which data center hosts each subnet.", "correct": false, "explanation": "AWS does not expose data center identities; AZ IDs already solve this without a support case." },
+        { "id": "C", "text": "Compare the AZ IDs, such as use1-az2, which identify the same physical zone in every account.", "correct": true, "explanation": "AZ IDs are consistent across accounts, so matching the AZ ID guarantees both workloads share a physical AZ." },
+        { "id": "D", "text": "Pick the AZ whose letter comes first alphabetically in both accounts.", "correct": false, "explanation": "Letters are exactly the per-account labels that can differ, so ordering them proves nothing about physical location." }
+      ],
+      "explanation": "To coordinate physical placement across accounts, use AZ IDs rather than AZ names.",
+      "tags": ["regions-azs", "az-id"]
+    },
+    {
+      "id": "01-getting-started-q06",
+      "type": "single",
+      "domain": "secure",
+      "difficulty": "medium",
+      "question": "A company serves its web application through an Amazon CloudFront distribution in front of an Application Load Balancer in eu-west-1. The security team wants to block common web exploits at the edge using AWS WAF on the CloudFront distribution, and to use an AWS Certificate Manager (ACM) certificate for the distribution's custom domain. In which Region must the team create the WAF protection pack (web ACL) and the certificate?",
+      "options": [
+        { "id": "A", "text": "In eu-west-1, the same Region as the Application Load Balancer origin.", "correct": false, "explanation": "eu-west-1 is right for a WAF web ACL attached to the ALB itself, but resources used by CloudFront must be in us-east-1." },
+        { "id": "B", "text": "In us-east-1 (US East, N. Virginia).", "correct": true, "explanation": "CloudFront is a global service whose configuration lives in us-east-1, so WAF web ACLs and ACM certificates for distributions must be created there." },
+        { "id": "C", "text": "In every Region where the company has users.", "correct": false, "explanation": "CloudFront already serves users from edge locations worldwide; you do not repeat WAF or certificates per Region." },
+        { "id": "D", "text": "In any Region, because AWS WAF and ACM are global services.", "correct": false, "explanation": "WAF and ACM are Regional for resources such as ALBs; only the CloudFront case is global, and it is tied to us-east-1." }
+      ],
+      "explanation": "Global services still have a home Region: CloudFront's WAF web ACLs and ACM certificates live in us-east-1.",
+      "tags": ["waf", "acm", "cloudfront", "global-services"]
+    },
+    {
+      "id": "01-getting-started-q07",
+      "type": "multi",
+      "domain": "cost",
+      "difficulty": "easy",
+      "question": "A retail startup is choosing an AWS Region for a new online store. It has no legal restriction on where data is stored. Which considerations should drive the choice of Region? (Select TWO.)",
+      "options": [
+        { "id": "A", "text": "Network latency between the Region and the majority of the store's customers.", "correct": true, "explanation": "Closer Regions mean faster responses for most users, a key factor once compliance is not a constraint." },
+        { "id": "B", "text": "Whether AWS Identity and Access Management (IAM) is available in the Region.", "correct": false, "explanation": "IAM is a global service that works in every Region, so it cannot distinguish one Region from another." },
+        { "id": "C", "text": "Whether the Region has exactly six Availability Zones.", "correct": false, "explanation": "Every Region has at least three AZs, which is enough for high availability; only us-east-1 has six, and that is not a requirement." },
+        { "id": "D", "text": "The price of the services the store will use, which differs between Regions.", "correct": true, "explanation": "Prices vary by Region and are published on each pricing page; with no legal constraint, cost is a valid deciding factor." },
+        { "id": "E", "text": "The number of CloudFront edge locations inside the Region's country.", "correct": false, "explanation": "CloudFront serves users from its worldwide edge network regardless of where the origin Region is, so this does not drive Region choice." }
+      ],
+      "explanation": "Without legal constraints, choose a Region by latency to users, service availability and price.",
+      "tags": ["regions-azs", "region-choice"]
+    },
+    {
+      "id": "01-getting-started-q08",
+      "type": "single",
+      "domain": "resilient",
+      "difficulty": "hard",
+      "question": "A financial services company runs a trading platform across three Availability Zones in eu-west-2. Regulators now require that the platform can resume operations within a few hours even if every data center in the London area becomes unavailable at the same time. Which change best meets this requirement?",
+      "options": [
+        { "id": "A", "text": "Add more instances and a second database standby in each of the three eu-west-2 Availability Zones.", "correct": false, "explanation": "Extra capacity inside eu-west-2 still sits in AZs that are all within 100 km of each other in the London area, so the event described would take it down too." },
+        { "id": "B", "text": "Increase the instance sizes so the remaining AZs can absorb the load of a failed AZ.", "correct": false, "explanation": "This improves tolerance to a single AZ failure, but nothing remains if the entire Region is unavailable." },
+        { "id": "C", "text": "Use Amazon CloudFront in front of the platform to serve requests from edge locations.", "correct": false, "explanation": "CloudFront caches content; it cannot run the trading platform or its database if the origin Region is down." },
+        { "id": "D", "text": "Set up a disaster recovery copy of the platform and its data in a second AWS Region.", "correct": true, "explanation": "Regions are isolated from each other, so a standby environment in another Region survives the loss of every AZ in eu-west-2." }
+      ],
+      "explanation": "Multi-AZ covers data center and AZ failures; only a second Region covers the loss of a whole Region.",
+      "tags": ["regions-azs", "disaster-recovery", "multi-region"]
+    },
+    {
+      "id": "01-getting-started-q09",
+      "type": "single",
+      "domain": "performant",
+      "difficulty": "medium",
+      "question": "A gaming company is building an augmented reality game for smartphones. Most players connect over a telecom carrier's 5G network, and the game's back end must respond with the lowest possible latency to those devices. Which AWS infrastructure option should the company use for the latency-sensitive back end?",
+      "options": [
+        { "id": "A", "text": "AWS Wavelength Zones inside the carrier's 5G network.", "correct": true, "explanation": "Wavelength places EC2 and other services at the edge of carrier 5G networks, so traffic from devices reaches the back end without leaving the carrier network." },
+        { "id": "B", "text": "AWS Outposts racks installed in the company's own office.", "correct": false, "explanation": "Outposts brings AWS into a customer facility; players' 5G traffic would still have to leave the carrier network to reach it." },
+        { "id": "C", "text": "Amazon CloudFront edge locations caching the game back end.", "correct": false, "explanation": "CloudFront caches content but does not run interactive game servers." },
+        { "id": "D", "text": "A larger number of Availability Zones in the nearest Region.", "correct": false, "explanation": "More AZs add resilience, not proximity to 5G devices." }
+      ],
+      "explanation": "Ultra-low latency for 5G mobile devices points to AWS Wavelength.",
+      "tags": ["wavelength", "latency"]
+    },
+    {
+      "id": "01-getting-started-q10",
+      "type": "single",
+      "domain": "secure",
+      "difficulty": "medium",
+      "question": "A manufacturing company must process sensor data inside its factory because a contract forbids the data from leaving the site, and the control systems need responses in a few milliseconds. The company wants to use the same AWS APIs, tools and services, such as Amazon EC2 and Amazon EBS, that it uses in its AWS Region. Which solution meets these requirements?",
+      "options": [
+        { "id": "A", "text": "Deploy the workload in the AWS Local Zone nearest to the factory.", "correct": false, "explanation": "A Local Zone is an AWS site in a metro area, not inside the factory, so the data would leave the site." },
+        { "id": "B", "text": "Deploy the workload in the AWS Region closest to the factory with Multi-AZ.", "correct": false, "explanation": "The data would leave the factory for an AWS Region, breaking the contract." },
+        { "id": "C", "text": "Install AWS Outposts in the factory and run EC2 and EBS on it.", "correct": true, "explanation": "Outposts puts AWS-managed racks or servers on premises, so data stays on site while the company uses the same AWS APIs and tools." },
+        { "id": "D", "text": "Use AWS Wavelength Zones in the local carrier's 5G network.", "correct": false, "explanation": "Wavelength Zones sit in a carrier's network, not on the customer's premises, so data still leaves the factory." }
+      ],
+      "explanation": "When data or processing must stay on premises but you want AWS services and APIs, use AWS Outposts.",
+      "tags": ["outposts", "data-residency"]
+    },
+    {
+      "id": "01-getting-started-q11",
+      "type": "single",
+      "domain": "cost",
+      "difficulty": "easy",
+      "question": "A real-estate website wants to automatically tag uploaded property photos with labels such as 'kitchen', 'pool' or 'garden'. The team has no machine learning experience and wants the solution with the LEAST operational overhead. Which approach should a solutions architect recommend?",
+      "options": [
+        { "id": "A", "text": "Launch Amazon EC2 instances, install an open-source image model, and keep the servers patched and scaled.", "correct": false, "explanation": "This is IaaS: the team must manage servers, the model and scaling, which is the most operational work." },
+        { "id": "B", "text": "Call Amazon Rekognition's image-labeling API for each uploaded photo.", "correct": true, "explanation": "Rekognition is a fully managed capability consumed through an API, so there are no servers or models to manage." },
+        { "id": "C", "text": "Deploy a custom labeling application on AWS Elastic Beanstalk.", "correct": false, "explanation": "Beanstalk manages infrastructure, but the team would still have to build, train and maintain the labeling application." },
+        { "id": "D", "text": "Write an AWS Lambda function that embeds a self-trained image model.", "correct": false, "explanation": "Lambda removes servers, but training and maintaining an accurate model is significant work the team cannot do." }
+      ],
+      "explanation": "The more of the stack AWS manages, the lower the operational overhead: a ready-made API beats running your own model on IaaS, PaaS or FaaS.",
+      "tags": ["rekognition", "service-models"]
+    },
+    {
+      "id": "01-getting-started-q12",
+      "type": "multi",
+      "domain": "secure",
+      "difficulty": "easy",
+      "question": "A company is expanding from us-east-1 into ap-southeast-1. The operations team asks which of its existing configurations will work in the new Region without being recreated there. Which TWO services are global, so their configuration applies across all Regions? (Select TWO.)",
+      "options": [
+        { "id": "A", "text": "Amazon EC2 security groups and instances.", "correct": false, "explanation": "EC2 is Regional: instances and security groups exist only in the Region where they were created." },
+        { "id": "B", "text": "AWS Identity and Access Management (IAM) users, groups, roles and policies.", "correct": true, "explanation": "IAM is global, so the same identities and policies work in every Region." },
+        { "id": "C", "text": "AWS Lambda functions.", "correct": false, "explanation": "Lambda functions are Regional and must be deployed to ap-southeast-1 separately." },
+        { "id": "D", "text": "Amazon RDS database instances.", "correct": false, "explanation": "RDS is Regional; a database in us-east-1 is not available in ap-southeast-1 unless you replicate it." },
+        { "id": "E", "text": "Amazon CloudFront distributions.", "correct": true, "explanation": "CloudFront is a global service that serves users from edge locations worldwide, independent of any one Region." }
+      ],
+      "explanation": "IAM, Route 53, CloudFront and AWS WAF for CloudFront are global; most other services, including EC2, Lambda and RDS, are Regional.",
+      "tags": ["iam", "cloudfront", "global-services"]
+    },
+    {
+      "id": "01-getting-started-q13",
+      "type": "single",
+      "domain": "secure",
+      "difficulty": "medium",
+      "question": "A developer in a newly created AWS account wants to launch resources in the Europe (Milan) Region, eu-south-1, to be close to Italian customers. The Region does not appear as available in the console, and CLI calls to it fail, although Europe (Frankfurt) works normally. What is the most likely reason?",
+      "options": [
+        { "id": "A", "text": "Milan is an opt-in Region launched after 20 March 2019, and it has not been enabled for the account.", "correct": true, "explanation": "Regions introduced after that date are disabled by default; an administrator must enable the Region before resources can be created there." },
+        { "id": "B", "text": "The developer's IAM user was created in Frankfurt, so it only works in Frankfurt.", "correct": false, "explanation": "IAM is global; an IAM user is not tied to a Region." },
+        { "id": "C", "text": "Milan has fewer than three Availability Zones, so it is hidden from new accounts.", "correct": false, "explanation": "Every Region, including Milan, has at least three AZs; AZ count does not hide a Region." },
+        { "id": "D", "text": "Milan is part of the AWS European Sovereign Cloud, which needs a separate account.", "correct": false, "explanation": "The European Sovereign Cloud's first Region is in Brandenburg, Germany; Milan is a standard opt-in Region in a normal AWS account." }
+      ],
+      "explanation": "Newer Regions are opt-in: enable them in the account before use.",
+      "tags": ["regions-azs", "opt-in-regions"]
+    },
+    {
+      "id": "01-getting-started-q14",
+      "type": "single",
+      "domain": "cost",
+      "difficulty": "medium",
+      "question": "An analytics company has no data residency restrictions. Its customers are spread evenly across North America, and two US Regions offer acceptable latency to all of them. Every service the company needs is available in both Regions. Which approach should the solutions architect use to choose between them?",
+      "options": [
+        { "id": "A", "text": "Choose the Region with the most Availability Zones, because more AZs always lower the bill.", "correct": false, "explanation": "The number of AZs affects how widely you can spread resources, not what each service costs." },
+        { "id": "B", "text": "Deploy to both Regions permanently so customers can use whichever is cheaper at the moment.", "correct": false, "explanation": "Running two full copies roughly doubles cost and adds complexity without a stated requirement for it." },
+        { "id": "C", "text": "Choose the Region with the most CloudFront edge locations nearby.", "correct": false, "explanation": "Edge locations serve users worldwide whatever the origin Region; they are not a pricing factor for the Region." },
+        { "id": "D", "text": "Compare the prices of the required services in each Region and choose the cheaper one.", "correct": true, "explanation": "When compliance, latency and service availability are equal, price is the deciding factor, and AWS publishes per-Region prices on each pricing page and in the Pricing Calculator." }
+      ],
+      "explanation": "Price is the tie-breaker once compliance, latency and service availability are satisfied.",
+      "tags": ["regions-azs", "region-choice", "pricing"]
+    }
+  ]
+}

@@ -1,0 +1,233 @@
+{
+  "section": "34-more-architectures",
+  "questions": [
+    {
+      "id": "34-more-architectures-q01",
+      "type": "single",
+      "domain": "resilient",
+      "difficulty": "medium",
+      "question": "An order service writes messages to an Amazon SQS standard queue that a Lambda function consumes through an event source mapping. A few malformed messages fail every time and keep being retried, wasting invocations. A developer configured a dead-letter queue on the Lambda function, but no failed messages ever arrive in it. What should a solutions architect do to isolate the failing messages?",
+      "options": [
+        { "id": "A", "text": "Lower the function's asynchronous retry attempts from 2 to 0 so failed events go to the function's DLQ immediately.", "correct": false, "explanation": "Asynchronous retry settings apply to async sources such as SNS or S3. An SQS event source mapping invokes the function synchronously, so these settings and the function DLQ are never used for these messages." },
+        { "id": "B", "text": "Add an on-failure destination for asynchronous invocations on the function, pointing to another SQS queue.", "correct": false, "explanation": "Asynchronous invocation destinations do not apply to messages read by an SQS event source mapping; the messages stay in the source queue and keep coming back." },
+        { "id": "C", "text": "Configure a redrive policy on the source SQS queue that names a dead-letter queue and sets a maxReceiveCount, such as 5.", "correct": true, "explanation": "SQS owns messages read through an event source mapping. After a message has been received maxReceiveCount times without being deleted, SQS moves it to the DLQ named in the queue's redrive policy." },
+        { "id": "D", "text": "Raise the queue's visibility timeout to 12 hours so failed messages are retried less often.", "correct": false, "explanation": "A longer visibility timeout only delays the retries. The poison messages would still loop forever and block resources, and new failures would take hours to surface." }
+      ],
+      "explanation": "With SQS as the event source, the DLQ belongs on the queue (redrive policy). A DLQ or destination on the function only catches failures from asynchronous sources such as SNS.",
+      "tags": ["sqs", "lambda", "dlq"]
+    },
+    {
+      "id": "34-more-architectures-q02",
+      "type": "single",
+      "domain": "resilient",
+      "difficulty": "medium",
+      "question": "A retailer sends order events to an Amazon SQS FIFO queue, using the customer ID as the message group ID, and processes them with a Lambda function. One customer reports that none of their recent orders have been processed for an hour, while orders for every other customer are processed normally. The queue has no dead-letter queue. What is the most likely cause and the best fix?",
+      "options": [
+        { "id": "A", "text": "A message from that customer keeps failing and blocks the rest of its message group; add a FIFO dead-letter queue with a maxReceiveCount on the source queue.", "correct": true, "explanation": "In a FIFO queue, Lambda retries a failing message before reading newer messages from the same group. Without a DLQ the bad message never leaves, so that customer's group stalls while other groups continue. A FIFO DLQ removes the poison message after a few receives." },
+        { "id": "B", "text": "The queue has reached the FIFO throughput limit; switch to a standard queue.", "correct": false, "explanation": "A throughput limit would slow every customer, not one group. Switching to a standard queue would also lose the per-customer ordering the design depends on." },
+        { "id": "C", "text": "The Lambda function's reserved concurrency is too low; raise it so more customers can be processed in parallel.", "correct": false, "explanation": "Other groups are being processed, so concurrency is not the bottleneck. More concurrency cannot help a group that is blocked by its own failing message." },
+        { "id": "D", "text": "Content-based deduplication is dropping that customer's messages; disable it.", "correct": false, "explanation": "Deduplication only drops identical messages sent within the 5-minute window. It would not stop all of one customer's distinct orders for an hour." }
+      ],
+      "explanation": "A stalled single message group in a FIFO queue points to a poison message blocking that group. Give the FIFO queue a FIFO DLQ and a sensible maxReceiveCount.",
+      "tags": ["sqs-fifo", "lambda", "dlq"]
+    },
+    {
+      "id": "34-more-architectures-q03",
+      "type": "single",
+      "domain": "resilient",
+      "difficulty": "easy",
+      "question": "An Amazon SNS topic invokes a Lambda function for every new support ticket. Occasionally the function fails because a downstream API is unavailable. The team wants to keep every event that still fails after Lambda's retries, together with the error message, so they can reprocess it later. Which solution requires the LEAST effort?",
+      "options": [
+        { "id": "A", "text": "Configure a dead-letter queue on the SNS subscription.", "correct": false, "explanation": "A subscription DLQ catches messages SNS could not deliver to the endpoint at all. Here SNS delivers successfully; the error happens inside the function, so the subscription DLQ stays empty." },
+        { "id": "B", "text": "Add a redrive policy to an SQS queue and point the function's trigger at that queue.", "correct": false, "explanation": "This redesigns the integration rather than capturing failures, and there is no SQS queue in the current flow for a redrive policy to apply to." },
+        { "id": "C", "text": "Write a try/except block in the function that sends failed events to an S3 bucket.", "correct": false, "explanation": "It works only for errors the code catches (not timeouts or crashes) and needs custom code, which is more effort than a built-in setting." },
+        { "id": "D", "text": "Configure an on-failure destination on the Lambda function that points to an Amazon SQS queue.", "correct": true, "explanation": "SNS invokes Lambda asynchronously. After the retries are exhausted, Lambda sends a record with the original event plus error and response details to the on-failure destination, with no code changes." }
+      ],
+      "explanation": "For asynchronous sources such as SNS, failures inside the function are captured by the function's on-failure destination (event plus full error and response details) or its DLQ (the event, with only the error message and request ID as message attributes).",
+      "tags": ["sns", "lambda", "destinations"]
+    },
+    {
+      "id": "34-more-architectures-q04",
+      "type": "single",
+      "domain": "performant",
+      "difficulty": "medium",
+      "question": "An order service currently calls SendMessage three times to put each new order into three Amazon SQS queues used by billing, shipping and analytics. Sometimes one call fails after the others succeed, and every new consumer requires a code change and redeployment of the order service. Which design solves both problems?",
+      "options": [
+        { "id": "A", "text": "Use a single SQS queue that all three services poll, and delete each message only after all three have processed it.", "correct": false, "explanation": "SQS has no way to track three independent consumers per message; whichever service deletes first removes it for the others, and coordinating deletes would be fragile custom code." },
+        { "id": "B", "text": "Publish each order once to an Amazon SNS topic and subscribe the three SQS queues to the topic.", "correct": true, "explanation": "This is the fan-out pattern: one publish, and SNS delivers a copy to every subscribed queue, retrying each delivery independently. A new consumer only needs a new subscription, not a producer change." },
+        { "id": "C", "text": "Send each order to an SQS FIFO queue so the three writes happen in order.", "correct": false, "explanation": "Ordering does not make three separate writes atomic, and the producer would still need to know about every consumer." },
+        { "id": "D", "text": "Have the order service invoke three Lambda functions synchronously, one per downstream service.", "correct": false, "explanation": "The producer would still know every consumer and handle partial failures itself, and synchronous calls couple its latency to the slowest consumer." }
+      ],
+      "explanation": "When one message must reach several independent consumers, publish once to SNS and let it fan out to SQS queues; consumers are decoupled from the producer and from each other.",
+      "tags": ["sns", "sqs", "fan-out"]
+    },
+    {
+      "id": "34-more-architectures-q05",
+      "type": "multi",
+      "domain": "performant",
+      "difficulty": "medium",
+      "question": "Every image uploaded to an Amazon S3 bucket must be processed by two independent services: a thumbnail generator and a malware scanner, each reading from its own Amazon SQS queue. A developer's attempt to create two event notifications for s3:ObjectCreated:* with no filter, one per queue, was rejected. Which solutions meet the requirement? (Select TWO.)",
+      "options": [
+        { "id": "A", "text": "Send the S3 event notification to an Amazon SNS topic and subscribe both SQS queues to the topic.", "correct": true, "explanation": "One notification configuration goes to SNS, which fans out a copy to each queue. This is the standard way to deliver one S3 event to several consumers." },
+        { "id": "B", "text": "Create the two notifications again but use the prefix filter *.jpg on one and *.png on the other.", "correct": false, "explanation": "S3 filters do not accept wildcards, and splitting by file type would send each image to only one of the two services, not both." },
+        { "id": "C", "text": "Point the S3 event notification at an SQS FIFO queue that both services read from.", "correct": false, "explanation": "Native S3 notifications cannot target FIFO queues, and two services reading one queue would compete for messages instead of each receiving every message." },
+        { "id": "D", "text": "Turn on Amazon EventBridge for the bucket and create rules that target each SQS queue.", "correct": true, "explanation": "With EventBridge delivery on, every bucket event reaches the default event bus, and rules (up to five targets each) can route the same Object Created event to both queues." },
+        { "id": "E", "text": "Schedule a Lambda function every minute to list new objects and send messages to both queues.", "correct": false, "explanation": "Polling adds delay, cost and custom code, and listing large buckets every minute does not scale. Managed event routing is available." }
+      ],
+      "explanation": "S3 cannot send the same event type with overlapping filters to two destinations. Fan out through SNS, or enable EventBridge and use rules.",
+      "tags": ["s3", "sns", "eventbridge", "fan-out"]
+    },
+    {
+      "id": "34-more-architectures-q06",
+      "type": "single",
+      "domain": "performant",
+      "difficulty": "medium",
+      "question": "A media company stores video files in an Amazon S3 bucket under many different prefixes. Whenever a file larger than 1 GB is uploaded, an AWS Step Functions workflow must start to transcode it. Smaller files must be ignored. Which solution meets these requirements with the LEAST custom code?",
+      "options": [
+        { "id": "A", "text": "Create a native S3 event notification with the suffix .mp4 that invokes a Lambda function, which checks the size and starts the workflow.", "correct": false, "explanation": "Native notifications cannot filter on size or target Step Functions, so you need an extra Lambda function just to inspect the size and start the workflow." },
+        { "id": "B", "text": "Use S3 Inventory to produce a daily list of new objects and start the workflow for large ones.", "correct": false, "explanation": "S3 Inventory runs daily or weekly, so transcoding would be delayed by up to a day, and you still need code to read the report." },
+        { "id": "C", "text": "Enable Amazon EventBridge on the bucket and create a rule that matches Object Created events with object size greater than 1 GB, targeting the Step Functions state machine.", "correct": true, "explanation": "EventBridge rules can filter numerically on the object size field and can target Step Functions directly, so no code is needed." },
+        { "id": "D", "text": "Create a native S3 event notification that sends events to an Amazon SNS topic with a subscription filter policy on object size.", "correct": false, "explanation": "SNS filter policies work on message attributes or body fields, but SNS cannot start a Step Functions workflow directly; you would still need a function to bridge it." }
+      ],
+      "explanation": "Filtering S3 events on metadata such as size, or sending them to targets such as Step Functions, points to S3 event delivery through EventBridge.",
+      "tags": ["s3", "eventbridge", "step-functions"]
+    },
+    {
+      "id": "34-more-architectures-q07",
+      "type": "single",
+      "domain": "secure",
+      "difficulty": "easy",
+      "question": "After an accidental deletion, a security team wants an email within a few minutes whenever anyone in the account deletes an Amazon DynamoDB table. Which solution meets this requirement?",
+      "options": [
+        { "id": "A", "text": "Make sure a CloudTrail trail is logging, then create an Amazon EventBridge rule matching AWS API Call via CloudTrail events with eventName DeleteTable, targeting an Amazon SNS topic with an email subscription.", "correct": true, "explanation": "CloudTrail delivers API call events to the default EventBridge bus. A rule matching the DynamoDB DeleteTable call can notify an SNS topic in near real time." },
+        { "id": "B", "text": "Enable DynamoDB Streams on every table and trigger a Lambda function that sends an email.", "correct": false, "explanation": "Streams capture item-level modifications, not table-level API calls such as DeleteTable; when the table is deleted, its stream is disabled and removed 24 hours later. It would also need a stream and trigger on every table." },
+        { "id": "C", "text": "Run a scheduled Lambda function once a day that searches CloudTrail event history for DeleteTable calls.", "correct": false, "explanation": "A daily search cannot meet the few-minutes requirement and adds custom code." },
+        { "id": "D", "text": "Enable AWS Trusted Advisor checks for DynamoDB and subscribe the team to its weekly email.", "correct": false, "explanation": "Trusted Advisor gives best-practice recommendations; it does not alert on individual API calls." }
+      ],
+      "explanation": "Reacting to a specific API call in near real time is CloudTrail plus an EventBridge rule, with SNS for notification or Lambda for automatic remediation.",
+      "tags": ["cloudtrail", "eventbridge", "sns", "dynamodb"]
+    },
+    {
+      "id": "34-more-architectures-q08",
+      "type": "single",
+      "domain": "cost",
+      "difficulty": "medium",
+      "question": "A mobile app sends small clickstream events in JSON. The company needs an HTTPS endpoint with IAM authentication and throttling, and the events must land in Amazon S3 in batched files for analysis with Amazon Athena. The team does not want to manage servers or write and maintain function code. Which architecture meets these requirements MOST cost-effectively?",
+      "options": [
+        { "id": "A", "text": "An Application Load Balancer in front of an Auto Scaling group of EC2 instances that write each event to S3.", "correct": false, "explanation": "This requires managing instances and produces one tiny S3 object per event, which is costly to store and slow to query." },
+        { "id": "B", "text": "An Amazon API Gateway REST API with an AWS service integration that calls Kinesis Data Streams PutRecord, and Amazon Data Firehose reading the stream and delivering batched files to S3.", "correct": true, "explanation": "API Gateway provides HTTPS, IAM auth and throttling and writes directly to Kinesis through its execution role, with no function code. Firehose buffers records by size and time and writes batched files to S3." },
+        { "id": "C", "text": "An Amazon API Gateway REST API that invokes a Lambda function, which writes each event as a separate object to S3.", "correct": false, "explanation": "This adds function code to write and maintain and creates one small object per event, which raises S3 request costs and slows Athena queries." },
+        { "id": "D", "text": "Embed an IAM user's access keys in the app so that clients call S3 PutObject directly.", "correct": false, "explanation": "Embedding long-term credentials in a client is a serious security risk, and it still creates one object per event with no throttling." }
+      ],
+      "explanation": "API Gateway can be a serverless front door straight into AWS services. AWS service integration with Kinesis plus Firehose to S3 is a codeless ingestion pipeline.",
+      "tags": ["api-gateway", "kinesis-data-streams", "data-firehose", "s3"]
+    },
+    {
+      "id": "34-more-architectures-q09",
+      "type": "single",
+      "domain": "secure",
+      "difficulty": "medium",
+      "question": "A web application runs on EC2 instances in private subnets behind an internet-facing Application Load Balancer. The instances' security group allows traffic only from the ALB's security group. The application is receiving abusive HTTP requests from a single public IP address. What is the MOST effective way to block that address?",
+      "options": [
+        { "id": "A", "text": "Add a deny rule for the IP address to the instances' security group.", "correct": false, "explanation": "Security groups cannot contain deny rules. They support allow rules only." },
+        { "id": "B", "text": "Add a deny rule for the IP address to the network ACL of the instances' private subnets.", "correct": false, "explanation": "The ALB terminates the client connection and opens a new one, so traffic arriving at the private subnets comes from the ALB's private IPs. The attacker's address never reaches that NACL." },
+        { "id": "C", "text": "Enable AWS Shield Standard on the load balancer.", "correct": false, "explanation": "Shield Standard is already on for every account and protects against common layer 3/4 DDoS attacks; it does not let you block one specific IP address making HTTP requests." },
+        { "id": "D", "text": "Create an AWS WAF web ACL with an IP set rule that blocks the address and associate it with the ALB.", "correct": true, "explanation": "AWS WAF evaluates requests at the ALB, where the client IP is still visible, and blocks the address before it reaches the instances. Rate-based rules can be added for floods." }
+      ],
+      "explanation": "Behind an ALB, the instance only sees the ALB. Block the client where its IP is still visible: AWS WAF on the ALB (or a NACL on the ALB's public subnets).",
+      "tags": ["alb", "waf", "nacl", "security-groups"]
+    },
+    {
+      "id": "34-more-architectures-q10",
+      "type": "multi",
+      "domain": "secure",
+      "difficulty": "hard",
+      "question": "A company serves its website through Amazon CloudFront with an Application Load Balancer as the origin. The security team must block one abusive IP address and must stop all users in a country where the company has no distribution rights. A network ACL deny rule on the ALB's subnets had no effect. Which actions meet these requirements? (Select TWO.)",
+      "options": [
+        { "id": "A", "text": "Associate an AWS WAF web ACL with the CloudFront distribution, containing an IP set rule that blocks the abusive address.", "correct": true, "explanation": "At CloudFront the viewer's real IP is still visible, so a WAF IP set rule on the distribution blocks it at the edge before it reaches the origin." },
+        { "id": "B", "text": "Configure CloudFront geographic restrictions with a block list that contains the country.", "correct": true, "explanation": "CloudFront geo restriction blocks whole countries at the edge and returns HTTP 403 to those viewers. A WAF geo match rule would also work." },
+        { "id": "C", "text": "Add a lower-numbered deny rule for the abusive IP to the NACL of the ALB's subnets.", "correct": false, "explanation": "Requests reach the ALB from CloudFront edge servers, so the NACL sees CloudFront IP addresses, never the attacker's. Rule order does not change that." },
+        { "id": "D", "text": "Add a deny rule for the country's IP ranges to the ALB's security group.", "correct": false, "explanation": "Security groups have no deny rules, and the traffic arrives from CloudFront IPs anyway." },
+        { "id": "E", "text": "Replace the ALB with a Network Load Balancer and attach the AWS WAF web ACL to it.", "correct": false, "explanation": "AWS WAF cannot be attached to a Network Load Balancer, and the change would not move the block to where the client IP is visible." }
+      ],
+      "explanation": "With CloudFront in front, filter at the edge: AWS WAF on the distribution for IPs and request patterns, and geo restriction (or WAF geo match) for countries. VPC-level controls only see CloudFront.",
+      "tags": ["cloudfront", "waf", "geo-restriction", "nacl"]
+    },
+    {
+      "id": "34-more-architectures-q11",
+      "type": "multi",
+      "domain": "performant",
+      "difficulty": "medium",
+      "question": "A research team runs a tightly coupled computational fluid dynamics simulation that uses MPI across 64 Linux EC2 instances. The nodes exchange messages constantly, and the team needs the lowest possible inter-node latency and highest throughput. Which actions should a solutions architect recommend? (Select TWO.)",
+      "options": [
+        { "id": "A", "text": "Launch the instances in a spread placement group across three Availability Zones.", "correct": false, "explanation": "Spread placement groups put instances on distinct hardware for failure isolation and allow at most seven running instances per AZ. Spreading across AZs also adds latency." },
+        { "id": "B", "text": "Use instance types that support Elastic Fabric Adapter and attach an EFA to each instance.", "correct": true, "explanation": "EFA lets MPI traffic bypass the operating system kernel through Libfabric and the SRD protocol, giving lower and more consistent latency for tightly coupled jobs." },
+        { "id": "C", "text": "Use instances that rely on the Intel 82599 Virtual Function interface for enhanced networking.", "correct": false, "explanation": "The Intel 82599 VF is a legacy interface limited to 10 Gbps on old instance families; ENA and EFA are the current options." },
+        { "id": "D", "text": "Distribute the instances evenly across all Availability Zones in the Region for resilience.", "correct": false, "explanation": "Cross-AZ traffic adds latency, and EFA traffic cannot cross Availability Zones at all." },
+        { "id": "E", "text": "Launch all instances in a cluster placement group in a single Availability Zone, in one launch request.", "correct": true, "explanation": "A cluster placement group places instances on a high-bisection-bandwidth segment of one AZ, giving low latency and higher per-flow throughput. One request with one instance type reduces capacity errors." }
+      ],
+      "explanation": "Tightly coupled HPC on AWS means EFA-enabled instances in a cluster placement group in one AZ.",
+      "tags": ["efa", "placement-groups", "hpc"]
+    },
+    {
+      "id": "34-more-architectures-q12",
+      "type": "single",
+      "domain": "performant",
+      "difficulty": "medium",
+      "question": "A genomics company processes datasets stored in Amazon S3 on a cluster of hundreds of Linux EC2 instances. The jobs need a shared POSIX file system with sub-millisecond latency and hundreds of GB/s of aggregate throughput, and results must be written back to S3 when jobs finish. Which storage solution meets these requirements?",
+      "options": [
+        { "id": "A", "text": "Amazon FSx for Lustre linked to the S3 bucket as a data repository.", "correct": true, "explanation": "FSx for Lustre is the HPC parallel file system: sub-millisecond latency, throughput up to multiple TB/s, POSIX access from many clients, and S3 integration that presents objects as files and exports results back." },
+        { "id": "B", "text": "An Amazon EFS file system using the Max I/O performance mode.", "correct": false, "explanation": "EFS is a good shared file system, but Max I/O is a previous-generation mode with higher latency, and EFS does not offer the same parallel throughput or native S3 data repository link." },
+        { "id": "C", "text": "An EBS io2 Block Express volume attached to all instances with Multi-Attach.", "correct": false, "explanation": "Multi-Attach works only for a limited number of instances in a single AZ and needs a cluster-aware file system; it is not a shared file system for hundreds of nodes." },
+        { "id": "D", "text": "Instance store volumes on each node, copying data from S3 at the start of each job.", "correct": false, "explanation": "Instance store is fast but local to each instance and lost when it stops, so it does not provide a shared file system for the whole cluster." }
+      ],
+      "explanation": "High-performance shared POSIX storage for HPC backed by S3 is FSx for Lustre.",
+      "tags": ["fsx-lustre", "hpc", "s3"]
+    },
+    {
+      "id": "34-more-architectures-q13",
+      "type": "single",
+      "domain": "resilient",
+      "difficulty": "medium",
+      "question": "A licensed legacy application must run on exactly one EC2 instance at a time. Clients connect to it through a fixed public IPv4 address that cannot change. The application must recover automatically if the instance or its Availability Zone fails, at the lowest cost. Which solution meets these requirements?",
+      "options": [
+        { "id": "A", "text": "Rely on EC2 automatic instance recovery, which is enabled by default.", "correct": false, "explanation": "Automatic recovery moves the instance to new hardware in the same Availability Zone after a system status check failure. It does not help if the whole AZ fails." },
+        { "id": "B", "text": "Run a second instance in another AZ behind a Network Load Balancer with static IP addresses.", "correct": false, "explanation": "Two running instances break the one-instance licence requirement and double the compute cost." },
+        { "id": "C", "text": "Create an Auto Scaling group with minimum, maximum and desired capacity of 1 across two AZs, with user data that attaches an Elastic IP by tag and an instance role allowing ec2:AssociateAddress.", "correct": true, "explanation": "The group replaces a failed instance, in another AZ if needed, and the new instance re-attaches the same Elastic IP at boot. There is no idle standby to pay for." },
+        { "id": "D", "text": "Create a CloudWatch alarm on the StatusCheckFailed metric with a reboot action.", "correct": false, "explanation": "Rebooting does not help if the underlying host or the AZ is lost, and nothing would launch a replacement elsewhere." }
+      ],
+      "explanation": "A single, highly available instance with a fixed IP is an Auto Scaling group of one across two or more AZs plus an Elastic IP re-attached in user data with an instance role.",
+      "tags": ["asg", "elastic-ip", "high-availability"]
+    },
+    {
+      "id": "34-more-architectures-q14",
+      "type": "single",
+      "domain": "resilient",
+      "difficulty": "hard",
+      "question": "The single-instance application from the previous design keeps important state on an EBS data volume. When the Auto Scaling group of one replaces the instance in a different Availability Zone, the new instance must start with the latest copy of that data. Which approach meets this requirement?",
+      "options": [
+        { "id": "A", "text": "Enable EBS Multi-Attach so the volume can be attached to instances in both AZs.", "correct": false, "explanation": "Multi-Attach only works between instances in the same Availability Zone, and only for io1/io2 volumes." },
+        { "id": "B", "text": "Use the ModifyVolume API to move the volume to the new instance's AZ during boot.", "correct": false, "explanation": "ModifyVolume changes size, type and performance; it cannot move a volume to another Availability Zone." },
+        { "id": "C", "text": "Store the data on an instance store volume, which is copied to the replacement instance automatically.", "correct": false, "explanation": "Instance store data is lost when the instance stops or terminates and is never copied to another instance." },
+        { "id": "D", "text": "Add a termination lifecycle hook that snapshots and tags the data volume, and a launch lifecycle hook that creates a volume from the latest tagged snapshot in the new AZ and attaches it.", "correct": true, "explanation": "An EBS volume lives in one AZ, so the data must cross AZs as a snapshot. Lifecycle hooks pause the old and new instances while the snapshot is taken and restored, then complete-lifecycle-action lets the group continue." }
+      ],
+      "explanation": "EBS volumes cannot cross AZs; snapshots can. Lifecycle hooks give you time to snapshot on terminate and restore on launch. Termination hooks are best effort, so also keep scheduled snapshots or put shared data on EFS.",
+      "tags": ["asg", "lifecycle-hooks", "ebs-snapshots"]
+    },
+    {
+      "id": "34-more-architectures-q15",
+      "type": "single",
+      "domain": "performant",
+      "difficulty": "easy",
+      "question": "A product catalogue is served through an Amazon API Gateway REST API. Most traffic is identical GET requests for the same products, and the backend database is overloaded. The team wants to reduce load at the API layer without changing application code. What should a solutions architect recommend?",
+      "options": [
+        { "id": "A", "text": "Put DynamoDB Accelerator (DAX) in front of the database.", "correct": false, "explanation": "DAX works only with DynamoDB and needs the application to use the DAX client, so it requires code changes and may not match this database." },
+        { "id": "B", "text": "Enable API Gateway caching on the stage with a suitable TTL.", "correct": true, "explanation": "Stage caching returns repeated GET responses from the cache for the TTL (default 300 seconds, up to 3,600), cutting calls to the backend with no code changes. It is billed hourly by cache size." },
+        { "id": "C", "text": "Enable CloudFront geographic restrictions in front of the API.", "correct": false, "explanation": "Geo restriction blocks countries; it does not cache responses or reduce load from legitimate users." },
+        { "id": "D", "text": "Increase the API Gateway integration timeout to give the database more time.", "correct": false, "explanation": "A longer timeout leaves the same load on the database and only lets slow requests wait longer." }
+      ],
+      "explanation": "Caching at the API layer for repeated identical requests is the API Gateway stage cache, available for REST APIs.",
+      "tags": ["api-gateway", "caching"]
+    }
+  ]
+}

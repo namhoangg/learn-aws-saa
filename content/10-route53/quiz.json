@@ -1,0 +1,236 @@
+{
+  "section": "10-route53",
+  "questions": [
+    {
+      "id": "10-route53-q01",
+      "type": "single",
+      "domain": "cost",
+      "difficulty": "easy",
+      "question": "A company hosts its website behind an Application Load Balancer. The domain example.com is hosted in a Route 53 public hosted zone. Users must be able to reach the site by typing just example.com, and the company wants to avoid paying for the DNS queries that this name receives. What should a solutions architect do?",
+      "options": [
+        { "id": "A", "text": "Create a CNAME record for example.com that points to the ALB's DNS name.", "correct": false, "explanation": "A CNAME is not allowed at the zone apex (example.com), and CNAME queries are charged anyway." },
+        { "id": "B", "text": "Create an A record for example.com that contains the ALB's current IP addresses.", "correct": false, "explanation": "ALB IP addresses change as it scales, so a static A record will break, and those queries are still billed." },
+        { "id": "C", "text": "Create an alias A record for example.com that targets the ALB.", "correct": true, "explanation": "Alias records work at the zone apex, follow the ALB's changing IPs automatically, and queries to alias records that target AWS resources are free." },
+        { "id": "D", "text": "Create an NS record for example.com that points to the ALB.", "correct": false, "explanation": "NS records delegate a zone to name servers; a load balancer is not a DNS server and cannot answer queries." }
+      ],
+      "explanation": "Zone apex plus an AWS resource target means an alias record, which is also free to query.",
+      "tags": ["alias", "zone-apex", "alb"]
+    },
+    {
+      "id": "10-route53-q02",
+      "type": "single",
+      "domain": "resilient",
+      "difficulty": "medium",
+      "question": "A retailer runs its web application behind an Application Load Balancer in us-east-1. If the application becomes unavailable, users should automatically see a static \"we will be back soon\" page served from an Amazon S3 bucket configured for static website hosting. Traffic must go to the S3 page only while the main site is down. Which Route 53 configuration meets these requirements?",
+      "options": [
+        { "id": "A", "text": "Failover routing: a primary alias record to the ALB with Evaluate target health enabled, and a secondary alias record to the S3 website endpoint.", "correct": true, "explanation": "Failover routing is active-passive: Route 53 answers with the primary while it is healthy and switches to the secondary S3 page only when the ALB is unhealthy." },
+        { "id": "B", "text": "Weighted routing with weight 100 for the ALB and weight 0 for the S3 website, without health checks.", "correct": false, "explanation": "Without health checks Route 53 has no way to know the ALB is down, so it would keep answering with the ALB record." },
+        { "id": "C", "text": "Multivalue answer routing with one record for the ALB and one for the S3 website.", "correct": false, "explanation": "Multivalue returns both healthy values at once, so users would land on the maintenance page even while the main site works." },
+        { "id": "D", "text": "Simple routing with both the ALB and the S3 website endpoint as values in one record.", "correct": false, "explanation": "Simple routing cannot use health checks and returns all values randomly, sending some users to the maintenance page all the time." }
+      ],
+      "explanation": "\"Use the standby only when the primary fails\" is the failover routing policy driven by a health check or Evaluate target health.",
+      "tags": ["failover", "health-checks", "s3-website"]
+    },
+    {
+      "id": "10-route53-q03",
+      "type": "single",
+      "domain": "performant",
+      "difficulty": "medium",
+      "question": "A gaming company deploys identical stacks behind load balancers in us-west-2, eu-central-1 and ap-northeast-1. Players are spread around the world, and the company wants each player to be sent to the Region that gives them the fastest response. If a Region becomes unhealthy, its players should be sent elsewhere. Which routing policy should be used?",
+      "options": [
+        { "id": "A", "text": "Geolocation routing with one record per continent.", "correct": false, "explanation": "Geolocation follows the player's location, not measured network performance, so it may not pick the fastest Region." },
+        { "id": "B", "text": "Weighted routing with equal weights for the three Regions.", "correct": false, "explanation": "Equal weights spread players randomly across Regions, ignoring which one is fastest for each player." },
+        { "id": "C", "text": "Simple routing with all three load balancer addresses in one record.", "correct": false, "explanation": "Simple routing returns all values with no latency awareness and no health checks, so it meets neither requirement." },
+        { "id": "D", "text": "Latency-based routing with alias records to each load balancer and Evaluate target health enabled.", "correct": true, "explanation": "Latency routing answers with the Region that has the lowest measured latency to the player, and with health evaluation it skips an unhealthy Region." }
+      ],
+      "explanation": "\"Fastest response for users in many Regions\" points to latency-based routing combined with health checks.",
+      "tags": ["latency", "health-checks"]
+    },
+    {
+      "id": "10-route53-q04",
+      "type": "single",
+      "domain": "secure",
+      "difficulty": "medium",
+      "question": "A streaming service has licensing agreements that allow it to show its full catalog only in Canada and the United States. Users in all other countries must be sent to a separate site that explains the content is unavailable, including users whose location cannot be determined. Which Route 53 configuration should the company use?",
+      "options": [
+        { "id": "A", "text": "Latency-based routing with a record for us-east-1 and a record for ca-central-1.", "correct": false, "explanation": "Latency routing ignores borders; a user outside North America could still be answered with the full-catalog endpoint." },
+        { "id": "B", "text": "Geolocation routing with records for Canada and the United States pointing to the full site, plus a Default record pointing to the explanation site.", "correct": true, "explanation": "Geolocation answers by the user's country, and the Default record catches every other country and all IPs that cannot be mapped to a location." },
+        { "id": "C", "text": "Geoproximity routing with a negative bias on the full-catalog site.", "correct": false, "explanation": "Geoproximity routes by distance to resources, so it cannot enforce country borders required by licensing." },
+        { "id": "D", "text": "Geolocation routing with records for Canada and the United States only.", "correct": false, "explanation": "Without a Default record, users from other or unknown locations receive no answer instead of the explanation site." }
+      ],
+      "explanation": "Restricting content by country is geolocation routing, and a Default record is needed for everyone else.",
+      "tags": ["geolocation", "default-record"]
+    },
+    {
+      "id": "10-route53-q05",
+      "type": "single",
+      "domain": "resilient",
+      "difficulty": "easy",
+      "question": "A company has deployed version 2 of its API behind a new load balancer next to the existing version 1 load balancer. It wants to send about 5% of clients to version 2 for a week, then gradually increase the share, with the ability to roll back instantly by DNS. What is the simplest way to do this with Route 53?",
+      "options": [
+        { "id": "A", "text": "Failover routing with version 1 as primary and version 2 as secondary.", "correct": false, "explanation": "Failover only sends traffic to the secondary when the primary is unhealthy, so version 2 would get no traffic." },
+        { "id": "B", "text": "Geolocation routing that sends one small country to version 2.", "correct": false, "explanation": "This sends traffic by location rather than by percentage, and the share would depend on that country's user count." },
+        { "id": "C", "text": "Weighted routing with alias records: weight 95 for version 1 and weight 5 for version 2, adjusted over time.", "correct": true, "explanation": "Weighted routing splits DNS answers in proportion to the weights; changing weights shifts traffic, and weight 0 rolls back." },
+        { "id": "D", "text": "Multivalue answer routing with both load balancers.", "correct": false, "explanation": "Multivalue returns both answers to every client and offers no control over the percentage each version receives." }
+      ],
+      "explanation": "Percentage-based traffic shifting for canary or blue/green releases is weighted routing.",
+      "tags": ["weighted", "canary"]
+    },
+    {
+      "id": "10-route53-q06",
+      "type": "single",
+      "domain": "resilient",
+      "difficulty": "hard",
+      "question": "An application runs on EC2 instances in private subnets with no public IP addresses. The team wants Route 53 failover records to switch to a standby environment when the application's error rate is too high. The application already publishes an ErrorCount metric to Amazon CloudWatch. What should a solutions architect configure?",
+      "options": [
+        { "id": "A", "text": "A CloudWatch alarm on the ErrorCount metric, and a Route 53 health check that monitors that alarm, associated with the primary failover record.", "correct": true, "explanation": "Route 53 health checkers cannot reach private IPs, but a health check can follow a CloudWatch alarm's data stream and mark the primary unhealthy." },
+        { "id": "B", "text": "An HTTP endpoint health check that targets the private IP address of one of the instances.", "correct": false, "explanation": "Endpoint health checks come from the internet and Route 53 rejects private, non-routable IP addresses as endpoints." },
+        { "id": "C", "text": "A calculated health check that monitors the instances directly.", "correct": false, "explanation": "A calculated health check only combines other health checks; it cannot probe instances on its own." },
+        { "id": "D", "text": "An inbound Resolver endpoint so that Route 53 health checkers can reach the private subnets.", "correct": false, "explanation": "Resolver endpoints carry DNS queries, not health check traffic, so they do not give health checkers access to private instances." }
+      ],
+      "explanation": "For private resources, health-check a CloudWatch alarm instead of the endpoint itself.",
+      "tags": ["health-checks", "cloudwatch-alarm", "private"]
+    },
+    {
+      "id": "10-route53-q07",
+      "type": "multi",
+      "domain": "resilient",
+      "difficulty": "medium",
+      "question": "A company connects its data center to a VPC with AWS Direct Connect. On-premises servers must resolve records in a Route 53 private hosted zone named aws.example.internal, and EC2 instances in the VPC must resolve names in the corporate zone corp.example.local, which is hosted on the on-premises DNS servers. Which combination of actions meets these requirements? (Select TWO.)",
+      "options": [
+        { "id": "A", "text": "Configure the on-premises DNS servers to forward queries directly to the VPC's +2 resolver address.", "correct": false, "explanation": "AWS does not support forwarding queries from outside the VPC to the +2 address; an inbound endpoint is required." },
+        { "id": "B", "text": "Create a Route 53 Resolver inbound endpoint in the VPC and configure the on-premises DNS servers to forward aws.example.internal queries to its IP addresses.", "correct": true, "explanation": "An inbound endpoint gives on-premises resolvers private IPs in the VPC to forward queries to, so they can resolve the private hosted zone." },
+        { "id": "C", "text": "Make the private hosted zone public so that on-premises servers can query it over the internet.", "correct": false, "explanation": "A private hosted zone cannot simply be made public, and exposing internal names publicly is unnecessary and less secure." },
+        { "id": "D", "text": "Create a Route 53 Resolver outbound endpoint and a forwarding rule for corp.example.local that targets the on-premises DNS servers, and associate the rule with the VPC.", "correct": true, "explanation": "The outbound endpoint plus a forwarding rule sends matching queries from the VPC to the corporate DNS servers over Direct Connect." },
+        { "id": "E", "text": "Create a public hosted zone named corp.example.local in Route 53 and copy the corporate records into it.", "correct": false, "explanation": "Duplicating records publicly leaks internal names and creates a second copy that drifts out of sync with the corporate DNS." }
+      ],
+      "explanation": "On-premises to AWS uses an inbound endpoint; AWS to on-premises uses an outbound endpoint with forwarding rules.",
+      "tags": ["resolver", "hybrid-dns", "direct-connect"],
+      "updated": "Route 53 Resolver is now named Route 53 VPC Resolver; the endpoints work the same way."
+    },
+    {
+      "id": "10-route53-q08",
+      "type": "single",
+      "domain": "cost",
+      "difficulty": "easy",
+      "question": "A company registered example.com with a third-party registrar two years ago and does not want to move the registration. It now wants to manage the domain's DNS records in Amazon Route 53. What must the company do?",
+      "options": [
+        { "id": "A", "text": "Transfer the domain registration to Route 53 before any records can be created.", "correct": false, "explanation": "Registrar and DNS service are separate jobs; Route 53 can host DNS for a domain registered anywhere." },
+        { "id": "B", "text": "Create a private hosted zone for example.com and associate it with the company's VPC.", "correct": false, "explanation": "A private hosted zone only answers inside associated VPCs, so internet users would never see its records." },
+        { "id": "C", "text": "Create CNAME records at the current registrar that point to Route 53.", "correct": false, "explanation": "CNAMEs cannot delegate a whole domain and are not allowed at the apex; delegation is done with name servers." },
+        { "id": "D", "text": "Create a public hosted zone for example.com in Route 53 and update the domain's name servers at the registrar to the four Route 53 name servers.", "correct": true, "explanation": "Pointing the registrar's NS settings at the hosted zone's four name servers makes Route 53 authoritative for the domain without a transfer." }
+      ],
+      "explanation": "Use any registrar with Route 53 as the DNS service by creating a public hosted zone and updating the NS records at the registrar.",
+      "tags": ["registrar", "hosted-zones", "ns"]
+    },
+    {
+      "id": "10-route53-q09",
+      "type": "single",
+      "domain": "performant",
+      "difficulty": "hard",
+      "question": "A company uses Route 53 geoproximity records for application stacks in us-west-1 and us-east-1, both with a bias of 0. The us-east-1 stack has been scaled up and the company wants it to serve users from a larger part of the central United States, without adding Regions or changing how other routing works. What should the company do?",
+      "options": [
+        { "id": "A", "text": "Set a negative bias, such as -50, on the us-east-1 record.", "correct": false, "explanation": "A negative bias shrinks the area served by us-east-1, which is the opposite of what the company wants." },
+        { "id": "B", "text": "Set a positive bias, such as +50, on the us-east-1 record.", "correct": true, "explanation": "A positive bias makes us-east-1 appear closer than it is, expanding its geographic area so more central users are routed to it." },
+        { "id": "C", "text": "Replace the records with latency-based records.", "correct": false, "explanation": "Latency routing has no bias setting, so the company could not deliberately shift the dividing line." },
+        { "id": "D", "text": "Add a weight of 200 to the us-east-1 geoproximity record.", "correct": false, "explanation": "Weights belong to weighted routing; geoproximity records use a bias between -99 and +99 instead." }
+      ],
+      "explanation": "Geoproximity bias expands (positive) or shrinks (negative) the area that a resource serves.",
+      "tags": ["geoproximity", "bias"],
+      "updated": "Geoproximity no longer requires Traffic Flow; since January 2024 it can be set on ordinary records."
+    },
+    {
+      "id": "10-route53-q10",
+      "type": "single",
+      "domain": "resilient",
+      "difficulty": "medium",
+      "question": "During a planned migration, an operator changed the A record for app.example.com to point to a new server. Twelve hours later, some users still reach the old server. The record's TTL is 86,400 seconds. How should the team avoid this delay in future migrations?",
+      "options": [
+        { "id": "A", "text": "Switch the record to the multivalue answer routing policy.", "correct": false, "explanation": "Multivalue answers are cached for the TTL just like any other record, so the delay would remain." },
+        { "id": "B", "text": "Enable a 10-second fast health check on the old server.", "correct": false, "explanation": "Health checks influence Route 53's answers, but resolvers that already cached the old answer keep using it until the TTL expires." },
+        { "id": "C", "text": "Lower the record's TTL, for example to 60 seconds, well ahead of the change, and raise it again afterwards.", "correct": true, "explanation": "Resolvers cache answers for the TTL; lowering it at least one old-TTL period before the change means caches refresh within a minute." },
+        { "id": "D", "text": "Delete and recreate the hosted zone to flush caches worldwide.", "correct": false, "explanation": "Recreating the zone changes its name servers and breaks delegation; it does not clear other resolvers' caches." }
+      ],
+      "explanation": "Old answers linger for the TTL, so lower the TTL before planned changes.",
+      "tags": ["ttl", "migration"]
+    },
+    {
+      "id": "10-route53-q11",
+      "type": "single",
+      "domain": "cost",
+      "difficulty": "medium",
+      "question": "A video platform has a private network interconnect with a large internet service provider. To cut transit costs, the platform wants DNS queries from that ISP's customers to resolve to the endpoint near the interconnect. The ISP has shared its customer IP ranges. Every other user should keep using the normal endpoint. Which Route 53 feature should the platform use?",
+      "options": [
+        { "id": "A", "text": "IP-based routing with a CIDR collection that contains the ISP's ranges as a location, plus a default location for everyone else.", "correct": true, "explanation": "IP-based routing maps known client CIDR blocks to specific endpoints, which is exactly a per-ISP routing requirement." },
+        { "id": "B", "text": "Geolocation routing for the ISP's home country.", "correct": false, "explanation": "Geolocation would also redirect every other ISP's users in that country, not just this ISP's customers." },
+        { "id": "C", "text": "Latency-based routing between the two endpoints.", "correct": false, "explanation": "Latency routing uses AWS latency data and cannot target one ISP's address ranges specifically." },
+        { "id": "D", "text": "A private hosted zone associated with the ISP's network.", "correct": false, "explanation": "Private hosted zones are associated with VPCs, not with external ISP networks, and do not support IP-based routing." }
+      ],
+      "explanation": "When you know the clients' IP ranges and want to route them deliberately, use IP-based routing with CIDR collections.",
+      "tags": ["ip-based", "cidr-collection"]
+    },
+    {
+      "id": "10-route53-q12",
+      "type": "multi",
+      "domain": "resilient",
+      "difficulty": "medium",
+      "question": "A company created Route 53 HTTP health checks for its public web servers on the /health path. The health checks always report unhealthy, although staff can open the site from the office. The servers' security group allows HTTP only from the office CIDR range, and the /health page requires a login and returns HTTP 401 to anonymous requests. Which actions will make the health checks pass? (Select TWO.)",
+      "options": [
+        { "id": "A", "text": "Raise the failure threshold from 3 to 10.", "correct": false, "explanation": "A higher threshold only delays the status change; blocked or 401 responses would still fail every time." },
+        { "id": "B", "text": "Change the request interval to the 10-second fast option.", "correct": false, "explanation": "Checking more often costs more and does nothing about requests being blocked or rejected." },
+        { "id": "C", "text": "Add an inbound security group rule for HTTP from the AWS-managed prefix list com.amazonaws.<region>.route53-healthchecks.", "correct": true, "explanation": "Health checkers send requests from AWS's published ranges on the internet, so the security group must let them in." },
+        { "id": "D", "text": "Enable latency graphs on the health checks.", "correct": false, "explanation": "Latency graphs only add CloudWatch latency measurements and do not change whether a check passes." },
+        { "id": "E", "text": "Make the /health path return HTTP 200 without requiring authentication.", "correct": true, "explanation": "HTTP health checks pass only on 2xx or 3xx responses, so a 401 always counts as a failure." }
+      ],
+      "explanation": "Endpoint health checks need network access from Route 53's checkers and a 2xx or 3xx response.",
+      "tags": ["health-checks", "security-groups"],
+      "updated": "The route53-healthchecks managed prefix list is newer than the slides, which mention only ip-ranges.json."
+    },
+    {
+      "id": "10-route53-q13",
+      "type": "single",
+      "domain": "resilient",
+      "difficulty": "medium",
+      "question": "A small company runs four identical web servers on EC2, each with an Elastic IP address. It does not want to pay for a load balancer, but DNS answers must include only servers that are currently healthy so clients can try another address if one fails. Which Route 53 configuration meets these requirements?",
+      "options": [
+        { "id": "A", "text": "A simple record containing all four Elastic IP addresses.", "correct": false, "explanation": "Simple routing returns all four addresses but cannot use health checks, so dead servers stay in the answer." },
+        { "id": "B", "text": "Failover records with one primary and three secondary records.", "correct": false, "explanation": "Failover supports exactly one primary and one secondary record and only uses the secondary when the primary is down." },
+        { "id": "C", "text": "An alias record that points to the EC2 instances' public DNS names.", "correct": false, "explanation": "Route 53 does not support alias records that target EC2 instance DNS names." },
+        { "id": "D", "text": "Four multivalue answer records, one per Elastic IP, each associated with its own health check.", "correct": true, "explanation": "Multivalue answer returns up to eight healthy records chosen at random and drops any record whose health check fails." }
+      ],
+      "explanation": "Multivalue answer gives health-checked, client-side load sharing, though it is not a full replacement for a load balancer.",
+      "tags": ["multivalue", "health-checks"]
+    },
+    {
+      "id": "10-route53-q14",
+      "type": "single",
+      "domain": "resilient",
+      "difficulty": "medium",
+      "question": "A company created a private hosted zone named corp.internal and associated it with VPC A. Instances in VPC A resolve db.corp.internal correctly. Instances in VPC B, which is peered with VPC A in the same account, get an NXDOMAIN (non-existent domain) response for the same name. Both VPCs have DNS resolution and DNS hostnames enabled. What is the simplest fix?",
+      "options": [
+        { "id": "A", "text": "Enable DNS resolution on the VPC peering connection.", "correct": false, "explanation": "That peering option resolves public EC2 hostnames to private IPs; it does not share private hosted zones between VPCs." },
+        { "id": "B", "text": "Associate the corp.internal private hosted zone with VPC B as well.", "correct": true, "explanation": "A private hosted zone answers only queries from the VPCs associated with it, so VPC B must be added to the zone." },
+        { "id": "C", "text": "Create a public hosted zone named corp.internal.", "correct": false, "explanation": "A public zone would expose internal records to the internet and is unnecessary when the zone can be associated with VPC B." },
+        { "id": "D", "text": "Create an outbound Resolver endpoint in VPC B that forwards to VPC A's +2 address.", "correct": false, "explanation": "Forwarding to another VPC's +2 address is not supported, and endpoints cost money when a free association solves the problem." }
+      ],
+      "explanation": "Private hosted zones answer only for associated VPCs; associate every VPC that needs the names.",
+      "tags": ["private-hosted-zone", "vpc"]
+    },
+    {
+      "id": "10-route53-q15",
+      "type": "multi",
+      "domain": "cost",
+      "difficulty": "medium",
+      "question": "A media company notices that its Route 53 bill is dominated by DNS query charges. Most queries are for names that point to CloudFront distributions and Application Load Balancers using CNAME records with a 30-second TTL, and for mail and verification records that almost never change. Which actions will reduce query charges? (Select TWO.)",
+      "options": [
+        { "id": "A", "text": "Replace the CNAME records that point to CloudFront and the ALBs with alias records.", "correct": true, "explanation": "Queries to alias records that target AWS resources are free, while CNAME queries are charged." },
+        { "id": "B", "text": "Convert the records to geolocation routing.", "correct": false, "explanation": "Geolocation queries are billed at a higher per-million rate than standard queries, so costs would rise." },
+        { "id": "C", "text": "Add fast 10-second health checks to every record.", "correct": false, "explanation": "Health checks add monthly charges and do nothing to reduce the number of DNS queries." },
+        { "id": "D", "text": "Increase the TTL on the stable mail and verification records.", "correct": true, "explanation": "A longer TTL lets resolvers cache those answers longer, so fewer queries reach Route 53 and fewer are billed." },
+        { "id": "E", "text": "Split the records across several additional hosted zones.", "correct": false, "explanation": "Each extra hosted zone adds a monthly fee and does not reduce the number of queries." }
+      ],
+      "explanation": "Alias records to AWS resources are free to query, and longer TTLs on stable records reduce query volume.",
+      "tags": ["alias", "ttl", "pricing"]
+    }
+  ]
+}

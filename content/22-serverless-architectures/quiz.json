@@ -1,0 +1,233 @@
+{
+  "section": "22-serverless-architectures",
+  "questions": [
+    {
+      "id": "22-serverless-architectures-q01",
+      "type": "single",
+      "domain": "secure",
+      "difficulty": "medium",
+      "question": "A company is building a mobile note-taking app. Users sign in through an Amazon Cognito user pool. Each user must upload, list and download their own attachments in a single Amazon S3 bucket directly from the app with the AWS SDK. Users must never reach other users' files, and no long-term credentials may be stored on devices. Which solution meets these requirements with the LEAST operational overhead?",
+      "options": [
+        { "id": "A", "text": "Create an IAM user for each app user and store that user's access keys in the device keychain.", "correct": false, "explanation": "Long-term keys on devices can be extracted, and managing an IAM user per customer does not scale; this breaks the 'no long-term credentials' rule." },
+        { "id": "B", "text": "Build an API Gateway and Lambda proxy that streams every upload and download between the app and S3.", "correct": false, "explanation": "It works but adds code, cost and the 10 MB API Gateway payload limit, and the app would not be talking to S3 directly; far more overhead than a managed credential exchange." },
+        { "id": "C", "text": "Create a Cognito identity pool linked to the user pool and give its authenticated role S3 permissions on bucket/${cognito-identity.amazonaws.com:sub}/* plus s3:ListBucket limited to that prefix.", "correct": true, "explanation": "The identity pool swaps the sign-in token for temporary credentials, and the policy variable expands to each caller's identity ID, so one role safely confines every user to their own prefix." },
+        { "id": "D", "text": "Make the bucket public and give each user a long random prefix that is hard to guess.", "correct": false, "explanation": "Obscurity is not access control: anyone who learns or lists a prefix can read the files, and a public bucket violates basic security requirements." }
+      ],
+      "explanation": "Direct, per-user access to S3 from a mobile app = Cognito identity pool + IAM role using the ${cognito-identity.amazonaws.com:sub} policy variable.",
+      "tags": ["cognito", "s3", "iam-roles"]
+    },
+    {
+      "id": "22-serverless-architectures-q02",
+      "type": "single",
+      "domain": "performant",
+      "difficulty": "medium",
+      "question": "A to-do app uses API Gateway, AWS Lambda and Amazon DynamoDB. About 95% of requests read the same popular items, DynamoDB read costs are rising, and the product team wants read latency in microseconds. Developers want to keep code changes to a minimum. What should a solutions architect recommend?",
+      "options": [
+        { "id": "A", "text": "Create a DynamoDB Accelerator (DAX) cluster, attach the Lambda function to the cluster's VPC and switch the function to the DAX client.", "correct": true, "explanation": "DAX is API-compatible with DynamoDB, serves eventually consistent reads from memory in microseconds and absorbs repeated reads, so the table needs far less read capacity." },
+        { "id": "B", "text": "Convert the table to a DynamoDB global table with a replica in a second Region.", "correct": false, "explanation": "Global tables add Regions for locality and resilience; they do not cache anything, and they add replicated write costs." },
+        { "id": "C", "text": "Add an Amazon ElastiCache cluster and write lazy-loading and invalidation logic in the function.", "correct": false, "explanation": "ElastiCache can cache the data, but the team would have to write and maintain caching logic for every access path; DAX gives the same benefit with a client swap." },
+        { "id": "D", "text": "Change every read to a strongly consistent read.", "correct": false, "explanation": "Strongly consistent reads cost twice as much per read and are slower; they make the cost problem worse." }
+      ],
+      "explanation": "Read-heavy DynamoDB with a microsecond latency target and minimal code changes points to DAX.",
+      "tags": ["dax", "dynamodb", "lambda"]
+    },
+    {
+      "id": "22-serverless-architectures-q03",
+      "type": "single",
+      "domain": "cost",
+      "difficulty": "medium",
+      "question": "A public Amazon API Gateway REST API returns the same 200 KB product catalog JSON to every caller. The catalog changes about once an hour, yet the backing Lambda function is invoked millions of times per day. Which change reduces Lambda invocations MOST cost-effectively?",
+      "options": [
+        { "id": "A", "text": "Migrate the API to an HTTP API and turn on HTTP API response caching.", "correct": false, "explanation": "HTTP APIs are cheaper per request but have no response caching feature, so Lambda would still run on every call." },
+        { "id": "B", "text": "Configure provisioned concurrency on the Lambda function.", "correct": false, "explanation": "Provisioned concurrency removes cold starts; it does not reduce the number of invocations and adds an hourly charge." },
+        { "id": "C", "text": "Place a DAX cluster in front of the DynamoDB table that the function reads.", "correct": false, "explanation": "DAX reduces database reads, but API Gateway would still invoke Lambda for every request." },
+        { "id": "D", "text": "Enable caching on the API stage and set the GET method's TTL to 3,600 seconds.", "correct": true, "explanation": "The stage cache answers repeated identical GET requests itself for up to the TTL (the 200 KB response is well under the 1 MB limit for a cached response), so Lambda runs roughly once per hour per cache key instead of millions of times." }
+      ],
+      "explanation": "Identical responses requested by many clients belong in the API Gateway stage cache (REST APIs only, TTL up to 3,600 s).",
+      "tags": ["api-gateway", "caching"]
+    },
+    {
+      "id": "22-serverless-architectures-q04",
+      "type": "single",
+      "domain": "secure",
+      "difficulty": "easy",
+      "question": "A company serves a static website from an Amazon S3 bucket through Amazon CloudFront. Objects are encrypted with SSE-KMS. The security team requires that the bucket is not publicly accessible and that visitors cannot bypass CloudFront. Which configuration meets these requirements?",
+      "options": [
+        { "id": "A", "text": "Enable S3 static website hosting and attach an origin access control to the website endpoint origin.", "correct": false, "explanation": "S3 website endpoints must be configured as custom origins, and OAC (or OAI) cannot be used with them; the website endpoint also requires public read access." },
+        { "id": "B", "text": "Use the bucket's REST endpoint as the origin with origin access control, allow cloudfront.amazonaws.com in the bucket policy only when AWS:SourceArn is the distribution ARN, and let CloudFront use the KMS key.", "correct": true, "explanation": "OAC signs every origin request, the bucket policy admits only that distribution, and OAC supports SSE-KMS once the key policy allows the CloudFront service principal." },
+        { "id": "C", "text": "Use an origin access identity (OAI) and grant it s3:GetObject in the bucket policy.", "correct": false, "explanation": "OAI is legacy and does not support objects encrypted with SSE-KMS without workarounds; OAC is the recommended choice." },
+        { "id": "D", "text": "Make the bucket public and add a bucket policy condition on the Referer header set by CloudFront.", "correct": false, "explanation": "Referer headers are trivially forged and the bucket would still be public, failing the security requirement." }
+      ],
+      "explanation": "Private S3 origin behind CloudFront = OAC + bucket policy scoped with AWS:SourceArn (and a KMS key policy statement for SSE-KMS).",
+      "tags": ["cloudfront", "s3", "oac"]
+    },
+    {
+      "id": "22-serverless-architectures-q05",
+      "type": "single",
+      "domain": "resilient",
+      "difficulty": "medium",
+      "question": "A blogging platform runs its API on API Gateway and AWS Lambda in three Regions: North America, Europe and Asia. Readers post comments and expect both reads and writes to be fast in their own Region. Comments may take a second to appear elsewhere. The company wants a fully serverless design with minimal operations. Which data layer should be used?",
+      "options": [
+        { "id": "A", "text": "An Amazon DynamoDB global table with a replica in each of the three Regions.", "correct": true, "explanation": "Every replica accepts local reads and writes and changes replicate asynchronously, typically within a second, with no servers to manage." },
+        { "id": "B", "text": "An Amazon Aurora Global Database with secondary clusters in Europe and Asia.", "correct": false, "explanation": "Aurora Global Database has a single writer Region; writes from other Regions must travel to the primary (or be forwarded), and clusters need capacity management." },
+        { "id": "C", "text": "A single DynamoDB table in North America with a DAX cluster in each Region.", "correct": false, "explanation": "DAX clusters live in a VPC next to their table and only cache reads; writes from Europe and Asia would still cross the world." },
+        { "id": "D", "text": "JSON files in Amazon S3 with Cross-Region Replication between three buckets.", "correct": false, "explanation": "S3 is not a database for small, frequent comment writes and queries; replication copies whole objects asynchronously and offers no way to merge or query concurrent comment updates." }
+      ],
+      "explanation": "Low-latency writes in several Regions with a serverless database = DynamoDB global tables (multi-active).",
+      "tags": ["dynamodb-global-tables", "aurora-global"]
+    },
+    {
+      "id": "22-serverless-architectures-q06",
+      "type": "single",
+      "domain": "resilient",
+      "difficulty": "medium",
+      "question": "A newsletter sign-up API stores each subscriber as an item in an Amazon DynamoDB table. Every new subscriber must receive a welcome email. The sign-up API's latency must not increase, and the solution must be serverless with minimal custom code. What should a solutions architect do?",
+      "options": [
+        { "id": "A", "text": "Have the sign-up Lambda function call Amazon SES synchronously before it returns a response.", "correct": false, "explanation": "The API would wait on email delivery and fail if SES throttles, which increases latency and couples the two concerns." },
+        { "id": "B", "text": "Subscribe each new subscriber's address to an Amazon SNS topic and publish a welcome message to the topic.", "correct": false, "explanation": "SNS email subscriptions need confirmation, and a message published to the topic goes to every subscriber, so existing users would get the welcome email again." },
+        { "id": "C", "text": "Enable DynamoDB Streams on the table and add a Lambda trigger, filtered to INSERT events, that sends the email through Amazon SES using its execution role.", "correct": true, "explanation": "The stream captures each new item asynchronously, the filter skips updates and deletes, and the function sends one email per insert without touching the API path." },
+        { "id": "D", "text": "Schedule a Lambda function every five minutes that scans the table for items created since the last run.", "correct": false, "explanation": "Repeated scans waste read capacity, add delay and need extra state to track what has already been emailed." }
+      ],
+      "explanation": "React to new DynamoDB items asynchronously with Streams + Lambda; send email with SES.",
+      "tags": ["dynamodb-streams", "lambda", "ses"]
+    },
+    {
+      "id": "22-serverless-architectures-q07",
+      "type": "multi",
+      "domain": "resilient",
+      "difficulty": "medium",
+      "question": "A photo-sharing site stores uploads in an Amazon S3 bucket named uploads. A thumbnail must be created automatically for every new photo, and both a moderation service and a search-indexing service must each receive an event for every thumbnail. Which TWO steps should a solutions architect take? (Select TWO.)",
+      "options": [
+        { "id": "A", "text": "Configure an s3:ObjectCreated:* event notification on the uploads bucket that invokes a Lambda function which writes thumbnails to a separate thumbnails bucket.", "correct": true, "explanation": "S3 invokes the function for each new object, and writing to another bucket keeps the function from triggering itself." },
+        { "id": "B", "text": "Have the Lambda function write thumbnails back into the uploads bucket, keeping the same trigger with no prefix filter.", "correct": false, "explanation": "Each thumbnail would fire the trigger again and create a recursive loop." },
+        { "id": "C", "text": "Send thumbnails bucket events to a single SQS FIFO queue that both services poll.", "correct": false, "explanation": "S3 cannot notify FIFO queues directly, and two consumers sharing one queue would split the messages instead of each receiving all of them." },
+        { "id": "D", "text": "Publish thumbnails bucket ObjectCreated events to an SNS standard topic with one SQS queue for moderation and one for search subscribed.", "correct": true, "explanation": "SNS fans each event out to both queues, so each service independently receives every thumbnail event." },
+        { "id": "E", "text": "Use CloudFront Functions on the upload path to generate thumbnails as images pass through the edge.", "correct": false, "explanation": "CloudFront Functions are lightweight viewer request/response handlers without access to the request body or S3, so they cannot resize images." }
+      ],
+      "explanation": "S3 event → Lambda → separate bucket creates thumbnails; S3 event → SNS standard → several SQS queues notifies multiple systems.",
+      "tags": ["s3", "lambda", "sns", "sqs"]
+    },
+    {
+      "id": "22-serverless-architectures-q08",
+      "type": "single",
+      "domain": "performant",
+      "difficulty": "easy",
+      "question": "A media company keeps its master bucket in us-east-1. Field teams in Australia and India upload multi-gigabyte video files to it, and uploads are slow. The company wants faster uploads to the same bucket with minimal changes. What should a solutions architect recommend?",
+      "options": [
+        { "id": "A", "text": "Configure S3 Cross-Region Replication from us-east-1 to a bucket in ap-southeast-2.", "correct": false, "explanation": "Replication copies objects after they arrive in the source bucket; it does nothing for the slow upload into us-east-1." },
+        { "id": "B", "text": "Enable S3 Transfer Acceleration on the bucket and have the teams use the s3-accelerate endpoint.", "correct": true, "explanation": "Uploads enter the AWS network at the nearest edge location and travel over the AWS backbone to the bucket, which speeds long-distance transfers without changing where data lives." },
+        { "id": "C", "text": "Put a CloudFront distribution with a long cache TTL in front of the bucket for downloads.", "correct": false, "explanation": "Caching speeds repeated downloads; it does not help one-time uploads of new files." },
+        { "id": "D", "text": "Store the videos in the S3 Express One Zone storage class in us-east-1.", "correct": false, "explanation": "Express One Zone speeds access from compute in the same AZ; the bottleneck here is the long internet path from Australia and India." }
+      ],
+      "explanation": "Slow long-distance uploads into one bucket = S3 Transfer Acceleration.",
+      "tags": ["s3-transfer-acceleration", "s3"]
+    },
+    {
+      "id": "22-serverless-architectures-q09",
+      "type": "single",
+      "domain": "cost",
+      "difficulty": "medium",
+      "question": "An application on EC2 instances in an Auto Scaling group behind an Application Load Balancer distributes software update files stored on Amazon EFS. Each new release triggers a massive download spike, the group scales out heavily and costs soar. The files never change after release. The company wants to cut cost and CPU usage WITHOUT changing the application. What should a solutions architect do?",
+      "options": [
+        { "id": "A", "text": "Replace Amazon EFS with gp3 EBS volumes attached to each instance.", "correct": false, "explanation": "The storage layer is not the cost driver; every download would still be served by EC2." },
+        { "id": "B", "text": "Move the update files to Amazon S3 and change the application to hand out pre-signed URLs.", "correct": false, "explanation": "This could work technically but requires application changes, which the requirement forbids." },
+        { "id": "C", "text": "Switch to larger instance types and raise the Auto Scaling group's maximum size.", "correct": false, "explanation": "Bigger and more instances increase cost rather than reducing it." },
+        { "id": "D", "text": "Create an Amazon CloudFront distribution with the ALB as its origin and point update clients at the distribution.", "correct": true, "explanation": "The static files are cached at edge locations, so most downloads never reach the instances; the group scales far less and origin-to-CloudFront transfer from AWS origins is free." }
+      ],
+      "explanation": "Static content served by an EC2 fleet + 'no application changes' = put CloudFront in front of the existing load balancer.",
+      "tags": ["cloudfront", "alb", "asg"]
+    },
+    {
+      "id": "22-serverless-architectures-q10",
+      "type": "multi",
+      "domain": "performant",
+      "difficulty": "easy",
+      "question": "A retailer is splitting its monolith into microservices. The order service must no longer wait for the inventory and shipping services, and traffic spikes must be absorbed between services. Which TWO AWS services provide asynchronous integration for this design? (Select TWO.)",
+      "options": [
+        { "id": "A", "text": "Application Load Balancer", "correct": false, "explanation": "A load balancer forwards requests and the caller waits for the response, which is a synchronous pattern." },
+        { "id": "B", "text": "Amazon SQS", "correct": true, "explanation": "The order service drops a message in a queue and continues; consumers process it at their own pace, absorbing spikes." },
+        { "id": "C", "text": "An API Gateway REST API called directly by the order service", "correct": false, "explanation": "A direct API call is request/response, so the order service still waits for the downstream service." },
+        { "id": "D", "text": "Amazon Route 53 weighted records", "correct": false, "explanation": "Route 53 resolves names and splits traffic; it does not carry or buffer messages between services." },
+        { "id": "E", "text": "Amazon Kinesis Data Streams", "correct": true, "explanation": "Producers write records to the stream and consumers read them independently, decoupling services in time." }
+      ],
+      "explanation": "Asynchronous microservice patterns use SQS, SNS, Kinesis or event-triggered Lambda; API Gateway and load balancers are synchronous.",
+      "tags": ["sqs", "kinesis-data-streams", "microservices"]
+    },
+    {
+      "id": "22-serverless-architectures-q11",
+      "type": "single",
+      "domain": "secure",
+      "difficulty": "medium",
+      "question": "A mobile app calls an Amazon API Gateway REST API. Users sign in through an Amazon Cognito user pool. The API must reject requests from anyone who is not signed in, and the team wants to write no custom authorization code. Which solution requires the LEAST effort?",
+      "options": [
+        { "id": "A", "text": "Create a Cognito user pool authorizer on the API, enable it on each method, and have the app send the user's ID token in the Authorization header.", "correct": true, "explanation": "API Gateway validates the token against the user pool natively and blocks invalid or missing tokens before the backend runs, with no code to maintain." },
+        { "id": "B", "text": "Require an API key on every method and embed the key in the mobile app.", "correct": false, "explanation": "API keys identify client applications for usage plans and throttling; they do not prove that a user signed in and can be extracted from the app." },
+        { "id": "C", "text": "Write a Lambda authorizer that downloads the user pool's signing keys and validates each token.", "correct": false, "explanation": "This works but is custom code to build and maintain, which the team wants to avoid when a native authorizer exists." },
+        { "id": "D", "text": "Add a resource policy that allows only the IP ranges of major mobile carriers.", "correct": false, "explanation": "Network location says nothing about whether a user has signed in, and carrier ranges change constantly." }
+      ],
+      "explanation": "Protecting a REST API for Cognito user pool users = Cognito user pool authorizer (JWT authorizer for HTTP APIs).",
+      "tags": ["cognito", "api-gateway"]
+    },
+    {
+      "id": "22-serverless-architectures-q12",
+      "type": "single",
+      "domain": "cost",
+      "difficulty": "hard",
+      "question": "A company runs 40 small microservices, each on its own EC2 instances. Teams complain that every new service takes weeks to set up, most instances sit idle, mobile developers hand-write client code for each service, and creating identical dev, test and prod copies is painful. Which approach BEST addresses all of these issues?",
+      "options": [
+        { "id": "A", "text": "Containerize each service on Amazon ECS with the EC2 launch type and give each service its own Application Load Balancer.", "correct": false, "explanation": "Containers help packaging, but the team still manages cluster capacity and pays for idle hosts and 40 load balancers, and nothing generates client SDKs." },
+        { "id": "B", "text": "Rebuild the services as API Gateway HTTP APIs backed by Lambda and generate client SDKs from the HTTP APIs.", "correct": false, "explanation": "HTTP APIs are cheaper but API Gateway cannot generate client SDKs for them; SDK generation is a REST API feature." },
+        { "id": "C", "text": "Rebuild the services as API Gateway REST APIs backed by Lambda, use stages for each environment, and generate client SDKs from API Gateway.", "correct": true, "explanation": "Lambda and API Gateway scale automatically and bill per request (no idle servers), stages and templates clone environments, and REST APIs can generate SDKs for Java, JavaScript, Android, iOS and Ruby." },
+        { "id": "D", "text": "Consolidate all services onto a few larger EC2 instances to raise utilization.", "correct": false, "explanation": "Packing services together improves utilization but recreates monolith coupling and does nothing for setup time, client code or environment cloning." }
+      ],
+      "explanation": "Serverless microservices with API Gateway REST APIs + Lambda remove server management, cut idle cost, clone environments with stages and generate client SDKs.",
+      "tags": ["api-gateway", "lambda", "microservices"]
+    },
+    {
+      "id": "22-serverless-architectures-q13",
+      "type": "multi",
+      "domain": "performant",
+      "difficulty": "medium",
+      "question": "A Lambda function that is not attached to any VPC reads items from an Amazon DynamoDB table. The team creates a DynamoDB Accelerator (DAX) cluster in a VPC to cut read latency. Which TWO actions are required for the function to benefit from the cluster? (Select TWO.)",
+      "options": [
+        { "id": "A", "text": "Attach the function to subnets in the DAX cluster's VPC with security group rules that allow traffic to the cluster.", "correct": true, "explanation": "DAX runs inside a VPC, so the function needs network access to the cluster's endpoint from within that VPC." },
+        { "id": "B", "text": "Enable DynamoDB Streams on the table so that DAX receives item updates.", "correct": false, "explanation": "DAX is a write-through cache and does not rely on Streams; writes made through DAX update the cache directly." },
+        { "id": "C", "text": "Use the DAX client in the function, point it at the cluster endpoint and keep reads eventually consistent.", "correct": true, "explanation": "Only requests sent through the DAX client reach the cache, and only eventually consistent reads can be served from it." },
+        { "id": "D", "text": "Change reads to strongly consistent so that they are always answered by the cache.", "correct": false, "explanation": "Strongly consistent reads bypass DAX and go straight to DynamoDB, so they never benefit from the cache." },
+        { "id": "E", "text": "Create a VPC gateway endpoint for DAX in the function's VPC.", "correct": false, "explanation": "Gateway endpoints exist only for S3 and DynamoDB; DAX is reached through its cluster endpoint inside the VPC." }
+      ],
+      "explanation": "To use DAX, Lambda must run in the cluster's VPC and send eventually consistent reads through the DAX client.",
+      "tags": ["dax", "lambda", "vpc"]
+    },
+    {
+      "id": "22-serverless-architectures-q14",
+      "type": "single",
+      "domain": "resilient",
+      "difficulty": "hard",
+      "question": "A blog stores subscribers in a DynamoDB global table (multi-Region eventual consistency) with replicas in us-east-1 and eu-west-1. For resilience, a Lambda trigger on each Region's stream sends welcome emails through Amazon SES. Subscribers now receive two welcome emails. The company wants exactly one email per subscription and wants to keep the triggers in both Regions. What should a solutions architect do?",
+      "options": [
+        { "id": "A", "text": "Disable DynamoDB Streams on the eu-west-1 replica.", "correct": false, "explanation": "Global tables in MREC mode replicate through streams, so streams are always on for those replicas and cannot be disabled." },
+        { "id": "B", "text": "Increase the batch size of both event source mappings.", "correct": false, "explanation": "Batch size only changes how many records each invocation receives; both Regions would still process every insert." },
+        { "id": "C", "text": "Replace Amazon SES with an Amazon SNS email topic.", "correct": false, "explanation": "Both functions would still run for every insert, so duplicates remain, and SNS email needs per-address subscriptions." },
+        { "id": "D", "text": "Store the Region where each item is written in an attribute and add a Lambda event filter so each Region's function processes only items written in its own Region.", "correct": true, "explanation": "Each replica's stream contains every write, but the filter lets each function act only on locally originated items, so exactly one Region sends the email while both triggers stay in place." }
+      ],
+      "explanation": "Every global table replica's stream sees all writes; tag items with their origin Region and filter (or trigger in one Region only) to avoid duplicate side effects.",
+      "tags": ["dynamodb-global-tables", "dynamodb-streams", "lambda"]
+    },
+    {
+      "id": "22-serverless-architectures-q15",
+      "type": "single",
+      "domain": "resilient",
+      "difficulty": "easy",
+      "question": "A newly launched serverless site sends welcome emails from Lambda through Amazon SES. Emails arrive at the team's own test addresses, but real subscribers receive nothing, and the function logs show MessageRejected errors saying the recipient address is not verified. What should the team do?",
+      "options": [
+        { "id": "A", "text": "Add the ses:SendRawEmail permission to the function's execution role.", "correct": false, "explanation": "The error is about unverified recipients, not missing IAM permissions; the role already sends to test addresses." },
+        { "id": "B", "text": "Request production access for Amazon SES in that Region to move the account out of the sandbox.", "correct": true, "explanation": "In the sandbox SES delivers only to verified addresses (200 messages per day, 1 per second). Production access removes the recipient restriction." },
+        { "id": "C", "text": "Verify every subscriber's email address in SES before sending the welcome message.", "correct": false, "explanation": "Asking each subscriber to click an AWS verification link is impractical and does not lift the sandbox sending quotas." },
+        { "id": "D", "text": "Attach the Lambda function to a VPC with a NAT gateway.", "correct": false, "explanation": "Networking is not the problem; SES accepted the call and rejected it because of sandbox rules." }
+      ],
+      "explanation": "Mail reaching only verified addresses means the SES account is still in the sandbox; request production access.",
+      "tags": ["ses"]
+    }
+  ]
+}

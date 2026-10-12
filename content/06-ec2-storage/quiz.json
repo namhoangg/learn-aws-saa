@@ -1,0 +1,233 @@
+{
+  "section": "06-ec2-storage",
+  "questions": [
+    {
+      "id": "06-ec2-storage-q01",
+      "type": "single",
+      "domain": "cost",
+      "difficulty": "easy",
+      "question": "A company runs a self-managed MySQL database on a single EC2 instance. The data needs 200 GiB of storage and must sustain 10,000 IOPS at all times. Latency in the low single-digit milliseconds is acceptable. Which EBS configuration meets these requirements MOST cost-effectively?",
+      "options": [
+        { "id": "A", "text": "A 200 GiB gp2 volume.", "correct": false, "explanation": "A 200 GiB gp2 volume has a baseline of only 600 IOPS (3 per GiB) and can burst to 3,000 temporarily, far below a sustained 10,000 IOPS." },
+        { "id": "B", "text": "A 200 GiB io2 Block Express volume provisioned with 10,000 IOPS.", "correct": false, "explanation": "io2 meets the requirement but costs more per GiB and charges for every provisioned IOPS; nothing in the scenario needs io2's sub-millisecond latency or 99.999% durability." },
+        { "id": "C", "text": "A 200 GiB gp3 volume provisioned with 10,000 IOPS.", "correct": true, "explanation": "gp3 lets you buy IOPS independently of size (up to 500 per GiB), so 10,000 sustained IOPS on 200 GiB is allowed, and only the 7,000 IOPS above the free 3,000 baseline are billed." },
+        { "id": "D", "text": "A 200 GiB st1 volume.", "correct": false, "explanation": "st1 tops out at 500 IOPS and is built for large sequential reads and writes, not the small random I/O of a database." }
+      ],
+      "explanation": "When IOPS must rise without buying extra capacity and the need is below 80,000 IOPS, gp3 is the cost-effective answer; gp2 ties IOPS to size.",
+      "tags": ["ebs", "gp3", "gp2", "io2"]
+    },
+    {
+      "id": "06-ec2-storage-q02",
+      "type": "single",
+      "domain": "resilient",
+      "difficulty": "easy",
+      "question": "An application runs on an EC2 instance in us-east-1a with its data on a 500 GiB EBS volume. The team must launch a replacement instance in us-east-1b with a copy of the same data. What should a solutions architect do?",
+      "options": [
+        { "id": "A", "text": "Create a snapshot of the volume, then create a new volume from the snapshot in us-east-1b and attach it to the new instance.", "correct": true, "explanation": "Snapshots are Regional, not tied to an AZ, so a volume restored from one can be created in any AZ of the Region." },
+        { "id": "B", "text": "Detach the volume and attach it to the new instance in us-east-1b.", "correct": false, "explanation": "An EBS volume can only attach to instances in its own Availability Zone, so this attachment fails." },
+        { "id": "C", "text": "Enable Multi-Attach on the volume so both instances can use it.", "correct": false, "explanation": "Multi-Attach works only for io1/io2 volumes and only for instances in the same AZ, so it cannot reach us-east-1b." },
+        { "id": "D", "text": "Modify the volume's Availability Zone with an Elastic Volumes operation.", "correct": false, "explanation": "Elastic Volumes changes size, type, IOPS and throughput; there is no operation that moves a volume to another AZ." }
+      ],
+      "explanation": "Moving EBS data across AZs (or Regions) always goes through a snapshot.",
+      "tags": ["ebs", "ebs-snapshots", "az"]
+    },
+    {
+      "id": "06-ec2-storage-q03",
+      "type": "single",
+      "domain": "performant",
+      "difficulty": "medium",
+      "question": "A company runs a distributed NoSQL database on a cluster of EC2 instances. The database replicates every write to three nodes, so losing a single node's data is acceptable. The workload needs the highest possible random I/O performance at the lowest cost. Which storage should the instances use for the database files?",
+      "options": [
+        { "id": "A", "text": "EBS io2 Block Express volumes provisioned with 256,000 IOPS each.", "correct": false, "explanation": "io2 is durable and fast, but 256,000 IOPS per volume is far below local NVMe disks and you pay heavily for provisioned IOPS that the replicated design does not need." },
+        { "id": "B", "text": "An Amazon EFS file system with Provisioned throughput.", "correct": false, "explanation": "EFS is a shared network file system with millisecond latency; it is not designed for the highest random I/O of a database storage engine." },
+        { "id": "C", "text": "EBS gp3 volumes striped in RAID 0.", "correct": false, "explanation": "Striping gp3 raises performance but each volume still travels over the network and is billed separately; it cannot match local disks." },
+        { "id": "D", "text": "Instance store volumes on a storage optimized instance type.", "correct": true, "explanation": "Instance store disks are physically attached, deliver millions of IOPS on storage optimized types and cost nothing extra; replication protects against the loss of one node's ephemeral data." }
+      ],
+      "explanation": "Highest I/O plus data that is replicated or disposable is the textbook case for instance store.",
+      "tags": ["instance-store", "performance"]
+    },
+    {
+      "id": "06-ec2-storage-q04",
+      "type": "single",
+      "domain": "secure",
+      "difficulty": "medium",
+      "question": "An auditor finds that a production EC2 instance stores customer data on an unencrypted EBS data volume. The company must encrypt the data at rest with AWS KMS. What is the correct approach?",
+      "options": [
+        { "id": "A", "text": "Select the volume in the console and choose the option to enable encryption on it.", "correct": false, "explanation": "There is no way to encrypt an existing unencrypted volume in place; encryption is set only when a volume is created." },
+        { "id": "B", "text": "Snapshot the volume, copy the snapshot with encryption enabled, create a new volume from the encrypted snapshot, and replace the old volume with it.", "correct": true, "explanation": "Copying a snapshot is where encryption can be added, and every volume created from an encrypted snapshot is encrypted, so swapping volumes completes the job." },
+        { "id": "C", "text": "Enable EBS encryption by default in the Region; the existing volume will be encrypted automatically.", "correct": false, "explanation": "Encryption by default affects only new volumes and snapshot copies, not existing volumes." },
+        { "id": "D", "text": "Attach an IAM policy to the instance role that requires kms:Encrypt for all EBS writes.", "correct": false, "explanation": "IAM policies control who may call APIs; they do not encrypt blocks on an existing volume." }
+      ],
+      "explanation": "Unencrypted volume → snapshot → encrypted copy → new volume → swap. You cannot toggle encryption on an existing volume.",
+      "tags": ["ebs", "encryption", "kms"]
+    },
+    {
+      "id": "06-ec2-storage-q05",
+      "type": "single",
+      "domain": "resilient",
+      "difficulty": "easy",
+      "question": "A WordPress site runs on Amazon Linux EC2 instances in an Auto Scaling group across three Availability Zones. Uploaded images must be visible immediately to every instance, and the storage must keep working if one AZ fails. Which solution meets these requirements with the LEAST operational overhead?",
+      "options": [
+        { "id": "A", "text": "Attach an io2 volume with Multi-Attach to all instances.", "correct": false, "explanation": "Multi-Attach is limited to one AZ and 16 instances and needs a cluster-aware file system, so it cannot span three AZs." },
+        { "id": "B", "text": "Store the uploads on each instance's gp3 root volume and copy them between instances with a cron job.", "correct": false, "explanation": "Syncing files between instances is fragile, adds operational work and leaves copies out of date between runs." },
+        { "id": "C", "text": "Mount a Regional Amazon EFS file system on all instances through mount targets in each AZ.", "correct": true, "explanation": "EFS is a managed NFS file system that many Linux instances in several AZs mount at once, stored redundantly across AZs and sized automatically." },
+        { "id": "D", "text": "Use Amazon FSx for Windows File Server mounted over SMB.", "correct": false, "explanation": "FSx for Windows File Server is an SMB share that must join an Active Directory; Linux servers can mount it only with extra CIFS and directory setup, which is more overhead than mounting EFS over native NFS." }
+      ],
+      "explanation": "Shared files for many Linux instances across AZs points to Amazon EFS (Regional).",
+      "tags": ["efs", "wordpress"]
+    },
+    {
+      "id": "06-ec2-storage-q06",
+      "type": "multi",
+      "domain": "cost",
+      "difficulty": "medium",
+      "question": "A media company keeps 20 TB of project files on a Regional Amazon EFS file system that uses Elastic throughput. Files are edited heavily for about a month; after that most are opened a few times a quarter, and files older than three months are opened only a few times a year. The data must stay resilient to the loss of an Availability Zone. Which actions will reduce storage cost the MOST while meeting these requirements? (Select TWO.)",
+      "options": [
+        { "id": "A", "text": "Re-create the file system as One Zone to halve the storage price.", "correct": false, "explanation": "One Zone stores data in a single AZ, which breaks the requirement to survive the loss of an AZ." },
+        { "id": "B", "text": "Add a lifecycle policy that transitions files into EFS Infrequent Access after 30 days without access.", "correct": true, "explanation": "IA storage costs a small fraction of Standard and suits files opened a few times a quarter; lifecycle management moves them automatically." },
+        { "id": "C", "text": "Switch the performance mode to Max I/O.", "correct": false, "explanation": "Performance mode affects latency and parallelism, not storage price, and Max I/O is a previous-generation mode not available with Elastic throughput." },
+        { "id": "D", "text": "Add a lifecycle policy that transitions files into EFS Archive after 90 days without access.", "correct": true, "explanation": "Archive is about half the IA price for data read a few times a year, and it is supported because the file system uses Elastic throughput." },
+        { "id": "E", "text": "Move the files to an sc1 EBS volume shared by the editing instances.", "correct": false, "explanation": "sc1 is cheap but is a single-AZ block device that cannot be shared by several instances, so it fails both the sharing and resilience needs." }
+      ],
+      "explanation": "EFS lifecycle policies tier cold files to IA and Archive automatically while keeping a Regional file system.",
+      "tags": ["efs", "lifecycle", "cost"]
+    },
+    {
+      "id": "06-ec2-storage-q07",
+      "type": "single",
+      "domain": "resilient",
+      "difficulty": "medium",
+      "question": "A security team wants the root EBS volume of certain EC2 instances to be preserved for forensic analysis whenever those instances are terminated. What should a solutions architect configure?",
+      "options": [
+        { "id": "A", "text": "Set the DeleteOnTermination attribute of the root volume to false in the instances' block device mapping.", "correct": true, "explanation": "Root volumes attached at launch are deleted on termination by default; setting the flag to false keeps the volume after termination." },
+        { "id": "B", "text": "Enable termination protection on the instances.", "correct": false, "explanation": "Termination protection only blocks terminate requests from the console, CLI or API (not Auto Scaling scale-in or an OS-initiated shutdown set to terminate), and when the instance is eventually terminated the root volume is still deleted." },
+        { "id": "C", "text": "Store the root volume on instance store instead of EBS.", "correct": false, "explanation": "Instance store data is erased when the instance stops or terminates, the opposite of what is required." },
+        { "id": "D", "text": "Enable EBS encryption by default.", "correct": false, "explanation": "Encryption protects data confidentiality; it has no effect on whether a volume is deleted at termination." }
+      ],
+      "explanation": "The DeleteOnTermination flag decides whether an EBS volume outlives its instance; it is true by default for root volumes.",
+      "tags": ["ebs", "delete-on-termination"]
+    },
+    {
+      "id": "06-ec2-storage-q08",
+      "type": "single",
+      "domain": "cost",
+      "difficulty": "medium",
+      "question": "Regulations require a company to keep the month-end EBS snapshot of each database volume for seven years. The snapshots are almost never restored, and when a restore is needed the auditors accept waiting up to three days. Which solution is MOST cost-effective?",
+      "options": [
+        { "id": "A", "text": "Keep the snapshots in the standard snapshot tier and enable Fast Snapshot Restore.", "correct": false, "explanation": "FSR adds a large hourly charge per snapshot per AZ to make restores fast, which the scenario explicitly does not need." },
+        { "id": "B", "text": "Create AMIs from the snapshots and copy them to a second Region.", "correct": false, "explanation": "AMIs are still backed by standard-tier snapshots, and a second copy doubles storage cost instead of reducing it." },
+        { "id": "C", "text": "Keep the volumes themselves detached and unused for seven years.", "correct": false, "explanation": "Detached volumes are billed for their full provisioned size and cost far more than snapshot storage." },
+        { "id": "D", "text": "Move the month-end snapshots to the EBS Snapshots Archive tier.", "correct": true, "explanation": "The archive tier is up to 75% cheaper for snapshots kept 90 days or longer, and its restore time of up to 72 hours fits the three-day tolerance." }
+      ],
+      "explanation": "Long-term, rarely restored snapshots with relaxed restore times belong in EBS Snapshots Archive.",
+      "tags": ["ebs-snapshots", "archive", "cost"]
+    },
+    {
+      "id": "06-ec2-storage-q09",
+      "type": "single",
+      "domain": "resilient",
+      "difficulty": "medium",
+      "question": "Operators routinely delete old EBS snapshots as part of cleanup scripts. Twice this year a script deleted snapshots that were still needed. The company wants any deleted snapshot to be recoverable for 14 days without stopping operators from deleting snapshots. Which solution meets these requirements?",
+      "options": [
+        { "id": "A", "text": "Lock every snapshot in compliance mode with EBS snapshot lock for 14 days.", "correct": false, "explanation": "Snapshot lock prevents deletion entirely during the lock period, which would break the operators' normal cleanup." },
+        { "id": "B", "text": "Create a Recycle Bin retention rule for EBS snapshots with a 14-day retention period.", "correct": true, "explanation": "Recycle Bin keeps deleted snapshots that match a rule for the chosen period (1 to 365 days), and they can be recovered at any time before it expires." },
+        { "id": "C", "text": "Copy every snapshot to a second Region after creation.", "correct": false, "explanation": "Copies add cost and the cleanup script could delete them too; it also does not provide a simple undo for deletions." },
+        { "id": "D", "text": "Archive all snapshots to the EBS Snapshots Archive tier.", "correct": false, "explanation": "Archiving lowers storage cost but archived snapshots can still be deleted, and it adds restore delays." }
+      ],
+      "explanation": "Recover accidentally deleted snapshots or AMIs within a time window → Recycle Bin retention rules.",
+      "tags": ["ebs-snapshots", "recycle-bin"]
+    },
+    {
+      "id": "06-ec2-storage-q10",
+      "type": "multi",
+      "domain": "resilient",
+      "difficulty": "hard",
+      "question": "A company runs a clustered Linux application on four EC2 instances in the same Availability Zone. For high availability, all nodes must have concurrent read and write access to the same block storage volume, and the application already coordinates writes between nodes. Which TWO steps should a solutions architect take? (Select TWO.)",
+      "options": [
+        { "id": "A", "text": "Create a gp3 volume with Multi-Attach enabled.", "correct": false, "explanation": "Multi-Attach is supported only on Provisioned IOPS SSD volumes (io1 and io2), not on gp3." },
+        { "id": "B", "text": "Format the shared volume with XFS so every node can mount it normally.", "correct": false, "explanation": "XFS and EXT4 are not designed for simultaneous access from several servers and would corrupt the shared volume." },
+        { "id": "C", "text": "Create an io2 volume with Multi-Attach enabled and attach it to the four Nitro-based instances.", "correct": true, "explanation": "Multi-Attach lets one io1/io2 volume attach to up to 16 Nitro instances in the same AZ, each with read and write access." },
+        { "id": "D", "text": "Spread the instances across three Availability Zones for extra resilience.", "correct": false, "explanation": "A Multi-Attach volume can only attach to instances in its own AZ, so nodes in other AZs could not use it." },
+        { "id": "E", "text": "Format the shared volume with a cluster-aware file system.", "correct": true, "explanation": "A clustered file system coordinates access from several hosts; standard file systems on a shared device would corrupt data." }
+      ],
+      "explanation": "Shared block storage for a cluster in one AZ = io1/io2 Multi-Attach plus a cluster-aware file system.",
+      "tags": ["ebs", "multi-attach", "io2"]
+    },
+    {
+      "id": "06-ec2-storage-q11",
+      "type": "single",
+      "domain": "performant",
+      "difficulty": "medium",
+      "question": "An Auto Scaling group launches EC2 instances that run a long user data script to install packages and the application. New instances take 15 minutes before they can serve traffic, so the group reacts too slowly to traffic spikes. What should a solutions architect do to reduce the launch time?",
+      "options": [
+        { "id": "A", "text": "Switch the root volumes from gp3 to io2 Block Express.", "correct": false, "explanation": "Faster disks shave little off a script dominated by downloads and installation; the software would still be installed at every launch." },
+        { "id": "B", "text": "Store the installers on an EFS file system mounted by each instance.", "correct": false, "explanation": "Having installers nearby speeds downloads slightly, but every instance still has to run the full installation." },
+        { "id": "C", "text": "Create a custom AMI with the software preinstalled and use it in the launch template.", "correct": true, "explanation": "A golden AMI already contains the configured software, so new instances boot ready to serve with little or no user data work." },
+        { "id": "D", "text": "Use instance types with instance store and install software there.", "correct": false, "explanation": "Instance store is ephemeral and starts empty at every launch, so the installation would still run each time." }
+      ],
+      "explanation": "Pre-baking software into a custom AMI is the standard way to cut instance boot and configuration time.",
+      "tags": ["ami", "asg"]
+    },
+    {
+      "id": "06-ec2-storage-q12",
+      "type": "single",
+      "domain": "secure",
+      "difficulty": "medium",
+      "question": "A company's security policy states that every EBS volume created from now on in us-east-1 and eu-west-1 must be encrypted, even if an engineer forgets to choose encryption. Which solution requires the LEAST effort?",
+      "options": [
+        { "id": "A", "text": "Write a Lambda function that checks new volumes every hour and deletes unencrypted ones.", "correct": false, "explanation": "This is custom code that reacts after the fact and destroys data; it is more effort and riskier than a built-in setting." },
+        { "id": "B", "text": "Encrypt only the AMIs used by the company; volumes launched from them inherit encryption.", "correct": false, "explanation": "Encrypted AMIs cover their own snapshots, but engineers could still create unencrypted empty volumes or use other AMIs." },
+        { "id": "C", "text": "Enable encryption by default once in us-east-1; the setting applies to all Regions.", "correct": false, "explanation": "EBS encryption by default is a per-Region setting, so enabling it in one Region leaves eu-west-1 unprotected." },
+        { "id": "D", "text": "Enable EBS encryption by default in both us-east-1 and eu-west-1.", "correct": true, "explanation": "With encryption by default on, every new volume and snapshot copy in that Region is encrypted automatically and cannot be created unencrypted." }
+      ],
+      "explanation": "Enforce encryption of new EBS volumes with the per-Region encryption-by-default setting.",
+      "tags": ["ebs", "encryption"]
+    },
+    {
+      "id": "06-ec2-storage-q13",
+      "type": "multi",
+      "domain": "cost",
+      "difficulty": "medium",
+      "question": "An analytics team needs two EBS data volumes. Volume 1 holds 4 TiB of log files that a nightly batch job reads sequentially at high throughput. Volume 2 holds 10 TiB of raw historical data that is read only a few times a year. Which volume types meet these needs at the LOWEST cost? (Select TWO.)",
+      "options": [
+        { "id": "A", "text": "io2 Block Express for Volume 1.", "correct": false, "explanation": "io2 targets low-latency random I/O and charges for provisioned IOPS, far more than a sequential batch job needs." },
+        { "id": "B", "text": "st1 for Volume 1.", "correct": true, "explanation": "Throughput Optimized HDD is designed for frequently accessed, large sequential workloads such as log processing, at a low price per GiB." },
+        { "id": "C", "text": "gp3 for Volume 2.", "correct": false, "explanation": "gp3 works but costs several times more per GiB than sc1 for data that is almost never read." },
+        { "id": "D", "text": "sc1 for the root volumes of the batch instances to save even more.", "correct": false, "explanation": "HDD volume types (st1 and sc1) cannot be used as boot volumes." },
+        { "id": "E", "text": "sc1 for Volume 2.", "correct": true, "explanation": "Cold HDD has the lowest price of any EBS volume and suits large data sets that are rarely read." }
+      ],
+      "explanation": "Sequential, throughput-heavy data → st1; cold, rarely read data → sc1; neither can boot.",
+      "tags": ["ebs", "st1", "sc1", "cost"]
+    },
+    {
+      "id": "06-ec2-storage-q14",
+      "type": "single",
+      "domain": "performant",
+      "difficulty": "hard",
+      "question": "During a disaster recovery test, a company restores a 2 TiB database volume from an EBS snapshot. The database is slow for the first hour because data blocks are loaded on first access. The recovery plan requires full provisioned performance as soon as the volume is created, in a specific AZ. What should a solutions architect recommend?",
+      "options": [
+        { "id": "A", "text": "Enable Fast Snapshot Restore on the snapshot in the AZ where the volume will be created.", "correct": true, "explanation": "Volumes created from an FSR-enabled snapshot in an enabled AZ are fully initialized at creation and deliver full performance immediately." },
+        { "id": "B", "text": "Move the snapshot to the EBS Snapshots Archive tier before the test.", "correct": false, "explanation": "Archived snapshots must first be restored, which can take up to 72 hours, making recovery slower, not faster." },
+        { "id": "C", "text": "Create the restored volume as io2 with more provisioned IOPS.", "correct": false, "explanation": "More provisioned IOPS do not remove the first-access penalty of blocks that still have to be fetched from S3." },
+        { "id": "D", "text": "Take snapshots more frequently so each one is smaller.", "correct": false, "explanation": "Incremental snapshots still restore the whole volume's data, so the lazy-loading delay on a new volume remains." }
+      ],
+      "explanation": "Full performance immediately after restoring from a snapshot points to Fast Snapshot Restore (enabled per snapshot per AZ).",
+      "tags": ["ebs-snapshots", "fsr"]
+    },
+    {
+      "id": "06-ec2-storage-q15",
+      "type": "single",
+      "domain": "cost",
+      "difficulty": "medium",
+      "question": "A development team needs a shared file system for a few Linux EC2 instances in one Availability Zone. The data is test data that can be re-created easily, and most files are idle after a few weeks. Which option is MOST cost-effective?",
+      "options": [
+        { "id": "A", "text": "A Regional EFS file system in Standard storage with Provisioned throughput.", "correct": false, "explanation": "Regional storage and provisioned throughput pay for multi-AZ resilience and performance that test data does not need." },
+        { "id": "B", "text": "An EFS One Zone file system with a lifecycle policy to One Zone-IA.", "correct": true, "explanation": "One Zone costs about half of Regional storage, and moving idle files to One Zone-IA cuts the bill further, which is acceptable for re-creatable data." },
+        { "id": "C", "text": "A gp3 EBS volume attached to all the instances with Multi-Attach.", "correct": false, "explanation": "gp3 does not support Multi-Attach, and Multi-Attach would not provide a shared file system anyway." },
+        { "id": "D", "text": "Amazon FSx for Windows File Server.", "correct": false, "explanation": "FSx for Windows is aimed at Windows SMB workloads and costs more than EFS One Zone for a small Linux team." }
+      ],
+      "explanation": "Re-creatable dev/test data that needs a shared Linux file system → EFS One Zone, optionally with One Zone-IA.",
+      "tags": ["efs", "one-zone", "cost"]
+    }
+  ]
+}

@@ -1,0 +1,235 @@
+{
+  "section": "11-classic-architectures",
+  "questions": [
+    {
+      "id": "11-classic-architectures-q01",
+      "type": "single",
+      "domain": "resilient",
+      "difficulty": "easy",
+      "question": "A stateless API runs on four public EC2 instances. Each instance's public IP address is listed in a Route 53 A record with a TTL of 3,600 seconds. When an engineer terminates an instance, some clients receive connection errors for up to an hour, and every fleet change requires editing the record. Which solution resolves these issues with the LEAST operational overhead?",
+      "options": [
+        { "id": "A", "text": "Lower the TTL of the A record to 60 seconds and run a script that rewrites the record whenever instances are added or removed.", "correct": false, "explanation": "A shorter TTL narrows the error window but clients still cache dead addresses, and the script is extra operational work to build and maintain." },
+        { "id": "B", "text": "Allocate an Elastic IP address for every instance and publish those addresses in the A record instead.", "correct": false, "explanation": "Elastic IPs keep one instance's address stable but do not remove dead instances from DNS, and the default quota is only five per Region." },
+        { "id": "C", "text": "Move the instances into an Auto Scaling group behind an Application Load Balancer and point a Route 53 alias record at the load balancer.", "correct": true, "explanation": "The ALB is a single stable endpoint that health-checks targets, the Auto Scaling group registers and replaces instances automatically, and the alias record tracks the ALB without manual edits." },
+        { "id": "D", "text": "Replace the A record with a multivalue answer record that has a health check for each instance IP address.", "correct": false, "explanation": "Health-checked multivalue records skip failed IPs, but you still manage a record and a health check per instance and clients still cache answers." }
+      ],
+      "explanation": "Publishing instance IPs in DNS does not scale; an ELB with health checks, an Auto Scaling group and a Route 53 alias record is the classic fix.",
+      "tags": ["route53", "alb", "asg", "ttl"]
+    },
+    {
+      "id": "11-classic-architectures-q02",
+      "type": "single",
+      "domain": "resilient",
+      "difficulty": "medium",
+      "question": "An online clothing store runs its web tier in an Auto Scaling group behind an Application Load Balancer with sticky sessions enabled. Shopping carts are held in the memory of each instance. After every scale-in event, some customers find their cart empty. The company wants the web tier to scale freely without losing carts. Which solution is MOST scalable?",
+      "options": [
+        { "id": "A", "text": "Store cart data in Amazon ElastiCache keyed by a session ID that the browser sends in a cookie, and read it from any instance.", "correct": true, "explanation": "A shared server-side session store makes the instances stateless, so any instance can serve the customer and terminated instances take no carts with them." },
+        { "id": "B", "text": "Increase the stickiness duration on the target group so that customers stay on the same instance for longer.", "correct": false, "explanation": "Longer stickiness does not help when the instance itself is terminated during scale-in; the cart in its memory is still lost." },
+        { "id": "C", "text": "Store the complete cart contents in a browser cookie and send it with every request.", "correct": false, "explanation": "Cookies make requests heavier, are limited to about 4 KB and can be tampered with, so this is not the most scalable or safest design." },
+        { "id": "D", "text": "Suspend the Terminate process of the Auto Scaling group so that instances are never removed.", "correct": false, "explanation": "Never scaling in wastes money, and carts held in memory are still lost when an instance crashes, is stopped by a hardware fault or sits in an AZ that has an outage." }
+      ],
+      "explanation": "Keep session state out of the instances: a session ID cookie plus ElastiCache (or DynamoDB) is the scalable pattern; sticky sessions are only a stopgap.",
+      "tags": ["elasticache", "sessions", "sticky-sessions"]
+    },
+    {
+      "id": "11-classic-architectures-q03",
+      "type": "single",
+      "domain": "performant",
+      "difficulty": "medium",
+      "question": "A retail site stores its product catalog in Amazon RDS for MySQL. The catalog changes a few times per day, but the same product pages are read thousands of times per minute and the primary DB instance is running at high CPU. The company needs sub-millisecond response times for these repeated reads. Which solution should a solutions architect recommend?",
+      "options": [
+        { "id": "A", "text": "Convert the DB instance to a Multi-AZ DB instance deployment and send read queries to the standby.", "correct": false, "explanation": "A Multi-AZ DB instance standby is only for failover and does not accept read queries, so it cannot offload the primary." },
+        { "id": "B", "text": "Change the DB instance to a larger instance class with more vCPUs and memory.", "correct": false, "explanation": "Scaling up buys time but keeps every read on the database and will not give sub-millisecond latency for hot items." },
+        { "id": "C", "text": "Create two RDS read replicas and route the product page queries to the replica endpoints.", "correct": false, "explanation": "Replicas do take read load off the primary, but every query still runs in a disk-based database engine and typically takes milliseconds, so this cannot meet the sub-millisecond requirement that an in-memory cache can." },
+        { "id": "D", "text": "Add Amazon ElastiCache in front of RDS and use lazy loading with a TTL for product data.", "correct": true, "explanation": "Hot product data is served from memory in sub-millisecond time, cache misses refill the cache, and the TTL bounds staleness for rarely changing data." }
+      ],
+      "explanation": "Repeated reads of rarely changing data are a caching problem: ElastiCache with lazy loading and a TTL removes load from RDS and cuts latency.",
+      "tags": ["elasticache", "rds", "caching"]
+    },
+    {
+      "id": "11-classic-architectures-q04",
+      "type": "multi",
+      "domain": "resilient",
+      "difficulty": "medium",
+      "question": "A company's web application uses a single-AZ Amazon RDS for MySQL DB instance. Read traffic is growing quickly, and the business now requires the database to keep working automatically if an Availability Zone fails. Which actions together meet these requirements? (Select TWO.)",
+      "options": [
+        { "id": "A", "text": "Enable a Multi-AZ deployment so that a synchronous standby in another AZ takes over automatically on failure.", "correct": true, "explanation": "Multi-AZ gives automatic failover to a standby in a different AZ, which satisfies the availability requirement." },
+        { "id": "B", "text": "Create read replicas and update the application to send read-only queries to the replica endpoints.", "correct": true, "explanation": "Read replicas receive asynchronous copies of the data and absorb the growing read traffic once the app points reads at them." },
+        { "id": "C", "text": "Point the reporting and catalog queries at the Multi-AZ standby instance to spread the read load.", "correct": false, "explanation": "A Multi-AZ DB instance standby cannot be queried; it exists only to take over when the primary fails." },
+        { "id": "D", "text": "Increase the automated backup retention period to 35 days.", "correct": false, "explanation": "Longer backup retention improves point-in-time recovery options but provides neither automatic failover nor read capacity." },
+        { "id": "E", "text": "Move the database to an EC2 instance that uses instance store volumes for faster disk access.", "correct": false, "explanation": "Instance store data is lost when the instance stops or fails, and self-managing MySQL adds work without adding high availability." }
+      ],
+      "explanation": "Multi-AZ is for availability, read replicas are for read scaling; the exam often tests that the two are different tools.",
+      "tags": ["rds", "multi-az", "read-replicas"]
+    },
+    {
+      "id": "11-classic-architectures-q05",
+      "type": "single",
+      "domain": "secure",
+      "difficulty": "easy",
+      "question": "A three-tier application runs web servers in an Auto Scaling group in private subnets and an Amazon RDS for MySQL database in data subnets. The web servers' IP addresses change as instances are replaced. Only the web servers may connect to the database. How should the database security group be configured?",
+      "options": [
+        { "id": "A", "text": "Allow inbound TCP 3306 from 0.0.0.0/0 and rely on the private subnet to block internet traffic.", "correct": false, "explanation": "Opening the port to everyone lets any host that can route to the subnet connect, which breaks least privilege." },
+        { "id": "B", "text": "Allow inbound TCP 3306 with the web servers' security group as the source.", "correct": true, "explanation": "Referencing the web tier's security group admits exactly the instances in that group, whatever their current IP addresses." },
+        { "id": "C", "text": "Allow inbound TCP 3306 from the current private IP address of each web server and update the rule after scaling events.", "correct": false, "explanation": "IP-based rules break every time the Auto Scaling group replaces an instance and require constant manual updates." },
+        { "id": "D", "text": "Allow inbound TCP 3306 from the Application Load Balancer's security group.", "correct": false, "explanation": "The load balancer does not connect to the database; the web servers do, so this rule would block the real traffic." }
+      ],
+      "explanation": "Chain security groups tier by tier: the database allows its port only from the application tier's security group.",
+      "tags": ["security-groups", "rds"]
+    },
+    {
+      "id": "11-classic-architectures-q06",
+      "type": "single",
+      "domain": "resilient",
+      "difficulty": "medium",
+      "question": "A WordPress site runs on EC2 instances in an Auto Scaling group across two Availability Zones. Authors upload images, which WordPress saves to a local directory on the instance that handled the upload. Readers often see broken images. The application code cannot be changed and must keep writing to a file system path. Which solution fixes the problem?",
+      "options": [
+        { "id": "A", "text": "Enable EBS Multi-Attach on a gp3 volume and attach it to every instance in the Auto Scaling group.", "correct": false, "explanation": "Multi-Attach works only with io1 and io2 volumes, only within one AZ, and needs a cluster-aware file system, so it cannot serve a two-AZ fleet." },
+        { "id": "B", "text": "Increase the size of each instance's EBS volume so that more images can be stored locally.", "correct": false, "explanation": "Bigger volumes do not share files between instances; each reader still sees only the disk of the instance it reaches." },
+        { "id": "C", "text": "Create an Amazon EFS file system with a mount target in each AZ and mount it as the uploads directory on every instance.", "correct": true, "explanation": "EFS is a shared NFS file system reachable from every AZ, so a file written through one instance is immediately visible to all the others." },
+        { "id": "D", "text": "Store the uploads on instance store volumes, which offer higher I/O performance than EBS.", "correct": false, "explanation": "Instance store is still local to one instance and is lost when the instance stops, making the problem worse." }
+      ],
+      "explanation": "Files that every instance in a multi-AZ fleet must see belong on EFS (or S3 if the code can change), not on per-instance EBS volumes.",
+      "tags": ["efs", "ebs", "wordpress"]
+    },
+    {
+      "id": "11-classic-architectures-q07",
+      "type": "single",
+      "domain": "performant",
+      "difficulty": "medium",
+      "question": "New instances in an Auto Scaling group take about 15 minutes to pass health checks because their user data script installs an application server, language runtime and dozens of packages before starting the app. During traffic spikes, capacity arrives too late. Which change MOST reduces the time for new instances to serve traffic?",
+      "options": [
+        { "id": "A", "text": "Build a golden AMI with the software pre-installed (for example with EC2 Image Builder) and keep only environment-specific settings in user data.", "correct": true, "explanation": "Pre-baking the slow installation steps into the AMI means new instances only run short configuration at boot, so they become healthy in a fraction of the time." },
+        { "id": "B", "text": "Increase the health check grace period of the Auto Scaling group to 20 minutes.", "correct": false, "explanation": "A longer grace period only stops instances being marked unhealthy too early; it does not make them ready any sooner." },
+        { "id": "C", "text": "Switch the launch template to a larger instance type so that the packages install faster.", "correct": false, "explanation": "A bigger instance shortens installation slightly at a higher cost, but most of the time is still spent downloading and configuring software." },
+        { "id": "D", "text": "Move the installation commands from user data into a script that runs on every reboot.", "correct": false, "explanation": "Running the same installation on every reboot adds work instead of removing it and does nothing for newly launched instances." }
+      ],
+      "explanation": "Golden AMIs for the stable software plus small user data scripts for dynamic configuration give the fastest instance start-up.",
+      "tags": ["ami", "user-data", "asg"]
+    },
+    {
+      "id": "11-classic-architectures-q08",
+      "type": "single",
+      "domain": "resilient",
+      "difficulty": "easy",
+      "question": "The QA team needs a copy of the production Amazon RDS for PostgreSQL database exactly as it was in last night's automated snapshot. The copy must be ready quickly and must not affect production performance. What should a solutions architect do?",
+      "options": [
+        { "id": "A", "text": "Restore last night's snapshot onto the existing QA DB instance so that the application endpoint stays the same.", "correct": false, "explanation": "RDS cannot restore a snapshot into an existing DB instance; a restore always creates a new instance." },
+        { "id": "B", "text": "Run a logical dump from the production database during business hours and import it into a new instance.", "correct": false, "explanation": "A dump is slow, loads the production database while it runs, and captures the current state rather than last night's." },
+        { "id": "C", "text": "Create a read replica of the production database and promote it to a standalone instance.", "correct": false, "explanation": "A promoted replica reflects the current data, not last night's snapshot, and building it adds replication work on production." },
+        { "id": "D", "text": "Restore the snapshot to a new DB instance and point the QA application at the new instance's endpoint.", "correct": true, "explanation": "Restoring a snapshot creates a new instance that already contains the schemas and data from that point in time, without touching production." }
+      ],
+      "explanation": "Restoring an RDS snapshot is the quick way to instantiate a database with data ready; it always produces a new DB instance and endpoint.",
+      "tags": ["rds", "snapshots"]
+    },
+    {
+      "id": "11-classic-architectures-q09",
+      "type": "single",
+      "domain": "cost",
+      "difficulty": "easy",
+      "question": "A small team has built a Java web application that runs on Apache Tomcat. They want to deploy it on AWS with load balancing, Auto Scaling, health monitoring and platform patching handled for them, while still being able to inspect and adjust the underlying EC2 instances. Which approach requires the LEAST operational overhead?",
+      "options": [
+        { "id": "A", "text": "Write AWS CloudFormation templates for the VPC, load balancer, Auto Scaling group and instances, and a pipeline to deploy the WAR file.", "correct": false, "explanation": "CloudFormation works but the team must design, write and maintain every resource and the deployment process themselves." },
+        { "id": "B", "text": "Deploy the WAR file to an AWS Elastic Beanstalk environment on the Tomcat platform with a load-balanced configuration.", "correct": true, "explanation": "Elastic Beanstalk provisions the load balancer, Auto Scaling group and instances, monitors health and applies platform updates, while the resources stay visible and configurable in the account." },
+        { "id": "C", "text": "Launch EC2 instances manually, install Tomcat on each one, and register them with an Application Load Balancer.", "correct": false, "explanation": "Manual instances mean patching, scaling and replacing servers by hand, which is the most operational effort of all the options." },
+        { "id": "D", "text": "Rewrite the application as AWS Lambda functions behind Amazon API Gateway.", "correct": false, "explanation": "A rewrite is a large engineering effort and the team would lose the instance-level control they asked to keep." }
+      ],
+      "explanation": "Elastic Beanstalk is the managed way to run a standard web app on familiar platforms while keeping access to the resources it creates, at no extra charge.",
+      "tags": ["elastic-beanstalk"]
+    },
+    {
+      "id": "11-classic-architectures-q10",
+      "type": "single",
+      "domain": "performant",
+      "difficulty": "medium",
+      "question": "A video-sharing site runs on an Elastic Beanstalk web server environment. When a user uploads a video, the web instance transcodes it before replying, which takes several minutes. Requests time out and the web tier becomes unresponsive during busy periods. How should the application be redesigned?",
+      "options": [
+        { "id": "A", "text": "Increase the idle timeout of the environment's Application Load Balancer to 30 minutes.", "correct": false, "explanation": "A longer timeout hides the errors but web instances stay tied up for minutes per upload, so the tier still becomes unresponsive." },
+        { "id": "B", "text": "Enable sticky sessions so that each user's uploads always reach the same instance.", "correct": false, "explanation": "Stickiness controls routing only; it does not shorten transcoding or free the web instances to handle other requests." },
+        { "id": "C", "text": "Have the web tier send a job message to an SQS queue and process the transcoding in a separate Elastic Beanstalk worker environment.", "correct": true, "explanation": "The web tier replies immediately after queuing the job, and the worker environment's daemon pulls messages and transcodes at its own pace, scaling independently." },
+        { "id": "D", "text": "Change the web environment to larger instance types so that each transcode finishes sooner.", "correct": false, "explanation": "Bigger instances cost more and still block requests during each transcode; the long task remains in the request path." }
+      ],
+      "explanation": "Move long-running work out of the request path: web tier enqueues to SQS, a Beanstalk worker environment consumes the queue.",
+      "tags": ["elastic-beanstalk", "sqs", "worker"]
+    },
+    {
+      "id": "11-classic-architectures-q11",
+      "type": "multi",
+      "domain": "cost",
+      "difficulty": "medium",
+      "question": "A company uses AWS Elastic Beanstalk for one application. Developers need a low-cost development environment. The production environment must stay available if an instance or an Availability Zone fails. Which configurations meet these requirements? (Select TWO.)",
+      "options": [
+        { "id": "A", "text": "Use a single-instance environment for development.", "correct": true, "explanation": "A single-instance environment runs one EC2 instance with an Elastic IP and no load balancer, which is the cheapest option and fine for development." },
+        { "id": "B", "text": "Use a load-balanced environment for production with its Auto Scaling group spread across multiple AZs.", "correct": true, "explanation": "The load balancer and multi-AZ Auto Scaling group keep serving traffic and replace instances when an instance or an AZ fails." },
+        { "id": "C", "text": "Use a single-instance environment for production and take daily EBS snapshots of the instance.", "correct": false, "explanation": "Snapshots help recovery but one instance in one AZ is still a single point of failure with downtime during failures and deployments." },
+        { "id": "D", "text": "Use a load-balanced environment with a Network Load Balancer and four instances for development.", "correct": false, "explanation": "A load balancer and several instances add hourly cost that a development environment does not need." },
+        { "id": "E", "text": "Run development and production as two application versions inside one shared environment to save resources.", "correct": false, "explanation": "An environment runs only one application version at a time, so dev and prod need separate environments." }
+      ],
+      "explanation": "Beanstalk single-instance environments suit development; load-balanced, multi-AZ environments suit production.",
+      "tags": ["elastic-beanstalk", "environments"]
+    },
+    {
+      "id": "11-classic-architectures-q12",
+      "type": "single",
+      "domain": "resilient",
+      "difficulty": "hard",
+      "question": "A production Elastic Beanstalk environment runs ten instances behind an Application Load Balancer and uses an RDS database created outside Beanstalk. New releases must keep full capacity during deployment, and if the new version fails its health checks the existing instances must remain untouched. The team does not want to manage a second environment. Which deployment policy should they choose?",
+      "options": [
+        { "id": "A", "text": "All at once.", "correct": false, "explanation": "All instances update simultaneously, causing a brief outage, and a failed version affects the whole fleet." },
+        { "id": "B", "text": "Rolling.", "correct": false, "explanation": "Each batch leaves service while it updates, so capacity drops, and a failure can leave the fleet running mixed versions." },
+        { "id": "C", "text": "Blue/green deployment with a CNAME swap.", "correct": false, "explanation": "Blue/green meets the capacity and rollback goals but requires creating and managing a second environment, which the team wants to avoid." },
+        { "id": "D", "text": "Immutable.", "correct": true, "explanation": "Immutable launches a full new set of instances in a temporary Auto Scaling group alongside the old ones and only swaps them in when healthy; on failure the new instances are terminated and the originals are untouched." }
+      ],
+      "explanation": "Immutable deployments keep full capacity and give a safe rollback within one environment; blue/green does the same with a second environment and a URL swap.",
+      "tags": ["elastic-beanstalk", "deployments"]
+    },
+    {
+      "id": "11-classic-architectures-q13",
+      "type": "multi",
+      "domain": "secure",
+      "difficulty": "medium",
+      "question": "A solutions architect is designing security groups for a public web application: an internet-facing Application Load Balancer, application instances in private subnets, and an Amazon RDS for MySQL database. The design must follow the principle of least privilege. Which rules should the architect configure? (Select THREE.)",
+      "options": [
+        { "id": "A", "text": "Load balancer security group: allow inbound HTTPS 443 from 0.0.0.0/0.", "correct": true, "explanation": "The load balancer is the public entry point, so it must accept HTTPS from any client on the internet." },
+        { "id": "B", "text": "Application security group: allow inbound on the application port only from the load balancer's security group.", "correct": true, "explanation": "Referencing the load balancer's group means the instances accept traffic only after it passes through the load balancer." },
+        { "id": "C", "text": "Database security group: allow inbound TCP 3306 only from the application security group.", "correct": true, "explanation": "Only the application instances need the database, and the group reference keeps working as instances are replaced." },
+        { "id": "D", "text": "Application security group: allow inbound HTTP 80 from 0.0.0.0/0 so the load balancer can reach the instances.", "correct": false, "explanation": "Opening the instances to the internet is unnecessary; the load balancer's security group reference already allows its traffic." },
+        { "id": "E", "text": "Database security group: allow inbound TCP 3306 from the whole VPC CIDR range.", "correct": false, "explanation": "Any resource in the VPC could then reach the database, which is broader than least privilege requires." },
+        { "id": "F", "text": "Load balancer security group: allow inbound TCP 3306 from 0.0.0.0/0 to forward database traffic.", "correct": false, "explanation": "The load balancer never forwards database traffic, and exposing the MySQL port publicly is a security risk." }
+      ],
+      "explanation": "Security group chaining: internet to the load balancer, load balancer group to the app tier, app group to the data tier.",
+      "tags": ["security-groups", "three-tier"]
+    },
+    {
+      "id": "11-classic-architectures-q14",
+      "type": "single",
+      "domain": "cost",
+      "difficulty": "easy",
+      "question": "A stateless web application runs in an Auto Scaling group across two Availability Zones with a minimum of 2 instances, which runs around the clock. During business hours it scales to as many as 10 instances. The company expects this pattern for at least three more years. Which purchasing approach is MOST cost-effective?",
+      "options": [
+        { "id": "A", "text": "Cover the 2-instance baseline with Reserved Instances or a Savings Plan and keep the additional capacity On-Demand.", "correct": true, "explanation": "The always-on baseline earns the commitment discount, while the variable daytime capacity stays flexible and is only paid for when it runs." },
+        { "id": "B", "text": "Buy Reserved Instances for all 10 instances so that the peak is always discounted.", "correct": false, "explanation": "Reservations for capacity that runs only part of the day are paid for 24 hours, so most of the commitment would be wasted." },
+        { "id": "C", "text": "Run every instance, including the baseline, on Spot Instances.", "correct": false, "explanation": "Spot can be interrupted, so relying on it for the minimum capacity risks the availability the baseline is meant to guarantee." },
+        { "id": "D", "text": "Move the application to Dedicated Hosts so that capacity is always reserved.", "correct": false, "explanation": "Dedicated Hosts address licensing and compliance needs and cost more; they are not a discount mechanism for this workload." }
+      ],
+      "explanation": "Commit (Reserved Instances or Savings Plans) for the minimum capacity of an Auto Scaling group and pay On-Demand or Spot for the burst.",
+      "tags": ["cost", "ec2-reserved", "savings-plans"],
+      "updated": "Savings Plans (up to 72% for EC2 Instance plans, up to 66% for Compute plans) are a common alternative to the Reserved Instances named in the slides."
+    },
+    {
+      "id": "11-classic-architectures-q15",
+      "type": "single",
+      "domain": "resilient",
+      "difficulty": "medium",
+      "question": "A team plans blue/green deployments for an Elastic Beanstalk application by cloning the production environment and swapping environment URLs. Today the production MySQL database was created from the Beanstalk console as part of the environment. What should the team do so that releases never put the production data at risk?",
+      "options": [
+        { "id": "A", "text": "Keep the coupled database and let each cloned environment create its own copy of it.", "correct": false, "explanation": "A clone would get a separate, empty database, and terminating the old environment could delete the production data with it." },
+        { "id": "B", "text": "Set the database deletion policy to Retain, decouple the database, and configure both environments to connect to it as an external RDS instance.", "correct": true, "explanation": "A decoupled or separately created database lives outside the environments' lifecycle, so both blue and green connect to the same data and terminating either environment leaves it intact." },
+        { "id": "C", "text": "Take a manual snapshot before each release and restore it into the green environment after the swap.", "correct": false, "explanation": "Restores create a new database each time and lose writes made after the snapshot, which is slow and risky for production." },
+        { "id": "D", "text": "Convert the coupled database to Multi-AZ so that it survives the URL swap.", "correct": false, "explanation": "Multi-AZ protects against infrastructure failure, not against the environment lifecycle; a coupled database still follows its environment." }
+      ],
+      "explanation": "Blue/green with Elastic Beanstalk requires the database to run independently of the environments, for example decoupled with the Retain policy.",
+      "tags": ["elastic-beanstalk", "rds", "blue-green"]
+    }
+  ]
+}

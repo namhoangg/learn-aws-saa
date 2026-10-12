@@ -1,0 +1,190 @@
+{
+  "section": "06-ec2-storage",
+  "cards": [
+    {
+      "id": "06-ec2-storage-fc-01",
+      "front": "Can an EBS volume created in `us-east-1a` be attached to an instance in `us-east-1b`?",
+      "back": "No. EBS volumes are locked to one **Availability Zone**. Take a **snapshot**, then create a new volume from it in `us-east-1b`.",
+      "tags": ["ebs", "az"]
+    },
+    {
+      "id": "06-ec2-storage-fc-02",
+      "front": "What are you billed for with an EBS volume?",
+      "back": "The **provisioned** size in GiB (plus provisioned IOPS/throughput for gp3 above baseline, io1 and io2), whether or not you use it, and even while the volume is unattached.",
+      "tags": ["ebs", "cost"]
+    },
+    {
+      "id": "06-ec2-storage-fc-03",
+      "front": "Default `DeleteOnTermination` for the root volume vs a data volume attached after launch?",
+      "back": "Root volume (attached at launch): **deleted** on termination. Volume attached after launch: **kept**. Change it at launch under Configure storage → Advanced, or with `modify-instance-attribute`.",
+      "tags": ["ebs", "delete-on-termination"]
+    },
+    {
+      "id": "06-ec2-storage-fc-04",
+      "front": "gp3 baseline performance, and how far can it be raised today?",
+      "back": "Every gp3 volume includes **3,000 IOPS and 125 MiB/s**. You can provision up to **80,000 IOPS** (500 per GiB) and **2,000 MiB/s**, on volumes up to **64 TiB**, independently of size.",
+      "tags": ["ebs", "gp3"],
+      "updated": "Limits raised in September 2025 from 16,000 IOPS, 1,000 MiB/s and 16 TiB."
+    },
+    {
+      "id": "06-ec2-storage-fc-05",
+      "front": "How does gp2 performance scale?",
+      "back": "**3 IOPS per GiB** (minimum 100, maximum 16,000, reached at 5,334 GiB). Volumes under 1 TiB can **burst to 3,000 IOPS** using I/O credits (`BurstBalance` metric).",
+      "tags": ["ebs", "gp2"]
+    },
+    {
+      "id": "06-ec2-storage-fc-06",
+      "front": "Key numbers for io2 Block Express?",
+      "back": "4 GiB – 64 TiB, up to **256,000 IOPS** (1,000 IOPS per GiB), 4,000 MiB/s, average latency under 500 µs, **99.999%** durability, supports Multi-Attach. Full IOPS needs a Nitro instance.",
+      "tags": ["ebs", "io2"]
+    },
+    {
+      "id": "06-ec2-storage-fc-07",
+      "front": "Key numbers for io1?",
+      "back": "4 GiB – 16 TiB, up to **64,000 IOPS** at most **50 IOPS per GiB**, 1,000 MiB/s. Non-Nitro instances reach only 32,000 IOPS. AWS recommends io2 instead.",
+      "tags": ["ebs", "io1"]
+    },
+    {
+      "id": "06-ec2-storage-fc-08",
+      "front": "st1 vs sc1: use case and limits?",
+      "back": "**st1** Throughput Optimized HDD: big data, data warehouses, log processing; 500 MiB/s, 500 IOPS. **sc1** Cold HDD: rarely accessed data at lowest cost; 250 MiB/s, 250 IOPS. Both 125 GiB – 16 TiB.",
+      "tags": ["ebs", "st1", "sc1"]
+    },
+    {
+      "id": "06-ec2-storage-fc-09",
+      "front": "Which EBS volume types can be boot volumes?",
+      "back": "Only the SSD types (**gp3, gp2, io2, io1**) and legacy Magnetic. **st1 and sc1 cannot** be boot volumes.",
+      "tags": ["ebs", "boot"]
+    },
+    {
+      "id": "06-ec2-storage-fc-10",
+      "front": "EBS Multi-Attach: which volumes, how many instances, what constraints?",
+      "back": "Only **io1/io2**; up to **16 Nitro instances in the same AZ**, each with read/write access. The app must coordinate writes and use a **cluster-aware file system** (not XFS or EXT4). Not for boot volumes.",
+      "tags": ["ebs", "multi-attach"]
+    },
+    {
+      "id": "06-ec2-storage-fc-11",
+      "front": "Are EBS snapshots full or incremental, and where are they stored?",
+      "back": "The first is full (written blocks only); later ones are **incremental**. AWS stores them in **S3** (not visible in your buckets), replicated across the Region's AZs, so they can restore into any AZ.",
+      "tags": ["ebs-snapshots"]
+    },
+    {
+      "id": "06-ec2-storage-fc-12",
+      "front": "Must you detach a volume before taking a snapshot?",
+      "back": "No, but a snapshot only captures data already written to the volume. For consistency, pause writes or unmount the volume while it starts; for a root volume, stopping the instance is recommended.",
+      "tags": ["ebs-snapshots"]
+    },
+    {
+      "id": "06-ec2-storage-fc-13",
+      "front": "EBS Snapshots Archive: saving, minimum period and restore time?",
+      "back": "Up to **75% cheaper** storage, **90-day** minimum, restore to the standard tier can take **up to 72 hours**. Archived snapshots are full snapshots and must be restored before use.",
+      "tags": ["ebs-snapshots", "archive"],
+      "updated": "Docs now state 'up to 72 hours' rather than a 24–72 hour window."
+    },
+    {
+      "id": "06-ec2-storage-fc-14",
+      "front": "What does Recycle Bin protect, and for how long?",
+      "back": "Deleted **EBS snapshots and EBS-backed AMIs** (1–365 days) and **EBS volumes** (1–7 days), per retention rule (tag-level or Region-level). No extra fee; retained items bill at normal rates.",
+      "tags": ["ebs-snapshots", "recycle-bin"],
+      "updated": "EBS volumes were added to Recycle Bin after the slides were made."
+    },
+    {
+      "id": "06-ec2-storage-fc-15",
+      "front": "What problem does Fast Snapshot Restore solve, and what does it cost?",
+      "back": "Volumes restored from a snapshot load blocks lazily from S3, so first reads are slow. **FSR** makes them fully initialized at creation. Billed per snapshot **per AZ**, about USD 0.75 per hour (≈ USD 540/month).",
+      "tags": ["ebs-snapshots", "fsr"]
+    },
+    {
+      "id": "06-ec2-storage-fc-16",
+      "front": "What does EBS encryption cover?",
+      "back": "Data **at rest** in the volume, data **in transit** between instance and volume, all **snapshots** of it, and all **volumes created from** those snapshots. AES-256 data keys protected by **KMS**; transparent, minimal latency impact.",
+      "tags": ["ebs", "encryption", "kms"]
+    },
+    {
+      "id": "06-ec2-storage-fc-17",
+      "front": "How do you encrypt an existing unencrypted EBS volume?",
+      "back": "1) Snapshot the volume. 2) **Copy** the snapshot with encryption on. 3) Create a new volume from the encrypted snapshot. 4) Swap it in for the old volume. (You can also tick Encrypt when restoring directly.)",
+      "tags": ["ebs", "encryption"]
+    },
+    {
+      "id": "06-ec2-storage-fc-18",
+      "front": "How do you make sure every new EBS volume in an account is encrypted?",
+      "back": "Turn on **EBS encryption by default** (EC2 console → Settings → Data protection and security). It is a **per-Region** setting and does not change existing volumes.",
+      "tags": ["ebs", "encryption"]
+    },
+    {
+      "id": "06-ec2-storage-fc-19",
+      "front": "Can you share an EBS snapshot encrypted with the `aws/ebs` key with another account?",
+      "back": "No. Only snapshots encrypted with a **customer managed KMS key** can be shared, and you must share the key too. Encrypted snapshots can never be public.",
+      "tags": ["ebs-snapshots", "encryption"]
+    },
+    {
+      "id": "06-ec2-storage-fc-20",
+      "front": "What is an AMI, and what are its sources?",
+      "back": "A launch template of OS, software and block device mapping. Sources: **AWS-provided**, **your own**, **AWS Marketplace** (vendor, may be paid) and AMIs **shared** by other accounts or the community.",
+      "tags": ["ami"]
+    },
+    {
+      "id": "06-ec2-storage-fc-21",
+      "front": "An AMI was built in `us-east-1`. How do you launch it in `eu-west-1`?",
+      "back": "AMIs are **Region-scoped**. **Copy** the AMI to `eu-west-1` (it creates new snapshots there; launch permissions are not copied), then launch from the copy.",
+      "tags": ["ami"]
+    },
+    {
+      "id": "06-ec2-storage-fc-22",
+      "front": "What happens to instance store data on reboot, stop and terminate?",
+      "back": "**Reboot**: kept. **Stop, hibernate, terminate** (and instance type change): **lost**. It is also lost if the underlying disk fails, and it is never included in an AMI.",
+      "tags": ["instance-store"]
+    },
+    {
+      "id": "06-ec2-storage-fc-23",
+      "front": "When should you choose EC2 instance store?",
+      "back": "When you need the **highest local I/O** (millions of IOPS on storage optimized types) for buffers, caches, scratch or data replicated elsewhere, and losing it on stop is acceptable. Backups are your responsibility.",
+      "tags": ["instance-store"]
+    },
+    {
+      "id": "06-ec2-storage-fc-24",
+      "front": "Amazon EFS in one line: protocol, clients, scope?",
+      "back": "Managed, auto-scaling **NFS v4.0/4.1** file system for **Linux** (not Windows), mounted by thousands of clients across **multiple AZs** through one mount target per AZ. Pay per GB stored.",
+      "tags": ["efs"]
+    },
+    {
+      "id": "06-ec2-storage-fc-25",
+      "front": "What controls network access to an EFS file system?",
+      "back": "**Security groups** on the mount targets: allow inbound **NFS TCP 2049** from the instances' security group. IAM policies and access points can add further control.",
+      "tags": ["efs", "security-groups"]
+    },
+    {
+      "id": "06-ec2-storage-fc-26",
+      "front": "EFS throughput modes and when to use each?",
+      "back": "**Elastic** (default): spiky or unknown load, pay per GB transferred. **Provisioned**: known steady throughput above what storage size gives. **Bursting**: 50 MiB/s per TiB baseline, bursts to 100 MiB/s per TiB.",
+      "tags": ["efs", "throughput"]
+    },
+    {
+      "id": "06-ec2-storage-fc-27",
+      "front": "EFS performance modes: which one should you pick?",
+      "back": "**General Purpose** (default, lowest latency) for virtually everything. **Max I/O** is a previous-generation, higher-latency mode, not supported with Elastic throughput or One Zone.",
+      "tags": ["efs", "performance"],
+      "updated": "AWS now labels Max I/O previous generation and recommends General Purpose for all file systems."
+    },
+    {
+      "id": "06-ec2-storage-fc-28",
+      "front": "EFS storage classes and default lifecycle transitions?",
+      "back": "**Standard**, **Infrequent Access** (read fee) and **Archive** (about half the IA price, 90-day minimum). Console defaults: to IA after **30 days**, to Archive after **90 days**, never back to Standard.",
+      "tags": ["efs", "lifecycle"]
+    },
+    {
+      "id": "06-ec2-storage-fc-29",
+      "front": "EFS Regional vs One Zone?",
+      "back": "**Regional**: data across multiple AZs, survives an AZ loss, for production. **One Zone**: one AZ, about half the price, automatic backups on by default, works with One Zone-IA; for dev/test.",
+      "tags": ["efs"]
+    },
+    {
+      "id": "06-ec2-storage-fc-30",
+      "front": "What can Elastic Volumes change on an attached EBS volume, and what can it not do?",
+      "back": "It can **increase size**, change the **type** (e.g. gp2 → gp3) and adjust **IOPS/throughput** online, up to four times per rolling 24 hours. It can **never shrink** a volume, and you must extend the file system inside the OS after growing it.",
+      "tags": ["ebs", "elastic-volumes"],
+      "updated": "Since January 2026 up to four modifications per 24 hours (previously one, then a 6-hour wait)."
+    }
+  ]
+}

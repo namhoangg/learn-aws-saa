@@ -1,0 +1,180 @@
+{
+  "section": "27-cloudtrail-config",
+  "cards": [
+    {
+      "id": "27-cloudtrail-config-fc-01",
+      "front": "In one sentence each: what do CloudWatch, CloudTrail and Config record?",
+      "back": "**CloudWatch**: performance (metrics, logs, alarms, dashboards). **CloudTrail**: API calls, meaning who did what, when and from where. **Config**: resource configurations over time and whether they comply with rules.",
+      "tags": ["cloudwatch", "cloudtrail", "config", "comparison"]
+    },
+    {
+      "id": "27-cloudtrail-config-fc-02",
+      "front": "A resource was deleted and nobody knows who did it. Which service do you check first?",
+      "back": "**AWS CloudTrail**: the `Delete*` event shows the identity (`userIdentity`), time, source IP, user agent and request parameters.",
+      "tags": ["cloudtrail", "investigation"]
+    },
+    {
+      "id": "27-cloudtrail-config-fc-03",
+      "front": "What does CloudTrail **Event history** give you without any setup, and what are its limits?",
+      "back": "The last **90 days** of **management events** per Region, free and on by default. Limits: no data, network activity or Insights events, one account and one Region per search, one filter attribute at a time, no extension beyond 90 days.",
+      "tags": ["cloudtrail", "event-history", "limits"]
+    },
+    {
+      "id": "27-cloudtrail-config-fc-04",
+      "front": "How do you keep CloudTrail events for longer than 90 days and query them with SQL?",
+      "back": "Create a **trail** that delivers log files to an **S3 bucket**, then query them with **Amazon Athena**. Add S3 lifecycle rules to move old files to Glacier storage classes.",
+      "tags": ["cloudtrail", "s3", "athena", "retention"]
+    },
+    {
+      "id": "27-cloudtrail-config-fc-05",
+      "front": "Multi-Region vs single-Region trail: which one does the console create, and which does `aws cloudtrail create-trail` create by default?",
+      "back": "The **console** only creates **multi-Region** trails. The **CLI/API** creates a **single-Region** trail unless you add `--is-multi-region-trail`. AWS recommends multi-Region.",
+      "tags": ["cloudtrail", "trails"],
+      "updated": "Slides present Region scope as a console choice; today the console always makes multi-Region trails."
+    },
+    {
+      "id": "27-cloudtrail-config-fc-06",
+      "front": "In which Region are CloudTrail events for IAM, the global STS endpoint and CloudFront recorded?",
+      "back": "**us-east-1** (US East, N. Virginia). A single-Region trail in another Region misses them, so use a multi-Region trail.",
+      "tags": ["cloudtrail", "global-services"]
+    },
+    {
+      "id": "27-cloudtrail-config-fc-07",
+      "front": "Management events vs data events: definition, default and cost?",
+      "back": "**Management** = control-plane operations (create, configure, delete resources), logged by default, first trail copy free. **Data** = operations on or inside resources (S3 object reads/writes, Lambda `Invoke`, DynamoDB item calls), high volume, **off by default**, always charged (USD 0.10 per 100,000).",
+      "tags": ["cloudtrail", "management-events", "data-events"]
+    },
+    {
+      "id": "27-cloudtrail-config-fc-08",
+      "front": "Give two examples of CloudTrail management events and two of data events.",
+      "back": "Management: IAM `AttachRolePolicy`, EC2 `CreateSubnet` (also `CreateTrail`, `ConsoleLogin`). Data: S3 `GetObject` / `PutObject` / `DeleteObject`, Lambda `Invoke`.",
+      "tags": ["cloudtrail", "management-events", "data-events"]
+    },
+    {
+      "id": "27-cloudtrail-config-fc-09",
+      "front": "What is the difference between read and write events in CloudTrail, and why split them?",
+      "back": "**Read** events only look (`Describe*`, `Get*`, `List*`); **write** events create, change or delete (`RunInstances`, `DeleteBucket`). A trail can log only one side, for example write-only, to cut volume and cost.",
+      "tags": ["cloudtrail", "read-write"]
+    },
+    {
+      "id": "27-cloudtrail-config-fc-10",
+      "front": "What does CloudTrail Insights detect, and how?",
+      "back": "Unusual **API call rates** and **API error rates** (bursts of IAM actions, hitting service limits, mass provisioning, gaps in regular activity). It learns a **baseline** of normal activity and raises an **Insights event** when activity deviates.",
+      "tags": ["cloudtrail", "insights"],
+      "updated": "Insights can now also analyse data events (trails only), not just management events."
+    },
+    {
+      "id": "27-cloudtrail-config-fc-11",
+      "front": "Where do CloudTrail Insights events go?",
+      "back": "The **Insights** page of the CloudTrail console, the trail's **S3 bucket** (separate `CloudTrail-Insight` prefix), **CloudWatch Logs** if configured, and **EventBridge** (`AWS Insight via CloudTrail`) for automation. First events can take up to 36 hours.",
+      "tags": ["cloudtrail", "insights", "eventbridge"]
+    },
+    {
+      "id": "27-cloudtrail-config-fc-12",
+      "front": "How do you prove that CloudTrail log files were not modified or deleted after delivery?",
+      "back": "Enable **log file integrity validation**: CloudTrail writes an hourly signed **digest file** with SHA-256 hashes of the log files; `aws cloudtrail validate-logs` reports modified or missing files.",
+      "tags": ["cloudtrail", "integrity", "security"]
+    },
+    {
+      "id": "27-cloudtrail-config-fc-13",
+      "front": "How do you get an email within minutes whenever someone calls a specific API, such as DynamoDB `DeleteTable`?",
+      "back": "An **EventBridge rule** on the default bus matching `detail-type` **AWS API Call via CloudTrail** with that `eventSource` / `eventName`, targeting an **SNS topic**. A trail must be logging, and the rule must be in the Region where the call is recorded.",
+      "tags": ["cloudtrail", "eventbridge", "sns"]
+    },
+    {
+      "id": "27-cloudtrail-config-fc-14",
+      "front": "Why might an EventBridge rule for `DescribeInstances` calls never fire?",
+      "back": "It is a **read-only** management event. Rules in the normal `ENABLED` state match only write events; read-only events need the rule state `ENABLED_WITH_ALL_CLOUDTRAIL_MANAGEMENT_EVENTS`.",
+      "tags": ["eventbridge", "cloudtrail"],
+      "updated": "Receiving read-only management events through EventBridge is newer than the slides."
+    },
+    {
+      "id": "27-cloudtrail-config-fc-15",
+      "front": "What is an AWS Config configuration item (CI)?",
+      "back": "A point-in-time record of a supported resource: its attributes, tags, relationships to other resources and related CloudTrail events. Config records a new CI when the resource changes (or daily, if you choose daily recording).",
+      "tags": ["config", "configuration-items"]
+    },
+    {
+      "id": "27-cloudtrail-config-fc-16",
+      "front": "Is AWS Config global or regional, and how do you see all accounts and Regions in one place?",
+      "back": "**Regional**: it must be turned on in each Region (and account). An **aggregator** collects configuration and compliance data from many accounts and Regions, or a whole organization, into one account and Region as a **read-only** view.",
+      "tags": ["config", "aggregator"]
+    },
+    {
+      "id": "27-cloudtrail-config-fc-17",
+      "front": "Can an AWS Config rule stop a non-compliant change from happening?",
+      "back": "**No.** Config rules are detective: the API call succeeds and Config flags the resource afterwards (and can remediate it). To block actions, use IAM policies, permission boundaries or SCPs.",
+      "tags": ["config", "rules", "trap"]
+    },
+    {
+      "id": "27-cloudtrail-config-fc-18",
+      "front": "What kinds of AWS Config rules exist?",
+      "back": "**AWS managed rules** (hundreds, for example `restricted-ssh`, `s3-bucket-public-read-prohibited`, `encrypted-volumes`) and **custom rules** written as a **Lambda** function or in **Guard** policy-as-code.",
+      "tags": ["config", "rules"],
+      "updated": "Slides: over 75 managed rules and Lambda-only custom rules. Now 800+ managed rules and Guard custom policy rules."
+    },
+    {
+      "id": "27-cloudtrail-config-fc-19",
+      "front": "When can a Config rule be evaluated?",
+      "back": "On **configuration changes** to resources in its scope (type, type plus ID, or tag), **periodically** (every 1, 3, 6, 12 or 24 hours), or both (**hybrid**). A few managed rules also offer **proactive** evaluation of a resource before it is deployed (report only, never blocks).",
+      "tags": ["config", "rules", "triggers"]
+    },
+    {
+      "id": "27-cloudtrail-config-fc-20",
+      "front": "AWS Config pricing basics (us-east-1)?",
+      "back": "USD **0.003** per configuration item with continuous recording (USD 0.012 with daily recording), plus USD **0.001** per rule evaluation for the first 100,000 a month (cheaper tiers after). No free tier; aggregators add no charge.",
+      "tags": ["config", "pricing"],
+      "updated": "The slides show only the continuous CI price and the first evaluation tier; daily recording at USD 0.012 per CI is newer."
+    },
+    {
+      "id": "27-cloudtrail-config-fc-21",
+      "front": "What does the Config **Resource Timeline** show for a resource?",
+      "back": "On one time axis: **configuration events** (each change with a diff), **compliance events** (changes in rule compliance) and **CloudTrail events** (the related API calls with who made them).",
+      "tags": ["config", "timeline"]
+    },
+    {
+      "id": "27-cloudtrail-config-fc-22",
+      "front": "How does AWS Config remediate a non-compliant resource?",
+      "back": "It runs an **SSM Automation runbook** (AWS managed, such as `AWS-DisableIncomingSSHOnPort22`, or custom, which can invoke Lambda) against the resource, **manually** or **automatically**. The runbook acts through an IAM role passed as a parameter (for automatic remediation, **AutomationAssumeRole**).",
+      "tags": ["config", "remediation", "systems-manager"]
+    },
+    {
+      "id": "27-cloudtrail-config-fc-23",
+      "front": "What are remediation retries in AWS Config?",
+      "back": "If a resource is still non-compliant after auto-remediation, Config tries again: you set the number of attempts (1 to 25, default 5) within a time window in seconds, for example 5 attempts in 300 seconds.",
+      "tags": ["config", "remediation"]
+    },
+    {
+      "id": "27-cloudtrail-config-fc-24",
+      "front": "Config notifications: when do you use EventBridge and when the SNS delivery channel?",
+      "back": "**EventBridge** to react to specific, filtered events, for example only `NON_COMPLIANT` results of one rule, with Lambda, SNS or SQS targets. **SNS** delivery channel for the complete stream of every change and compliance notification (filter with SNS subscription filter policies or in the subscriber).",
+      "tags": ["config", "eventbridge", "sns"]
+    },
+    {
+      "id": "27-cloudtrail-config-fc-25",
+      "front": "For an Application Load Balancer, which service would you use to: (a) graph 5xx errors, (b) ensure HTTPS listeners always have an ACM certificate, (c) find who deleted a listener?",
+      "back": "(a) **CloudWatch** metrics and dashboards. (b) **Config** rule (for example `elbv2-acm-certificate-required`). (c) **CloudTrail**.",
+      "tags": ["comparison", "alb"]
+    },
+    {
+      "id": "27-cloudtrail-config-fc-26",
+      "front": "What happened to CloudTrail Lake in 2026?",
+      "back": "It stopped accepting **new customers on 31 May 2026**; existing users keep it with critical fixes only, and AWS points new users to CloudWatch. Trails, Insights and Event history are unaffected; for the exam use trail → S3 → Athena.",
+      "tags": ["cloudtrail", "cloudtrail-lake"],
+      "updated": "CloudTrail Lake closed to new customers on 31 May 2026."
+    },
+    {
+      "id": "27-cloudtrail-config-fc-27",
+      "front": "What is a CloudTrail **organization trail**, and who can create or change it?",
+      "back": "A trail that logs every member account of an AWS Organizations organization into one S3 bucket. It is created in the **management account** or a **delegated administrator** account; member accounts can see it but cannot modify or delete it.",
+      "tags": ["cloudtrail", "organizations", "trails"]
+    },
+    {
+      "id": "27-cloudtrail-config-fc-28",
+      "front": "What do CloudTrail **network activity events** record?",
+      "back": "AWS API calls that pass through your **VPC endpoints**, including calls the endpoint policy denied (`VpceAccessDenied`). Off by default; billed at USD 0.10 per 100,000 events.",
+      "tags": ["cloudtrail", "network-activity-events", "vpc-endpoints"],
+      "updated": "Network activity events are newer than the slides."
+    }
+  ]
+}

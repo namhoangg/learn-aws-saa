@@ -1,0 +1,186 @@
+{
+  "section": "24-data-analytics",
+  "cards": [
+    {
+      "id": "24-data-analytics-fc-01",
+      "front": "Which AWS service runs serverless SQL queries directly on files stored in Amazon S3?",
+      "back": "**Amazon Athena**. No cluster to manage; tables are metadata in the Glue Data Catalog and you pay per data scanned.",
+      "tags": ["athena"]
+    },
+    {
+      "id": "24-data-analytics-fc-02",
+      "front": "How is Athena SQL on S3 priced by default, and what does that imply?",
+      "back": "About **USD 5 per TB scanned** per query. Reducing bytes scanned (columnar formats, compression, partitions) cuts both cost and run time. Capacity Reservations (per DPU-hour) are an alternative for steady heavy use.",
+      "tags": ["athena", "cost"],
+      "updated": "Capacity Reservations are a newer pricing option not on the slides"
+    },
+    {
+      "id": "24-data-analytics-fc-03",
+      "front": "Name four ways to make Athena queries cheaper and faster.",
+      "back": "1. Store data in a **columnar** format (**Parquet** or **ORC**). 2. **Compress** it. 3. **Partition** it by commonly filtered columns (`year=2026/month=10/`). 4. Use **fewer, larger files** (around 128 MB or more) instead of many tiny ones.",
+      "tags": ["athena", "performance"]
+    },
+    {
+      "id": "24-data-analytics-fc-04",
+      "front": "What is Athena Federated Query?",
+      "back": "Running one SQL query across non-S3 sources (RDS, Aurora, DynamoDB, Redshift, CloudWatch Logs, on-premises JDBC databases...) through **data source connectors**, traditionally Lambda functions. Results are stored in S3.",
+      "tags": ["athena", "federated-query"]
+    },
+    {
+      "id": "24-data-analytics-fc-05",
+      "front": "Which open-source engine does Athena engine version 3 track?",
+      "back": "**Trino** (alongside Presto). The slides say Presto; engine v3 integrates improvements from both projects, and its function reference points to Trino.",
+      "tags": ["athena"],
+      "updated": "Slides say Athena is built on Presto; engine version 3 follows Trino and Presto"
+    },
+    {
+      "id": "24-data-analytics-fc-06",
+      "front": "OLTP or OLAP: which one is Amazon Redshift built for?",
+      "back": "**OLAP** (analytics and data warehousing). It is columnar with a massively parallel query engine. Use RDS, Aurora or DynamoDB for OLTP application traffic.",
+      "tags": ["redshift"]
+    },
+    {
+      "id": "24-data-analytics-fc-07",
+      "front": "What do the leader node and compute nodes do in a Redshift cluster?",
+      "back": "The **leader node** receives SQL, plans the query and aggregates the final results. **Compute nodes** execute their part of the plan in parallel and send intermediate results back to the leader.",
+      "tags": ["redshift"]
+    },
+    {
+      "id": "24-data-analytics-fc-08",
+      "front": "Redshift provisioned vs Redshift Serverless: how do you pay?",
+      "back": "**Provisioned**: per node-hour for the node type and count you choose (reserved nodes for 1 or 3 years save money). **Serverless**: per **RPU-hour** only while queries run, per-second billing with a 60-second minimum; base capacity from 4 RPUs.",
+      "tags": ["redshift", "cost"],
+      "updated": "Serverless minimum base capacity is now 4 RPUs"
+    },
+    {
+      "id": "24-data-analytics-fc-09",
+      "front": "How often does Redshift take automated snapshots, and how long are they kept?",
+      "back": "About every **8 hours** or every **5 GB per node** of changed data, whichever comes first (or on a custom schedule). Retention is **1 to 35 days** (default 1). Manual snapshots are kept until you delete them.",
+      "tags": ["redshift", "backup"]
+    },
+    {
+      "id": "24-data-analytics-fc-10",
+      "front": "How do you set up disaster recovery for Redshift in another Region?",
+      "back": "Enable **automatic cross-Region snapshot copy**. Automated and manual snapshots are copied to the DR Region, where you restore a **new** cluster if needed.",
+      "tags": ["redshift", "dr"]
+    },
+    {
+      "id": "24-data-analytics-fc-11",
+      "front": "What is the most efficient way to load large amounts of data into Redshift?",
+      "back": "The **`COPY` command** from S3 (parallel load using an IAM role), or Amazon Data Firehose, which stages to S3 and runs `COPY` for you. Avoid single-row `INSERT`s; if an app must insert, batch the rows.",
+      "tags": ["redshift", "loading"]
+    },
+    {
+      "id": "24-data-analytics-fc-12",
+      "front": "What does Redshift Enhanced VPC Routing do?",
+      "back": "Forces `COPY` and `UNLOAD` traffic between Redshift and data stores such as S3 through **your VPC**, so VPC endpoints, endpoint policies, security groups, NACLs and Flow Logs apply instead of the internet path.",
+      "tags": ["redshift", "networking", "security"]
+    },
+    {
+      "id": "24-data-analytics-fc-13",
+      "front": "What is Redshift Spectrum, and what does it require?",
+      "back": "A Redshift feature that queries data **in S3 without loading it**, using external tables and a large fleet of Spectrum nodes. It requires an existing **Redshift cluster** (or Serverless workgroup) to submit the query; RA3 and DC2 clusters must be in the same Region as the bucket.",
+      "tags": ["redshift-spectrum"],
+      "updated": "RG clusters and Redshift Serverless query S3 with their own engine and can reach buckets in other Regions"
+    },
+    {
+      "id": "24-data-analytics-fc-14",
+      "front": "Which Redshift feature replicates Aurora, RDS or DynamoDB data into Redshift without building an ETL pipeline?",
+      "back": "**Zero-ETL integrations**. After an initial load, changes are replicated continuously into a Redshift provisioned cluster or Serverless namespace.",
+      "tags": ["redshift", "zero-etl"],
+      "updated": "Zero-ETL integrations are not covered on the slides"
+    },
+    {
+      "id": "24-data-analytics-fc-15",
+      "front": "When would you put Amazon OpenSearch Service next to DynamoDB?",
+      "back": "When users must **search on any field** or by **partial text match**, which DynamoDB cannot do efficiently (only keys and indexes). DynamoDB stays the source of truth; Streams + Lambda (or the zero-ETL integration) keep the OpenSearch index updated.",
+      "tags": ["opensearch", "dynamodb"]
+    },
+    {
+      "id": "24-data-analytics-fc-16",
+      "front": "Two ways to stream CloudWatch Logs into OpenSearch, and their latency?",
+      "back": "A subscription filter to a **Lambda function** (created by the CloudWatch console) = **real time**; a subscription filter to **Amazon Data Firehose** = **near real time** (buffered).",
+      "tags": ["opensearch", "cloudwatch-logs"]
+    },
+    {
+      "id": "24-data-analytics-fc-17",
+      "front": "What are the three EMR node types, and which belongs on Spot?",
+      "back": "**Primary** (coordinates the cluster), **core** (runs tasks and stores HDFS data), **task** (runs tasks only, no HDFS). Put **task nodes on Spot**: an interruption loses compute, not data.",
+      "tags": ["emr", "spot"],
+      "updated": "EMR now calls the master node the primary node"
+    },
+    {
+      "id": "24-data-analytics-fc-18",
+      "front": "Besides clusters on EC2, which other ways can you run Amazon EMR?",
+      "back": "**EMR on EKS** (jobs on an existing Kubernetes cluster) and **EMR Serverless** (Spark or Hive jobs with no cluster to configure or scale).",
+      "tags": ["emr"],
+      "updated": "EMR on EKS and EMR Serverless are not on the slides"
+    },
+    {
+      "id": "24-data-analytics-fc-19",
+      "front": "What is SPICE in Amazon Quick Sight?",
+      "back": "The **Super-fast, Parallel, In-memory Calculation Engine**. Data imported into SPICE is served from memory, so dashboards are fast and don't query the source (for example Athena) every time.",
+      "tags": ["quicksight"]
+    },
+    {
+      "id": "24-data-analytics-fc-20",
+      "front": "In Quick Sight, how do you limit which columns of a dataset some users can see?",
+      "back": "**Column-level security (CLS)**, available in **Enterprise** edition. Access is granted to Quick Sight users and groups, which are managed inside the service rather than as IAM users.",
+      "tags": ["quicksight", "security"]
+    },
+    {
+      "id": "24-data-analytics-fc-21",
+      "front": "What must you do before sharing a Quick Sight dashboard, and what can viewers see?",
+      "back": "You must **publish** the analysis as a dashboard (a read-only copy that keeps filters, parameters, controls and sort order). Viewers of a dashboard can also see the **underlying data**.",
+      "tags": ["quicksight"]
+    },
+    {
+      "id": "24-data-analytics-fc-22",
+      "front": "What is the AWS Glue Data Catalog, and which services use it?",
+      "back": "A central **metadata** store (databases, tables, schemas, partitions), usually filled by **Glue crawlers**. **Athena**, **Redshift Spectrum**, **EMR** and Glue ETL jobs all read it. It stores no data itself.",
+      "tags": ["glue-data-catalog"]
+    },
+    {
+      "id": "24-data-analytics-fc-23",
+      "front": "Which Glue feature prevents an ETL job from reprocessing data it already handled?",
+      "back": "**Job bookmarks**. They track processed S3 objects or JDBC rows so each run handles only new data.",
+      "tags": ["glue"]
+    },
+    {
+      "id": "24-data-analytics-fc-24",
+      "front": "Glue DataBrew vs Glue Studio: what is each for?",
+      "back": "**DataBrew**: visual data preparation (clean and normalise) with hundreds of prebuilt transformations, for analysts. **Glue Studio**: visual editor to build, run and monitor Glue ETL jobs.",
+      "tags": ["glue"]
+    },
+    {
+      "id": "24-data-analytics-fc-25",
+      "front": "What does AWS Lake Formation add on top of AWS Glue?",
+      "back": "Fast data lake setup on S3 (blueprints that build Glue workflows) and **centralised fine-grained permissions** (database, table, column, row and cell level, LF-Tags, cross-account sharing) enforced in Athena, Redshift Spectrum, EMR, Glue and Quick Sight.",
+      "tags": ["lake-formation"]
+    },
+    {
+      "id": "24-data-analytics-fc-26",
+      "front": "Which sources can Amazon Managed Service for Apache Flink read from, and which common one can it NOT?",
+      "back": "It reads from **Kinesis Data Streams** and **Amazon MSK** (Kafka). It **cannot read from Amazon Data Firehose**; Firehose can only be a destination of a Flink app.",
+      "tags": ["managed-flink"]
+    },
+    {
+      "id": "24-data-analytics-fc-27",
+      "front": "Amazon MSK vs Kinesis Data Streams: name three differences.",
+      "back": "MSK uses **open-source Kafka APIs** (topics and partitions) vs AWS APIs (streams and shards); MSK keeps data **as long as you configure** vs up to 365 days; MSK can only **add** partitions, while Kinesis can split and merge shards. Both use KMS at rest and TLS in transit (MSK also allows plaintext).",
+      "tags": ["msk", "kinesis-data-streams"]
+    },
+    {
+      "id": "24-data-analytics-fc-28",
+      "front": "What is MSK Serverless?",
+      "back": "A cluster type that runs Apache Kafka **without capacity planning**: MSK provisions and scales compute and storage automatically and bills by throughput. It requires **IAM access control**.",
+      "tags": ["msk"]
+    },
+    {
+      "id": "24-data-analytics-fc-29",
+      "front": "In the serverless big data pipeline, what is the role of Firehose, S3 events and Athena?",
+      "back": "**Firehose** batches the Kinesis stream (optionally transformed by Lambda) into an S3 ingestion bucket in near real time; **S3 event notifications** (via SQS) trigger **Lambda**, which runs an **Athena** query whose results land in a reporting bucket for Quick Sight or Redshift.",
+      "tags": ["pipeline", "data-firehose", "athena"]
+    }
+  ]
+}

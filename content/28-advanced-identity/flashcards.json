@@ -1,0 +1,267 @@
+{
+  "section": "28-advanced-identity",
+  "cards": [
+    {
+      "id": "28-advanced-identity-fc-01",
+      "front": "In AWS Organizations, what is the difference between the management account and a member account?",
+      "back": "The **management account** created the organization: it creates or invites accounts, attaches policies and pays the whole bill. **Member accounts** are all the others; each can belong to only **one** organization at a time.",
+      "tags": [
+        "organizations"
+      ]
+    },
+    {
+      "id": "28-advanced-identity-fc-02",
+      "front": "Name three billing benefits of consolidated billing in AWS Organizations.",
+      "back": "One bill for all accounts, **volume pricing** based on combined usage, and **Reserved Instance / Savings Plans discounts shared** across accounts. It costs nothing extra.",
+      "tags": [
+        "organizations",
+        "billing"
+      ]
+    },
+    {
+      "id": "28-advanced-identity-fc-03",
+      "front": "How deep can organizational units be nested, and how many accounts does an organization allow by default?",
+      "back": "OUs can go **five levels** below the root. The default account quota is **10**, adjustable through Service Quotas.",
+      "tags": [
+        "organizations",
+        "limits"
+      ]
+    },
+    {
+      "id": "28-advanced-identity-fc-04",
+      "front": "Does a service control policy grant permissions?",
+      "back": "No. An SCP only sets the **maximum** permissions for IAM users and roles in member accounts. Someone still needs an IAM (or resource-based) policy that allows the action.",
+      "tags": [
+        "scp"
+      ]
+    },
+    {
+      "id": "28-advanced-identity-fc-05",
+      "front": "Which principals are NOT restricted by SCPs?",
+      "back": "Users and roles in the **management account**, and **service-linked roles**. (The root user of a member account IS restricted.)",
+      "tags": [
+        "scp"
+      ]
+    },
+    {
+      "id": "28-advanced-identity-fc-06",
+      "front": "What two rules decide whether an SCP hierarchy allows an action for an account?",
+      "back": "An **Allow** must exist at **every level** from the root through each OU to the account, and **no level** may have an explicit **Deny** for it.",
+      "tags": [
+        "scp"
+      ]
+    },
+    {
+      "id": "28-advanced-identity-fc-07",
+      "front": "What is FullAWSAccess?",
+      "back": "The AWS managed SCP that allows all actions. It is attached to the root, every OU and every account when SCPs are enabled. Removing it without a replacement blocks everything below that level.",
+      "tags": [
+        "scp"
+      ]
+    },
+    {
+      "id": "28-advanced-identity-fc-08",
+      "front": "Deny-list versus allow-list SCP strategy: which one blocks brand-new AWS services automatically?",
+      "back": "The **allow list** (detach FullAWSAccess, allow only approved services). The deny list keeps FullAWSAccess and blocks only what you name, so new services work by default.",
+      "tags": [
+        "scp"
+      ]
+    },
+    {
+      "id": "28-advanced-identity-fc-09",
+      "front": "What are the current SCP size and attachment limits?",
+      "back": "Up to **10 SCPs** attached directly to a root, OU or account, and **10,240 characters** per SCP (raised in May 2026 from 5 and 5,120).",
+      "tags": [
+        "scp",
+        "limits"
+      ],
+      "updated": "Quotas doubled in May 2026"
+    },
+    {
+      "id": "28-advanced-identity-fc-10",
+      "front": "How does a resource control policy (RCP) differ from an SCP?",
+      "back": "An SCP caps what **principals in your member accounts** can do. An RCP caps what can be done **to resources in your member accounts**, by any caller, including outsiders. Used for data perimeters.",
+      "tags": [
+        "rcp",
+        "scp"
+      ],
+      "updated": "RCPs were introduced in late 2024, after the course slides"
+    },
+    {
+      "id": "28-advanced-identity-fc-11",
+      "front": "What do tag policies do, and what do they ignore?",
+      "back": "They standardize tag keys, capitalization and allowed values, can **block noncompliant tagging** on chosen resource types and produce compliance reports. **Untagged resources** and undefined keys are not evaluated.",
+      "tags": [
+        "organizations",
+        "tag-policies"
+      ]
+    },
+    {
+      "id": "28-advanced-identity-fc-12",
+      "front": "aws:SourceIp versus aws:RequestedRegion: what does each compare?",
+      "back": "`aws:SourceIp` = the public IP the call comes **from**. `aws:RequestedRegion` = the Region the call goes **to**.",
+      "tags": [
+        "iam-policies",
+        "conditions"
+      ]
+    },
+    {
+      "id": "28-advanced-identity-fc-13",
+      "front": "Why use BoolIfExists with aws:MultiFactorAuthPresent in a Deny statement?",
+      "back": "Requests signed with long-term access keys carry no `aws:MultiFactorAuthPresent` key at all. `BoolIfExists` treats a missing key as a match, so those requests are denied too.",
+      "tags": [
+        "iam-policies",
+        "mfa"
+      ]
+    },
+    {
+      "id": "28-advanced-identity-fc-14",
+      "front": "Which resource ARN do s3:ListBucket and s3:GetObject each need?",
+      "back": "`s3:ListBucket` → bucket ARN `arn:aws:s3:::my-bucket` (bucket level). `s3:GetObject` → `arn:aws:s3:::my-bucket/*` (object level).",
+      "tags": [
+        "s3",
+        "iam-policies"
+      ]
+    },
+    {
+      "id": "28-advanced-identity-fc-15",
+      "front": "How do you let every account in your organization (including future ones) use an S3 bucket without listing account IDs?",
+      "back": "Bucket policy with `\"Principal\": \"*\"` and a condition `aws:PrincipalOrgID` equal to your organization ID (o-xxxxxxxxxx).",
+      "tags": [
+        "s3",
+        "organizations",
+        "conditions"
+      ]
+    },
+    {
+      "id": "28-advanced-identity-fc-16",
+      "front": "What happens to your own permissions when you assume an IAM role?",
+      "back": "You set them aside: the session has **only the role's permissions** until you switch back. With a resource-based policy, you keep your own permissions.",
+      "tags": [
+        "iam-roles",
+        "sts"
+      ]
+    },
+    {
+      "id": "28-advanced-identity-fc-17",
+      "front": "For a cross-account request using a resource-based policy, which policies must allow it?",
+      "back": "**Both**: the resource-based policy in the owning account and an identity-based policy in the caller's account. (Within one account, either one is usually enough.)",
+      "tags": [
+        "iam-policies"
+      ]
+    },
+    {
+      "id": "28-advanced-identity-fc-18",
+      "front": "Which EventBridge targets classically use a resource-based policy, and which need an IAM execution role?",
+      "back": "Resource policy: **Lambda, SNS, SQS, CloudWatch Logs, API Gateway**. Execution role: e.g. **Kinesis Data Streams, ECS tasks, Step Functions, SSM Run Command**. Since 2025, Lambda/SNS/SQS can also use a role.",
+      "tags": [
+        "eventbridge"
+      ],
+      "updated": "Execution roles supported for all targets since March 2025"
+    },
+    {
+      "id": "28-advanced-identity-fc-19",
+      "front": "Which IAM entities can have a permissions boundary?",
+      "back": "**Users and roles** only, not groups. The boundary is an AWS managed or customer managed policy.",
+      "tags": [
+        "iam-policies",
+        "permissions-boundary"
+      ]
+    },
+    {
+      "id": "28-advanced-identity-fc-20",
+      "front": "Boundary allows s3:*, cloudwatch:*, ec2:*. Identity policy allows only iam:CreateUser. What can the user do?",
+      "back": "**Nothing.** Effective permissions are the intersection of the boundary and the identity policies, and they share no actions.",
+      "tags": [
+        "permissions-boundary"
+      ]
+    },
+    {
+      "id": "28-advanced-identity-fc-21",
+      "front": "A policy denies sqs:* and allows sqs:DeleteQueue. Can the user delete a queue?",
+      "back": "No. An **explicit deny always wins** over any allow.",
+      "tags": [
+        "iam-policies",
+        "evaluation"
+      ]
+    },
+    {
+      "id": "28-advanced-identity-fc-22",
+      "front": "What is an IAM Identity Center permission set?",
+      "back": "A reusable template of IAM policies (managed, inline, optional boundary) plus a session duration. Assigning it to a user or group for an account makes Identity Center create a matching IAM role there.",
+      "tags": [
+        "identity-center"
+      ]
+    },
+    {
+      "id": "28-advanced-identity-fc-23",
+      "front": "What can a user reach with one IAM Identity Center login?",
+      "back": "AWS accounts in the organization, pre-integrated and custom **SAML 2.0** business apps (Salesforce, Microsoft 365...), AWS managed apps, and EC2 Windows instances via Fleet Manager Remote Desktop.",
+      "tags": [
+        "identity-center"
+      ]
+    },
+    {
+      "id": "28-advanced-identity-fc-24",
+      "front": "How does ABAC work in IAM Identity Center?",
+      "back": "User attributes (team, cost center, title) from the identity source are passed into the session as tags; policies compare `aws:PrincipalTag` with resource tags. Change the attribute, and access follows without editing policies.",
+      "tags": [
+        "identity-center",
+        "abac"
+      ]
+    },
+    {
+      "id": "28-advanced-identity-fc-25",
+      "front": "AWS Managed Microsoft AD vs AD Connector vs Simple AD in one line each?",
+      "back": "**Managed Microsoft AD**: real AD in AWS, trusts, MFA. **AD Connector**: proxy to on-premises AD, stores nothing. **Simple AD**: basic Samba-based standalone directory, no trusts, no MFA (closed to new customers from 30 July 2026).",
+      "tags": [
+        "directory-service"
+      ],
+      "updated": "Simple AD no longer open to new customers from 30 July 2026"
+    },
+    {
+      "id": "28-advanced-identity-fc-26",
+      "front": "Two ways to use a self-managed on-premises AD as the IAM Identity Center identity source?",
+      "back": "Create **AWS Managed Microsoft AD** with a **two-way trust** to the on-premises domain, or create an **AD Connector** that proxies to it.",
+      "tags": [
+        "identity-center",
+        "directory-service"
+      ]
+    },
+    {
+      "id": "28-advanced-identity-fc-27",
+      "front": "In AWS Control Tower, how are preventive, detective and proactive controls implemented?",
+      "back": "Preventive → **SCPs** (and RCPs). Detective → **AWS Config rules**. Proactive → **CloudFormation hooks** that check resources before provisioning.",
+      "tags": [
+        "control-tower"
+      ],
+      "updated": "Guardrails renamed controls; proactive type added"
+    },
+    {
+      "id": "28-advanced-identity-fc-28",
+      "front": "What does AWS Control Tower set up for you?",
+      "back": "A governed **landing zone** on AWS Organizations (e.g. log archive and audit accounts), **Account Factory** for vending new accounts, **controls**, and a compliance **dashboard**, plus IAM Identity Center for sign-in by default (you can opt out).",
+      "tags": [
+        "control-tower"
+      ]
+    },
+    {
+      "id": "28-advanced-identity-fc-29",
+      "front": "When AWS Organizations creates a new member account, how do administrators in the management account get into it?",
+      "back": "Organizations adds an IAM role, by default named **OrganizationAccountAccessRole**, with full admin rights and a trust policy naming the management account. Admins there assume (switch to) it. The role is still limited by the SCPs on that account.",
+      "tags": [
+        "organizations",
+        "iam-roles"
+      ]
+    },
+    {
+      "id": "28-advanced-identity-fc-30",
+      "front": "Which tool tells you whether a request would be allowed, without making the call, and what does it not evaluate?",
+      "back": "The **IAM policy simulator** (now in the IAM console). It evaluates identity policies, a permissions boundary, SCPs and a supplied resource policy, with condition values you set. It does **not** evaluate RCPs.",
+      "tags": [
+        "iam-policies"
+      ],
+      "updated": "The simulator moved into the IAM console; the standalone policysim site is no longer maintained"
+    }
+  ]
+}

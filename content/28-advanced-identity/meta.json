@@ -1,0 +1,482 @@
+{
+  "id": "28-advanced-identity",
+  "order": 28,
+  "title": "Advanced Identity",
+  "courseSection": "Advanced Identity in AWS",
+  "slides": [
+    619,
+    647
+  ],
+  "estimatedMinutes": 65,
+  "summary": "Running many AWS accounts safely: AWS Organizations (OUs, consolidated billing, SCPs, RCPs, tag policies), the IAM condition keys and policy types the exam tests (conditions, S3 ARNs, aws:PrincipalOrgID, roles versus resource-based policies, permissions boundaries, evaluation logic), workforce single sign-on with IAM Identity Center, Active Directory options in AWS Directory Service, and governance at scale with AWS Control Tower.",
+  "services": [
+    "organizations",
+    "scp",
+    "rcp",
+    "iam",
+    "iam-policies",
+    "iam-roles",
+    "sts",
+    "mfa",
+    "identity-center",
+    "directory-service",
+    "control-tower",
+    "config",
+    "cloudtrail",
+    "cloudwatch-logs",
+    "eventbridge",
+    "s3",
+    "sqs",
+    "sns",
+    "lambda",
+    "dynamodb",
+    "ec2",
+    "service-catalog",
+    "systems-manager",
+    "cloudformation",
+    "savings-plans",
+    "ec2-reserved"
+  ],
+  "relations": [
+    {
+      "from": "organizations",
+      "to": "scp",
+      "label": "sets permission guardrails for member accounts with"
+    },
+    {
+      "from": "scp",
+      "to": "iam-roles",
+      "label": "caps the maximum permissions of users and"
+    },
+    {
+      "from": "rcp",
+      "to": "s3",
+      "label": "caps who can reach resources such as"
+    },
+    {
+      "from": "organizations",
+      "to": "savings-plans",
+      "label": "shares commitment discounts across accounts for"
+    },
+    {
+      "from": "cloudtrail",
+      "to": "s3",
+      "label": "sends organization-wide logs to a central bucket in"
+    },
+    {
+      "from": "sts",
+      "to": "iam-roles",
+      "label": "issues temporary credentials for assuming"
+    },
+    {
+      "from": "iam-policies",
+      "to": "s3",
+      "label": "grant bucket-level and object-level actions on"
+    },
+    {
+      "from": "eventbridge",
+      "to": "lambda",
+      "label": "invokes, via a resource policy or execution role,"
+    },
+    {
+      "from": "identity-center",
+      "to": "organizations",
+      "label": "provides single sign-on into the accounts of"
+    },
+    {
+      "from": "identity-center",
+      "to": "iam-roles",
+      "label": "provisions each permission set as"
+    },
+    {
+      "from": "identity-center",
+      "to": "directory-service",
+      "label": "can use Active Directory users from"
+    },
+    {
+      "from": "control-tower",
+      "to": "organizations",
+      "label": "builds and governs the landing zone with"
+    },
+    {
+      "from": "control-tower",
+      "to": "config",
+      "label": "runs detective controls as rules in"
+    },
+    {
+      "from": "control-tower",
+      "to": "service-catalog",
+      "label": "vends Account Factory accounts through"
+    },
+    {
+      "from": "control-tower",
+      "to": "cloudformation",
+      "label": "checks templates before deployment with proactive hooks in"
+    }
+  ],
+  "examDomains": [
+    "secure",
+    "resilient",
+    "cost"
+  ],
+  "lastVerified": "2026-10-04",
+  "sources": [
+    {
+      "title": "Terminology and concepts for AWS Organizations",
+      "url": "https://docs.aws.amazon.com/organizations/latest/userguide/orgs_getting-started_concepts.html"
+    },
+    {
+      "title": "Quotas and service limits for AWS Organizations",
+      "url": "https://docs.aws.amazon.com/organizations/latest/userguide/orgs_reference_limits.html"
+    },
+    {
+      "title": "Managing organization policies with AWS Organizations (policy types)",
+      "url": "https://docs.aws.amazon.com/organizations/latest/userguide/orgs_manage_policies.html"
+    },
+    {
+      "title": "Service control policies (SCPs)",
+      "url": "https://docs.aws.amazon.com/organizations/latest/userguide/orgs_manage_policies_scps.html"
+    },
+    {
+      "title": "SCP evaluation",
+      "url": "https://docs.aws.amazon.com/organizations/latest/userguide/orgs_manage_policies_scps_evaluation.html"
+    },
+    {
+      "title": "SCP syntax",
+      "url": "https://docs.aws.amazon.com/organizations/latest/userguide/orgs_manage_policies_scps_syntax.html"
+    },
+    {
+      "title": "AWS Organizations supports full IAM policy language for SCPs (Sep 2025)",
+      "url": "https://aws.amazon.com/about-aws/whats-new/2025/09/aws-organizations-iam-language-service-control-policies"
+    },
+    {
+      "title": "AWS Organizations now supports higher quotas for SCPs (May 2026)",
+      "url": "https://aws.amazon.com/about-aws/whats-new/2026/05/aws-organizations-increased-scp-quotas/"
+    },
+    {
+      "title": "Resource control policies (RCPs)",
+      "url": "https://docs.aws.amazon.com/organizations/latest/userguide/orgs_manage_policies_rcps.html"
+    },
+    {
+      "title": "Tag policies",
+      "url": "https://docs.aws.amazon.com/organizations/latest/userguide/orgs_manage_policies_tag-policies.html"
+    },
+    {
+      "title": "Using Amazon EventBridge to monitor noncompliant tags",
+      "url": "https://docs.aws.amazon.com/organizations/latest/userguide/orgs_manage_policies_tag-policies-cwe.html"
+    },
+    {
+      "title": "Evaluating organization-wide tag compliance",
+      "url": "https://docs.aws.amazon.com/tag-editor/latest/userguide/tag-policies-orgs-evaluating-org-wide-compliance.html"
+    },
+    {
+      "title": "Tutorial: Creating and configuring an organization",
+      "url": "https://docs.aws.amazon.com/organizations/latest/userguide/orgs_tutorials_basic.html"
+    },
+    {
+      "title": "Creating a member account in an organization",
+      "url": "https://docs.aws.amazon.com/organizations/latest/userguide/orgs_manage_accounts_create.html"
+    },
+    {
+      "title": "Accessing a member account that has OrganizationAccountAccessRole",
+      "url": "https://docs.aws.amazon.com/organizations/latest/userguide/orgs_manage_accounts_access-cross-account-role.html"
+    },
+    {
+      "title": "Closing a member account in an organization",
+      "url": "https://docs.aws.amazon.com/organizations/latest/userguide/orgs_manage_accounts_close.html"
+    },
+    {
+      "title": "Deleting an organization",
+      "url": "https://docs.aws.amazon.com/organizations/latest/userguide/orgs_manage_org_delete.html"
+    },
+    {
+      "title": "Consolidating billing for AWS Organizations",
+      "url": "https://docs.aws.amazon.com/awsaccountbilling/latest/aboutv2/consolidated-billing.html"
+    },
+    {
+      "title": "Reserved Instances and Savings Plans discount sharing",
+      "url": "https://docs.aws.amazon.com/awsaccountbilling/latest/aboutv2/ri-turn-off.html"
+    },
+    {
+      "title": "AWS Free Tier FAQs (joining an organization ends Free plan credits)",
+      "url": "https://aws.amazon.com/free/faqs/"
+    },
+    {
+      "title": "AWS account root user (centrally manage root access for member accounts)",
+      "url": "https://docs.aws.amazon.com/IAM/latest/UserGuide/id_root-user.html"
+    },
+    {
+      "title": "AWS global condition context keys",
+      "url": "https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_policies_condition-keys.html"
+    },
+    {
+      "title": "Policy evaluation logic",
+      "url": "https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_policies_evaluation-logic.html"
+    },
+    {
+      "title": "How AWS enforcement code logic evaluates requests to allow or deny access",
+      "url": "https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_policies_evaluation-logic_policy-eval-denyallow.html"
+    },
+    {
+      "title": "Permissions boundaries for IAM entities",
+      "url": "https://docs.aws.amazon.com/IAM/latest/UserGuide/access_policies_boundaries.html"
+    },
+    {
+      "title": "Cross account resource access in IAM",
+      "url": "https://docs.aws.amazon.com/IAM/latest/UserGuide/access_policies-cross-account-resource-access.html"
+    },
+    {
+      "title": "Switch from a user to an IAM role (console)",
+      "url": "https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles_use_switch-role-console.html"
+    },
+    {
+      "title": "IAM policy testing with the IAM policy simulator",
+      "url": "https://docs.aws.amazon.com/IAM/latest/UserGuide/access_policies_testing-policies.html"
+    },
+    {
+      "title": "How to simulate policies (IAM console and CLI)",
+      "url": "https://docs.aws.amazon.com/IAM/latest/UserGuide/policies_policy-simulator-how-to.html"
+    },
+    {
+      "title": "AWS CLI reference: aws iam simulate-principal-policy",
+      "url": "https://docs.aws.amazon.com/cli/latest/reference/iam/simulate-principal-policy.html"
+    },
+    {
+      "title": "Create IAM policies (console)",
+      "url": "https://docs.aws.amazon.com/IAM/latest/UserGuide/access_policies_create-console.html"
+    },
+    {
+      "title": "Change permissions for an IAM user (set a permissions boundary)",
+      "url": "https://docs.aws.amazon.com/IAM/latest/UserGuide/id_users_change-permissions.html"
+    },
+    {
+      "title": "Adding and removing IAM identity permissions",
+      "url": "https://docs.aws.amazon.com/IAM/latest/UserGuide/access_policies_manage-attach-detach.html"
+    },
+    {
+      "title": "Remove or deactivate an IAM user",
+      "url": "https://docs.aws.amazon.com/IAM/latest/UserGuide/id_users_remove.html"
+    },
+    {
+      "title": "Create an IAM user for workloads that can't use IAM roles (console steps)",
+      "url": "https://docs.aws.amazon.com/IAM/latest/UserGuide/getting-started-workloads.html"
+    },
+    {
+      "title": "Using resource-based policies for Amazon EventBridge",
+      "url": "https://docs.aws.amazon.com/eventbridge/latest/userguide/eb-use-resource-based.html"
+    },
+    {
+      "title": "Event bus targets in Amazon EventBridge",
+      "url": "https://docs.aws.amazon.com/eventbridge/latest/userguide/eb-targets.html"
+    },
+    {
+      "title": "Amazon EventBridge expands IAM execution role support to all targets (Mar 2025)",
+      "url": "https://aws.amazon.com/about-aws/whats-new/2025/03/amazon-eventbridge-iam-execution-role-all-targets"
+    },
+    {
+      "title": "What is IAM Identity Center?",
+      "url": "https://docs.aws.amazon.com/singlesignon/latest/userguide/what-is.html"
+    },
+    {
+      "title": "Enable IAM Identity Center",
+      "url": "https://docs.aws.amazon.com/singlesignon/latest/userguide/enable-identity-center.html"
+    },
+    {
+      "title": "Manage your identity source (IAM Identity Center)",
+      "url": "https://docs.aws.amazon.com/singlesignon/latest/userguide/manage-your-identity-source.html"
+    },
+    {
+      "title": "Microsoft AD directory as an IAM Identity Center identity source",
+      "url": "https://docs.aws.amazon.com/singlesignon/latest/userguide/manage-your-identity-source-ad.html"
+    },
+    {
+      "title": "Manage AWS accounts with permission sets",
+      "url": "https://docs.aws.amazon.com/singlesignon/latest/userguide/permissionsetsconcept.html"
+    },
+    {
+      "title": "Attribute-based access control in IAM Identity Center",
+      "url": "https://docs.aws.amazon.com/singlesignon/latest/userguide/abac.html"
+    },
+    {
+      "title": "Configure user access with the default IAM Identity Center directory",
+      "url": "https://docs.aws.amazon.com/singlesignon/latest/userguide/quick-start-default-idc.html"
+    },
+    {
+      "title": "Delete your IAM Identity Center instance",
+      "url": "https://docs.aws.amazon.com/singlesignon/latest/userguide/delete-config.html"
+    },
+    {
+      "title": "AWS IAM Identity Center FAQs (pricing)",
+      "url": "https://aws.amazon.com/iam/identity-center/faqs/"
+    },
+    {
+      "title": "Connecting to a Windows Server managed instance using Fleet Manager Remote Desktop (Identity Center authentication)",
+      "url": "https://docs.aws.amazon.com/systems-manager/latest/userguide/fleet-manager-remote-desktop-connections.html"
+    },
+    {
+      "title": "What is AWS Directory Service?",
+      "url": "https://docs.aws.amazon.com/directoryservice/latest/admin-guide/what_is.html"
+    },
+    {
+      "title": "Deploying additional domain controllers for AWS Managed Microsoft AD (two AZs by default)",
+      "url": "https://docs.aws.amazon.com/directoryservice/latest/admin-guide/ms_ad_deploy_additional_dcs.html"
+    },
+    {
+      "title": "AD Connector",
+      "url": "https://docs.aws.amazon.com/directoryservice/latest/admin-guide/directory_ad_connector.html"
+    },
+    {
+      "title": "Simple AD",
+      "url": "https://docs.aws.amazon.com/directoryservice/latest/admin-guide/directory_simple_ad.html"
+    },
+    {
+      "title": "Simple AD availability changes",
+      "url": "https://docs.aws.amazon.com/directoryservice/latest/admin-guide/simple-ad-availability-change.html"
+    },
+    {
+      "title": "AWS Directory Service product page (Simple AD closes to new customers on 30 July 2026)",
+      "url": "https://aws.amazon.com/directoryservice/"
+    },
+    {
+      "title": "Understanding AWS Managed Microsoft AD (Hybrid Edition)",
+      "url": "https://docs.aws.amazon.com/directoryservice/latest/admin-guide/aws-hybrid-directory.html"
+    },
+    {
+      "title": "What Is AWS Control Tower?",
+      "url": "https://docs.aws.amazon.com/controltower/latest/userguide/what-is-control-tower.html"
+    },
+    {
+      "title": "How AWS Control Tower works",
+      "url": "https://docs.aws.amazon.com/controltower/latest/userguide/how-control-tower-works.html"
+    },
+    {
+      "title": "How controls work (AWS Control Tower)",
+      "url": "https://docs.aws.amazon.com/controltower/latest/userguide/how-controls-work.html"
+    },
+    {
+      "title": "About controls in AWS Control Tower (guardrail renamed to control)",
+      "url": "https://docs.aws.amazon.com/controltower/latest/controlreference/controls.html"
+    },
+    {
+      "title": "AWS Control Tower introduces a controls-dedicated experience (Nov 2025)",
+      "url": "https://aws.amazon.com/about-aws/whats-new/2025/11/aws-control-tower-controls-dedicated-experience"
+    },
+    {
+      "title": "AWS Control Tower pricing",
+      "url": "https://aws.amazon.com/controltower/pricing/"
+    },
+    {
+      "title": "CloseAccount API reference (PENDING_CLOSURE, SUSPENDED, 90-day period, closure quota)",
+      "url": "https://docs.aws.amazon.com/organizations/latest/APIReference/API_CloseAccount.html"
+    },
+    {
+      "title": "Deleting organization policies with AWS Organizations",
+      "url": "https://docs.aws.amazon.com/organizations/latest/userguide/orgs_policies_delete.html"
+    },
+    {
+      "title": "Deleting an organizational unit (OU) with AWS Organizations",
+      "url": "https://docs.aws.amazon.com/organizations/latest/userguide/delete-ou.html"
+    },
+    {
+      "title": "Disabling a policy type",
+      "url": "https://docs.aws.amazon.com/organizations/latest/userguide/disable-policy-type.html"
+    },
+    {
+      "title": "Create a role to give permissions to an IAM user (console, permissions boundary section)",
+      "url": "https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles_create_for-user.html"
+    },
+    {
+      "title": "AWS CLI reference: aws iam simulate-custom-policy",
+      "url": "https://docs.aws.amazon.com/cli/latest/reference/iam/simulate-custom-policy.html"
+    },
+    {
+      "title": "Add users to your Identity Center directory",
+      "url": "https://docs.aws.amazon.com/singlesignon/latest/userguide/addusers.html"
+    },
+    {
+      "title": "Create a permission set",
+      "url": "https://docs.aws.amazon.com/singlesignon/latest/userguide/howtocreatepermissionset.html"
+    },
+    {
+      "title": "Remove user and group access to an AWS account",
+      "url": "https://docs.aws.amazon.com/singlesignon/latest/userguide/howtoremoveaccess.html"
+    },
+    {
+      "title": "Referencing permission sets (AWSReservedSSO_ role names)",
+      "url": "https://docs.aws.amazon.com/singlesignon/latest/userguide/referencingpermissionsets.html"
+    },
+    {
+      "title": "Prompt users for MFA (IAM Identity Center defaults)",
+      "url": "https://docs.aws.amazon.com/singlesignon/latest/userguide/mfa-getting-started.html"
+    },
+    {
+      "title": "Configure MFA device enforcement",
+      "url": "https://docs.aws.amazon.com/singlesignon/latest/userguide/how-to-configure-mfa-device-enforcement.html"
+    },
+    {
+      "title": "Customizing the AWS access portal URL",
+      "url": "https://docs.aws.amazon.com/singlesignon/latest/userguide/howtochangeURL.html"
+    },
+    {
+      "title": "Delete users in IAM Identity Center",
+      "url": "https://docs.aws.amazon.com/singlesignon/latest/userguide/deleteusers.html"
+    },
+    {
+      "title": "Delete groups in IAM Identity Center",
+      "url": "https://docs.aws.amazon.com/singlesignon/latest/userguide/deletegroups.html"
+    },
+    {
+      "title": "IAM Identity Center API: CreateInstance (account instances only)",
+      "url": "https://docs.aws.amazon.com/singlesignon/latest/APIReference/API_CreateInstance.html"
+    },
+    {
+      "title": "IAM Identity Center API: DeleteInstance",
+      "url": "https://docs.aws.amazon.com/singlesignon/latest/APIReference/API_DeleteInstance.html"
+    },
+    {
+      "title": "AWS CLI reference: aws identitystore create-user",
+      "url": "https://docs.aws.amazon.com/cli/latest/reference/identitystore/create-user.html"
+    },
+    {
+      "title": "AWS CLI reference: aws sso-admin create-permission-set",
+      "url": "https://docs.aws.amazon.com/cli/latest/reference/sso-admin/create-permission-set.html"
+    },
+    {
+      "title": "AWS CLI reference: aws sso-admin create-account-assignment",
+      "url": "https://docs.aws.amazon.com/cli/latest/reference/sso-admin/create-account-assignment.html"
+    },
+    {
+      "title": "Configuring IAM Identity Center authentication with the AWS CLI (aws configure sso, PKCE and --use-device-code)",
+      "url": "https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-sso.html"
+    },
+    {
+      "title": "Choosing an AWS Free Tier plan (joining an organization or a Control Tower landing zone upgrades a Free plan account)",
+      "url": "https://docs.aws.amazon.com/awsaccountbilling/latest/aboutv2/free-tier-plans.html"
+    },
+    {
+      "title": "Account access manager (IAM User Guide)",
+      "url": "https://docs.aws.amazon.com/IAM/latest/UserGuide/account-access-manager.html"
+    },
+    {
+      "title": "IAM streamlines assignment of IAM roles to workforce users with account access manager (Aug 2026)",
+      "url": "https://aws.amazon.com/about-aws/whats-new/2026/08/aws-iam-aam/"
+    },
+    {
+      "title": "About controls in AWS Control Tower (management account exception)",
+      "url": "https://docs.aws.amazon.com/controltower/latest/userguide/controls.html"
+    },
+    {
+      "title": "AWS Control Tower landing zone 4.0 key changes (Security OU no longer enforced)",
+      "url": "https://docs.aws.amazon.com/controltower/latest/userguide/key-changes-lz-v4.html"
+    },
+    {
+      "title": "Optionally self-manage AWS account access (Control Tower without Identity Center)",
+      "url": "https://docs.aws.amazon.com/controltower/latest/userguide/select-idp.html"
+    },
+    {
+      "title": "IAM API reference: SimulatePrincipalPolicy (PermissionsBoundaryPolicyInputList replaces the attached boundary)",
+      "url": "https://docs.aws.amazon.com/IAM/latest/APIReference/API_SimulatePrincipalPolicy.html"
+    }
+  ],
+  "newServices": []
+}

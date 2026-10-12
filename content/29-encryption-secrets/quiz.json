@@ -1,0 +1,600 @@
+{
+  "section": "29-encryption-secrets",
+  "questions": [
+    {
+      "id": "29-encryption-secrets-q01",
+      "type": "single",
+      "domain": "secure",
+      "difficulty": "easy",
+      "question": "A company keeps sensitive files on Amazon EBS volumes attached to EC2 instances. The security team requires encryption at rest, a key policy that names exactly which IAM roles may use the key, a record of every use of the key, and the ability to switch the key off immediately during an incident. Which solution meets these requirements with the LEAST effort?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Turn on EBS encryption with the AWS managed key aws/ebs.",
+          "correct": false,
+          "explanation": "AWS managed keys have a fixed key policy that you cannot edit, and you cannot disable them, so two of the requirements fail."
+        },
+        {
+          "id": "B",
+          "text": "Rely on an AWS owned key, which EBS uses automatically and free of charge.",
+          "correct": false,
+          "explanation": "AWS owned keys are invisible to your account: you cannot set their policy, see their use in CloudTrail or disable them. EBS encryption also uses a KMS key in your account, not an AWS owned key."
+        },
+        {
+          "id": "C",
+          "text": "Create a customer managed KMS key whose key policy lists the allowed roles, and encrypt the volumes with it.",
+          "correct": true,
+          "explanation": "A customer managed key gives an editable key policy, CloudTrail records each use, and the key can be disabled at once and re-enabled later. EBS integrates with it natively."
+        },
+        {
+          "id": "D",
+          "text": "Deploy an AWS CloudHSM cluster and encrypt the file system from inside the operating system with the CloudHSM client SDK.",
+          "correct": false,
+          "explanation": "This could work, but it means running HSMs, an SDK and OS-level encryption yourself, which is far more effort than native EBS encryption with KMS."
+        }
+      ],
+      "explanation": "Encryption at rest plus control over key policy, auditing and disabling the key points to a customer managed KMS key, not an AWS managed or AWS owned key.",
+      "tags": [
+        "kms",
+        "ebs",
+        "customer-managed-key"
+      ]
+    },
+    {
+      "id": "29-encryption-secrets-q02",
+      "type": "single",
+      "domain": "secure",
+      "difficulty": "medium",
+      "question": "Account A owns an AMI whose EBS snapshots are encrypted with the AWS managed key aws/ebs. A partner team in account B must launch EC2 instances from this AMI. What should a solutions architect do?",
+      "options": [
+        {
+          "id": "A",
+          "text": "In account A, copy the AMI and re-encrypt its snapshots with a customer managed KMS key, allow account B in that key's policy, and add a launch permission for account B on the new AMI.",
+          "correct": true,
+          "explanation": "Encrypted AMIs can only be shared when a customer managed key protects the snapshots and its key policy trusts the other account. The copy step swaps aws/ebs for such a key."
+        },
+        {
+          "id": "B",
+          "text": "Add a launch permission for account B on the existing AMI and edit the aws/ebs key policy to allow account B.",
+          "correct": false,
+          "explanation": "The key policy of an AWS managed key cannot be edited, so account B can never use aws/ebs and the AMI stays unusable for it."
+        },
+        {
+          "id": "C",
+          "text": "Make the AMI public so that account B can find it in the public AMI catalog.",
+          "correct": false,
+          "explanation": "An AMI backed by encrypted snapshots cannot be made public, and publishing it would expose the image to every AWS account anyway."
+        },
+        {
+          "id": "D",
+          "text": "Share the AMI's snapshots directly with account B using Modify permissions, keeping the aws/ebs key.",
+          "correct": false,
+          "explanation": "Snapshots encrypted with the AWS managed key cannot be shared at all. Account B would also need a launch permission on the AMI, not just the snapshots."
+        }
+      ],
+      "explanation": "Anything encrypted with aws/ebs stays in its account. Re-encrypt with a customer managed key, trust the other account in the key policy, then share the AMI.",
+      "tags": [
+        "ami",
+        "kms",
+        "cross-account"
+      ]
+    },
+    {
+      "id": "29-encryption-secrets-q03",
+      "type": "single",
+      "domain": "resilient",
+      "difficulty": "medium",
+      "question": "A company takes nightly EBS snapshots in us-east-1, encrypted with a customer managed KMS key. For disaster recovery, the snapshots must also exist in eu-west-1 and be usable there to create volumes. What must the company do?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Copy the snapshots to eu-west-1 and specify the ARN of the us-east-1 key so that the copies keep the same encryption.",
+          "correct": false,
+          "explanation": "KMS keys are Regional. A key in us-east-1 cannot encrypt or decrypt anything stored in eu-west-1, so the copy cannot use it."
+        },
+        {
+          "id": "B",
+          "text": "Turn on S3 Cross-Region Replication for the bucket that stores the EBS snapshots.",
+          "correct": false,
+          "explanation": "EBS keeps snapshots in S3 storage that AWS manages for you. There is no bucket in your account to replicate."
+        },
+        {
+          "id": "C",
+          "text": "Convert the existing customer managed key into a multi-Region key and replicate it to eu-west-1.",
+          "correct": false,
+          "explanation": "An existing single-Region key cannot be converted into a multi-Region key. EBS copies do not need one, because the copy is re-encrypted anyway."
+        },
+        {
+          "id": "D",
+          "text": "Copy each snapshot to eu-west-1 and choose a KMS key that exists in eu-west-1 (a customer managed key there, or that Region's aws/ebs key) to encrypt the copy.",
+          "correct": true,
+          "explanation": "A cross-Region snapshot copy is always re-encrypted with a key in the destination Region. Tools such as Amazon Data Lifecycle Manager or AWS Backup can automate the copy."
+        }
+      ],
+      "explanation": "Cross-Region copies of encrypted snapshots are decrypted with the source key and re-encrypted with a key in the destination Region.",
+      "tags": [
+        "ebs-snapshots",
+        "kms",
+        "disaster-recovery"
+      ]
+    },
+    {
+      "id": "29-encryption-secrets-q04",
+      "type": "single",
+      "domain": "secure",
+      "difficulty": "medium",
+      "question": "An application stores its data in Amazon RDS for PostgreSQL. A new compliance rule says the database master password must change automatically every 30 days, and the application must pick up the new password without code changes or redeployments. Which solution has the LEAST operational overhead?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Store the password as a SecureString in SSM Parameter Store and attach an Expiration policy of 30 days.",
+          "correct": false,
+          "explanation": "An Expiration policy deletes the parameter when the date arrives. It does not generate a new password or update the database."
+        },
+        {
+          "id": "B",
+          "text": "Let RDS manage the master user password in AWS Secrets Manager and set the rotation schedule to every 30 days.",
+          "correct": true,
+          "explanation": "RDS-managed secrets use managed rotation, so Secrets Manager changes the password on the database and in the secret without any Lambda code. Apps read the current value at runtime."
+        },
+        {
+          "id": "C",
+          "text": "Store the password in Secrets Manager and write a Lambda function, triggered by EventBridge Scheduler every 30 days, that calls ModifyDBInstance and updates the secret.",
+          "correct": false,
+          "explanation": "This would work but you build, test and maintain your own rotation logic, which is more overhead than managed rotation."
+        },
+        {
+          "id": "D",
+          "text": "Encrypt the password with a customer managed KMS key and turn on automatic key rotation every 30 days.",
+          "correct": false,
+          "explanation": "KMS rotation changes key material, not the database password, and its shortest automatic rotation period is 90 days."
+        }
+      ],
+      "explanation": "Automatic rotation of database credentials is a Secrets Manager feature. For RDS, Aurora, Redshift and DocumentDB admin users it can be fully managed.",
+      "tags": [
+        "secrets-manager",
+        "rds",
+        "rotation"
+      ]
+    },
+    {
+      "id": "29-encryption-secrets-q05",
+      "type": "single",
+      "domain": "cost",
+      "difficulty": "easy",
+      "question": "Dozens of Lambda functions across dev, test and prod read database URLs, feature flags and a few API tokens that change about once a year. The values must be managed in one central place so that a change needs no function redeployment, the tokens must be stored encrypted with AWS KMS, and functions in each environment may read only their own environment's values. Which solution is the MOST cost-effective?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Create one AWS Secrets Manager secret for every value and give each function access to the secrets it needs.",
+          "correct": false,
+          "explanation": "At USD 0.40 per secret per month, dozens of values add up, and nothing here needs rotation or replication. Secrets Manager also has no query by path."
+        },
+        {
+          "id": "B",
+          "text": "Put all values in each function's environment variables in plain text.",
+          "correct": false,
+          "explanation": "Plaintext tokens in environment variables are visible to anyone who can view the function configuration, and every change means editing and redeploying many functions, so the central management and encryption requirements both fail."
+        },
+        {
+          "id": "C",
+          "text": "Store the values as standard-tier parameters in SSM Parameter Store under paths such as /app/dev/ and /app/prod/, using SecureString for the tokens, and limit each role to its environment's path.",
+          "correct": true,
+          "explanation": "Standard parameters are free, SecureString encrypts the tokens with KMS, path-based IAM keeps environments apart, and GetParametersByPath loads a whole branch in one call."
+        },
+        {
+          "id": "D",
+          "text": "Keep the values in an Amazon DynamoDB table and encrypt the token attributes client-side with the AWS Database Encryption SDK.",
+          "correct": false,
+          "explanation": "It works, but you pay for the table and write custom code for something Parameter Store does for free."
+        }
+      ],
+      "explanation": "Configuration plus a few rarely changing secrets, organised by environment, is a Parameter Store standard-tier job.",
+      "tags": [
+        "ssm-parameter-store",
+        "cost",
+        "hierarchy"
+      ]
+    },
+    {
+      "id": "29-encryption-secrets-q06",
+      "type": "single",
+      "domain": "secure",
+      "difficulty": "medium",
+      "question": "A global application uses an Amazon DynamoDB global table with replicas in us-east-1 and ap-southeast-2. A national ID attribute must be encrypted on the client so that database administrators cannot read it. Applications in each Region must decrypt it with low latency, even when the other Region is unreachable. What should a solutions architect recommend?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Encrypt the attribute with the AWS Database Encryption SDK using a KMS multi-Region primary key in us-east-1 with a replica key in ap-southeast-2, and have each Region's application decrypt with its local key.",
+          "correct": true,
+          "explanation": "Related multi-Region keys share key material, so ciphertext written in one Region decrypts with a local KMS call in the other. The SDK keeps the field hidden from anyone without key permissions."
+        },
+        {
+          "id": "B",
+          "text": "Enable DynamoDB encryption at rest with a customer managed KMS key in each Region.",
+          "correct": false,
+          "explanation": "Server-side encryption protects the storage, but DynamoDB decrypts data for anyone allowed to read the table, administrators included."
+        },
+        {
+          "id": "C",
+          "text": "Encrypt the attribute with a single-Region KMS key in us-east-1 and have the ap-southeast-2 application call that key across Regions.",
+          "correct": false,
+          "explanation": "Cross-Region KMS calls add latency and make ap-southeast-2 depend on us-east-1 being reachable, which breaks a stated requirement."
+        },
+        {
+          "id": "D",
+          "text": "Store each national ID in its own replicated AWS Secrets Manager secret and keep only the secret name in the table.",
+          "correct": false,
+          "explanation": "Secrets Manager holds credentials, not millions of per-item values. It would be slow and very expensive at USD 0.40 per secret per month."
+        }
+      ],
+      "explanation": "Client-side field encryption on a global database plus local decryption in every Region is the textbook case for KMS multi-Region keys.",
+      "tags": [
+        "kms",
+        "multi-region-keys",
+        "dynamodb-global-tables"
+      ]
+    },
+    {
+      "id": "29-encryption-secrets-q07",
+      "type": "single",
+      "domain": "secure",
+      "difficulty": "medium",
+      "question": "A company replicates an S3 bucket in eu-west-1 to a bucket in us-west-2. Objects uploaded with SSE-S3 appear in the destination, but objects uploaded with SSE-KMS never do. The replication role and rule are otherwise correct. What should the solutions architect do?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Enable S3 Bucket Keys on the destination bucket.",
+          "correct": false,
+          "explanation": "Bucket Keys reduce the number of KMS requests. They do not make S3 replicate KMS-encrypted objects."
+        },
+        {
+          "id": "B",
+          "text": "Edit the replication rule to include objects encrypted with AWS KMS, choose a KMS key in us-west-2 for the replicas, and allow the replication role kms:Decrypt on the source key and kms:Encrypt on the destination key.",
+          "correct": true,
+          "explanation": "S3 skips SSE-KMS objects unless the rule opts in and names a destination-Region key. The role also needs permission on both keys, and the destination key policy must allow it."
+        },
+        {
+          "id": "C",
+          "text": "Replace the source key with a KMS multi-Region key so that S3 can copy the ciphertext without decrypting it.",
+          "correct": false,
+          "explanation": "S3 treats multi-Region keys as independent keys and still decrypts and re-encrypts each replica. The KMS opt-in is still required."
+        },
+        {
+          "id": "D",
+          "text": "Run an S3 Batch Replication job for the missing objects.",
+          "correct": false,
+          "explanation": "Batch Replication copies existing objects using the same rule. Without the KMS settings, SSE-KMS objects are still skipped, and new SSE-KMS uploads would keep being skipped as well."
+        }
+      ],
+      "explanation": "SSE-S3 and unencrypted objects replicate by default. SSE-KMS objects need an explicit opt-in, a destination key and KMS permissions.",
+      "tags": [
+        "s3",
+        "replication",
+        "kms"
+      ]
+    },
+    {
+      "id": "29-encryption-secrets-q08",
+      "type": "single",
+      "domain": "secure",
+      "difficulty": "medium",
+      "question": "A company serves a website from an S3 bucket in eu-west-1 through Amazon CloudFront at www.example.com. The team requested and validated an ACM public certificate for www.example.com in eu-west-1, but it does not appear in the list of certificates in the CloudFront distribution settings. How should the team fix this?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Export the certificate from ACM and install it on the S3 bucket's website endpoint.",
+          "correct": false,
+          "explanation": "S3 website endpoints do not support HTTPS or custom certificates. The certificate belongs on CloudFront."
+        },
+        {
+          "id": "B",
+          "text": "Wait up to 72 hours for ACM to replicate the certificate to every Region.",
+          "correct": false,
+          "explanation": "ACM certificates are Regional and never replicate to other Regions on their own."
+        },
+        {
+          "id": "C",
+          "text": "Request the certificate again using email validation instead of DNS validation.",
+          "correct": false,
+          "explanation": "The validation method does not affect where a certificate can be used. The problem is the Region."
+        },
+        {
+          "id": "D",
+          "text": "Request (or import) a certificate for www.example.com in us-east-1 and select it in the distribution.",
+          "correct": true,
+          "explanation": "CloudFront only uses ACM certificates from the US East (N. Virginia) Region, whatever Region the origin is in."
+        }
+      ],
+      "explanation": "CloudFront and edge-optimized API Gateway custom domains need their ACM certificate in us-east-1.",
+      "tags": [
+        "acm",
+        "cloudfront",
+        "region"
+      ]
+    },
+    {
+      "id": "29-encryption-secrets-q09",
+      "type": "single",
+      "domain": "secure",
+      "difficulty": "hard",
+      "question": "A company runs a REST API in Amazon API Gateway with a Regional endpoint in ap-southeast-2. All of its customers are in Australia. The company wants clients to call https://api.example.com, and requests must go straight to the Regional endpoint instead of passing through CloudFront edge locations. The domain is hosted in Amazon Route 53. Which solution meets these requirements?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Request an ACM certificate in us-east-1, create an edge-optimized custom domain name with it, and map it to the Regional API.",
+          "correct": false,
+          "explanation": "An edge-optimized custom domain name places a CloudFront distribution that API Gateway manages in front of the API and needs a us-east-1 certificate. That routes requests through edge locations, which the company explicitly wants to avoid."
+        },
+        {
+          "id": "B",
+          "text": "Create a CNAME record for api.example.com that points to the API's default execute-api URL.",
+          "correct": false,
+          "explanation": "API Gateway would present its default certificate for execute-api.amazonaws.com, so clients would get a name mismatch error. A custom domain name is required."
+        },
+        {
+          "id": "C",
+          "text": "Request an ACM certificate for api.example.com in ap-southeast-2, create a Regional custom domain name with it, map it to the API stage, and create a Route 53 alias record for the custom domain's target.",
+          "correct": true,
+          "explanation": "A Regional custom domain name uses an ACM certificate from the API's own Region, sends requests directly to the Regional endpoint, and an alias record is the preferred way to point the name at it."
+        },
+        {
+          "id": "D",
+          "text": "Put a CloudFront distribution in front of the API and attach an ACM certificate from ap-southeast-2.",
+          "correct": false,
+          "explanation": "CloudFront accepts only certificates from us-east-1, so a certificate from ap-southeast-2 cannot be attached, and a distribution would send traffic through edge locations, which the company wants to avoid."
+        }
+      ],
+      "explanation": "For a Regional API with a Regional custom domain, the certificate lives in the API's Region. Edge-optimized custom domains and CloudFront need their certificate in us-east-1 and route traffic through edge locations.",
+      "tags": [
+        "acm",
+        "api-gateway",
+        "route53"
+      ]
+    },
+    {
+      "id": "29-encryption-secrets-q10",
+      "type": "multi",
+      "domain": "secure",
+      "difficulty": "medium",
+      "question": "A company imports TLS certificates from a third-party certificate authority into ACM and uses them on its Application Load Balancers. Last year an imported certificate expired unnoticed and caused an outage. Which actions will alert the team well before a certificate expires, with the LEAST effort? (Select TWO.)",
+      "options": [
+        {
+          "id": "A",
+          "text": "Turn on ACM managed renewal for the imported certificates so they renew 45 days before expiry.",
+          "correct": false,
+          "explanation": "ACM renews only certificates that it issued. Imported certificates must be re-imported by you."
+        },
+        {
+          "id": "B",
+          "text": "Create an Amazon EventBridge rule that matches the ACM Certificate Approaching Expiration event and sends it to an Amazon SNS topic.",
+          "correct": true,
+          "explanation": "ACM emits this event daily for each certificate approaching expiry, starting 45 days out for imported certificates, so a simple rule can notify the team."
+        },
+        {
+          "id": "C",
+          "text": "Create a CloudTrail trail and a CloudWatch alarm on RenewCertificate API calls.",
+          "correct": false,
+          "explanation": "Nothing calls RenewCertificate for imported certificates, and CloudTrail records API activity, not approaching expiry dates."
+        },
+        {
+          "id": "D",
+          "text": "Store each certificate's expiry date in an advanced Parameter Store parameter with an ExpirationNotification policy.",
+          "correct": false,
+          "explanation": "This tracks a parameter you maintain by hand, not the certificate itself. Every re-import means updating it, which adds effort and room for error."
+        },
+        {
+          "id": "E",
+          "text": "Enable the AWS Config managed rule acm-certificate-expiration-check with a 30-day threshold and route non-compliance events to SNS through EventBridge.",
+          "correct": true,
+          "explanation": "The managed rule flags certificates that expire within the number of days you set, and its compliance changes reach EventBridge for notification."
+        }
+      ],
+      "explanation": "Imported certificates never auto-renew. Watch them with ACM expiry events in EventBridge or the Config rule acm-certificate-expiration-check.",
+      "tags": [
+        "acm",
+        "eventbridge",
+        "config"
+      ]
+    },
+    {
+      "id": "29-encryption-secrets-q11",
+      "type": "single",
+      "domain": "secure",
+      "difficulty": "hard",
+      "question": "A bank's regulator requires that encryption keys live in single-tenant hardware security modules validated at FIPS 140-3 Level 3, that only the bank manages the keys and HSM users, and that AWS staff have no access to key material. Amazon EBS volumes and S3 objects must be encrypted with keys from these HSMs, and every use of the keys must be logged in AWS CloudTrail. Which solution meets these requirements?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Create customer managed KMS keys with imported key material generated on the bank's premises.",
+          "correct": false,
+          "explanation": "Imported material still lives in the shared, AWS-operated KMS HSM fleet, so the single-tenant requirement is not met."
+        },
+        {
+          "id": "B",
+          "text": "Create an AWS CloudHSM cluster with at least two HSMs in different Availability Zones, connect it to AWS KMS as a CloudHSM key store, and encrypt EBS and S3 with KMS keys created in that key store.",
+          "correct": true,
+          "explanation": "CloudHSM gives dedicated HSMs that only the bank controls. The KMS custom key store lets EBS and S3 use those keys like any KMS key, with each use logged in CloudTrail."
+        },
+        {
+          "id": "C",
+          "text": "Create an AWS CloudHSM cluster and configure EBS and S3 to call the HSMs directly through the CloudHSM client SDK.",
+          "correct": false,
+          "explanation": "EBS and S3 do not integrate with CloudHSM directly. They use KMS keys, which is why the CloudHSM key store exists."
+        },
+        {
+          "id": "D",
+          "text": "Create customer managed KMS keys with a key policy that denies every principal outside the bank's account.",
+          "correct": false,
+          "explanation": "A key policy controls API access, but the keys still sit in multi-tenant HSMs that AWS operates, which fails the single-tenant requirement."
+        }
+      ],
+      "explanation": "Single-tenant HSMs under the customer's sole control point to CloudHSM. When AWS services must use those keys, add a KMS CloudHSM key store.",
+      "tags": [
+        "cloudhsm",
+        "kms",
+        "custom-key-store"
+      ]
+    },
+    {
+      "id": "29-encryption-secrets-q12",
+      "type": "single",
+      "domain": "secure",
+      "difficulty": "medium",
+      "question": "Hundreds of external partners send sensitive data to a company. The partners have no AWS accounts and cannot call AWS APIs. They must encrypt the data so that only the company can decrypt it, and the company's decryption key must never leave AWS unencrypted. Which solution meets these requirements?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Create a symmetric customer managed KMS key and give each partner an IAM user with permission to call kms:Encrypt.",
+          "correct": false,
+          "explanation": "The partners cannot call AWS APIs, and handing out hundreds of IAM users with long-term credentials is poor security practice."
+        },
+        {
+          "id": "B",
+          "text": "Create a symmetric KMS key, export its key material and send it to the partners over a secure channel.",
+          "correct": false,
+          "explanation": "KMS never exports symmetric key material, and a shared secret key would let every partner decrypt everyone's data."
+        },
+        {
+          "id": "C",
+          "text": "Create keys in an AWS CloudHSM cluster and give each partner a crypto user account on the HSMs.",
+          "correct": false,
+          "explanation": "Partners would need network access to the bank's VPC and HSM credentials, which is complex and widens access to the keys."
+        },
+        {
+          "id": "D",
+          "text": "Create an asymmetric KMS key for encryption and decryption, download its public key, and distribute the public key to the partners.",
+          "correct": true,
+          "explanation": "Partners encrypt offline with the public key. Only the private key can decrypt, and it never leaves KMS unencrypted, so the company decrypts by calling KMS."
+        }
+      ],
+      "explanation": "When people outside AWS must encrypt for you without calling KMS, use an asymmetric KMS key and hand out its public key.",
+      "tags": [
+        "kms",
+        "asymmetric"
+      ]
+    },
+    {
+      "id": "29-encryption-secrets-q13",
+      "type": "multi",
+      "domain": "performant",
+      "difficulty": "medium",
+      "question": "An application writes thousands of objects per second to an S3 bucket that uses SSE-KMS with a customer managed key. During peaks, some uploads fail, and CloudTrail shows ThrottlingException errors from AWS KMS for the GenerateDataKey calls that S3 makes. Which actions will resolve the issue? (Select TWO.)",
+      "options": [
+        {
+          "id": "A",
+          "text": "Enable S3 Bucket Keys on the bucket.",
+          "correct": true,
+          "explanation": "With a Bucket Key, S3 derives object keys from a short-lived bucket-level key, which cuts the number of KMS requests sharply."
+        },
+        {
+          "id": "B",
+          "text": "Enable automatic rotation on the customer managed key.",
+          "correct": false,
+          "explanation": "Rotation changes key material on a schedule and has no effect on how many requests per second KMS accepts."
+        },
+        {
+          "id": "C",
+          "text": "Switch the bucket's default encryption to the AWS managed key aws/s3.",
+          "correct": false,
+          "explanation": "Requests made with AWS managed keys count against the same KMS request quota, so throttling would continue."
+        },
+        {
+          "id": "D",
+          "text": "Request an increase of the KMS cryptographic request quota for that Region in Service Quotas.",
+          "correct": true,
+          "explanation": "KMS request quotas are adjustable, so raising the shared symmetric quota gives S3 more headroom during peaks."
+        },
+        {
+          "id": "E",
+          "text": "Replace the key with a KMS multi-Region key.",
+          "correct": false,
+          "explanation": "Multi-Region keys exist for cross-Region use. They do not raise the request quota in a Region."
+        }
+      ],
+      "explanation": "SSE-KMS sends KMS requests for S3 traffic. Fix throttling with S3 Bucket Keys, or a higher KMS quota, plus retries with backoff.",
+      "tags": [
+        "kms",
+        "s3",
+        "quotas"
+      ]
+    },
+    {
+      "id": "29-encryption-secrets-q14",
+      "type": "single",
+      "domain": "resilient",
+      "difficulty": "medium",
+      "question": "A company runs an active-passive application in us-east-1 (primary) and us-west-2 (standby) on an Aurora Global Database. The application reads its database credentials from AWS Secrets Manager in us-east-1, and the secret is rotated every 30 days. In the standby Region, the application must read the credentials locally and keep working if us-east-1 becomes unavailable. Which solution requires the LEAST operational effort?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Replicate the secret to us-west-2, point the standby application at the replica, and promote the replica to a standalone secret if us-east-1 fails.",
+          "correct": true,
+          "explanation": "Secrets Manager keeps the replica in sync after each rotation of the primary, and promotion makes the replica independent during a Regional outage."
+        },
+        {
+          "id": "B",
+          "text": "Create a second secret in us-west-2 and write a Lambda function that copies the new value after every rotation.",
+          "correct": false,
+          "explanation": "This rebuilds replication yourself, adds code to maintain and risks the two copies drifting apart."
+        },
+        {
+          "id": "C",
+          "text": "Store the credentials as SecureString parameters in Parameter Store in both Regions with an Expiration policy.",
+          "correct": false,
+          "explanation": "Parameter Store neither rotates credentials nor syncs Regions, and an Expiration policy would just delete the value."
+        },
+        {
+          "id": "D",
+          "text": "Configure the standby application to call the Secrets Manager endpoint in us-east-1.",
+          "correct": false,
+          "explanation": "The standby Region would then depend on us-east-1, so it fails exactly when it is needed."
+        }
+      ],
+      "explanation": "Secrets Manager multi-Region secrets keep credentials available locally in each Region, follow the primary's rotation, and can be promoted for disaster recovery.",
+      "tags": [
+        "secrets-manager",
+        "multi-region",
+        "disaster-recovery"
+      ]
+    },
+    {
+      "id": "29-encryption-secrets-q15",
+      "type": "single",
+      "domain": "secure",
+      "difficulty": "easy",
+      "question": "A security engineer suspects that a customer managed KMS key used by several applications is being misused. All cryptographic use of the key must stop immediately. The investigation may take several weeks, and afterwards the key must be usable again with no data lost. What should the engineer do?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Schedule the key for deletion with the minimum 7-day waiting period.",
+          "correct": false,
+          "explanation": "The key would become unusable, but the waiting period is at most 30 days. If the investigation runs longer, the key is destroyed and all data encrypted under it is lost."
+        },
+        {
+          "id": "B",
+          "text": "Disable the key, then re-enable it when the investigation is finished.",
+          "correct": true,
+          "explanation": "Disabling blocks every cryptographic operation right away and is fully reversible, which is exactly what AWS recommends before any deletion."
+        },
+        {
+          "id": "C",
+          "text": "Enable automatic key rotation with a 90-day period.",
+          "correct": false,
+          "explanation": "Rotation adds new key material on a schedule. The key stays usable, so misuse would continue."
+        },
+        {
+          "id": "D",
+          "text": "Remove the KMS permissions from the IAM policies of the application roles.",
+          "correct": false,
+          "explanation": "Principals named directly in the key policy or holding grants would keep access, and it is slow to find every policy. Disabling the key is immediate and complete."
+        }
+      ],
+      "explanation": "Disabling a KMS key is the instant, reversible way to stop its use. Deletion is permanent once the 7 to 30 day waiting period ends.",
+      "tags": [
+        "kms",
+        "incident-response"
+      ]
+    }
+  ]
+}

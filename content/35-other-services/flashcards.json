@@ -1,0 +1,255 @@
+{
+  "section": "35-other-services",
+  "cards": [
+    {
+      "id": "35-other-services-fc-01",
+      "front": "What does AWS CloudFormation do with a template?",
+      "back": "It reads the declarative template (YAML/JSON), works out the dependency order and creates, updates or deletes all the resources together as one **stack**. Deleting the stack removes everything it created.",
+      "tags": [
+        "cloudformation"
+      ]
+    },
+    {
+      "id": "35-other-services-fc-02",
+      "front": "Name three benefits of managing infrastructure with CloudFormation.",
+      "back": "Any three of: changes reviewed as code (no manual resources), repeatable copies in other Regions/accounts, easy teardown and rebuild (e.g. delete dev stacks at night), stack tags for cost tracking, declarative ordering handled for you, reuse of existing templates.",
+      "tags": [
+        "cloudformation"
+      ]
+    },
+    {
+      "id": "35-other-services-fc-03",
+      "front": "What is a CloudFormation service role, and what permission does the user still need?",
+      "back": "An IAM role that CloudFormation assumes to create, update and delete stack resources on the user's behalf. The user needs CloudFormation permissions plus **`iam:PassRole`** for that role, not permissions on the resources themselves.",
+      "tags": [
+        "cloudformation",
+        "iam-roles"
+      ]
+    },
+    {
+      "id": "35-other-services-fc-04",
+      "front": "Can you remove a service role from a CloudFormation stack after creating it?",
+      "back": "No. You can switch it to another role during an update, but the stack can never go back to using the caller's own permissions. Anyone allowed to operate on the stack uses the role's permissions, so keep it least-privilege and do not delete it before the stack.",
+      "tags": [
+        "cloudformation",
+        "iam-roles"
+      ]
+    },
+    {
+      "id": "35-other-services-fc-05",
+      "front": "How do you include something in a CloudFormation stack that has no native resource type?",
+      "back": "Use a **custom resource** (`Custom::Name`) whose service token points to a Lambda function or SNS topic. Your code does the work on create/update/delete and reports SUCCESS or FAILED back to CloudFormation.",
+      "tags": [
+        "cloudformation",
+        "lambda"
+      ]
+    },
+    {
+      "id": "35-other-services-fc-06",
+      "front": "How can you view a CloudFormation template as an architecture diagram today?",
+      "back": "In the CloudFormation console with **template studio** (text beside a live resource diagram), or with Infrastructure Composer in the AWS Toolkit for VS Code. The standalone Infrastructure Composer console shuts down on 7 December 2026.",
+      "tags": [
+        "cloudformation",
+        "infrastructure-composer"
+      ],
+      "updated": "Infrastructure Composer end of support announced; template studio is the console tool"
+    },
+    {
+      "id": "35-other-services-fc-07",
+      "front": "What is Amazon SES used for, and how do applications send through it?",
+      "back": "Sending (and receiving) email at scale: transactional, marketing and bulk. Apps use the **SES API/SDK** or the **SMTP** interface. It supports DKIM and SPF and reports deliveries, bounces, complaints and opens.",
+      "tags": [
+        "ses"
+      ]
+    },
+    {
+      "id": "35-other-services-fc-08",
+      "front": "What limits apply to a new Amazon SES account in the sandbox?",
+      "back": "Per Region: send only to verified addresses/domains (or the mailbox simulator), at most **200 messages per 24 hours** and **1 message per second**. Request production access to remove them.",
+      "tags": [
+        "ses"
+      ]
+    },
+    {
+      "id": "35-other-services-fc-09",
+      "front": "Which IP address options does SES offer for sending?",
+      "back": "Shared IPs (default), dedicated IPs **standard** (you warm up and manage), dedicated IPs **managed** (SES warms up and scales them), and **BYOIP** (your own address ranges).",
+      "tags": [
+        "ses"
+      ]
+    },
+    {
+      "id": "35-other-services-fc-10",
+      "front": "How did Amazon Pinpoint differ from SNS and SES?",
+      "back": "With SNS/SES you decide each message's audience, content and timing yourself. Pinpoint added **segments, message templates, delivery schedules, campaigns and journeys** across email, SMS, push, voice and in-app, plus two-way replies.",
+      "tags": [
+        "pinpoint",
+        "sns",
+        "ses"
+      ]
+    },
+    {
+      "id": "35-other-services-fc-11",
+      "front": "What is happening to Amazon Pinpoint?",
+      "back": "End of support on **30 October 2026** (no new customers since 20 May 2025). SMS/voice/push APIs live on as **AWS End User Messaging**; campaigns and journeys move to **Amazon Connect** outbound campaigns; email to **SES**.",
+      "tags": [
+        "pinpoint",
+        "end-user-messaging",
+        "connect"
+      ],
+      "updated": "End of support announced after the slides were made"
+    },
+    {
+      "id": "35-other-services-fc-12",
+      "front": "What three things does an EC2 instance need to be managed by Systems Manager?",
+      "back": "The **SSM Agent** running, **permissions** (instance profile with `AmazonSSMManagedInstanceCore` or Default Host Management Configuration), and outbound **HTTPS 443** to the Systems Manager endpoints (internet/NAT or VPC interface endpoints). No inbound ports.",
+      "tags": [
+        "systems-manager",
+        "ec2"
+      ]
+    },
+    {
+      "id": "35-other-services-fc-13",
+      "front": "Why choose Session Manager over SSH through a bastion host?",
+      "back": "No port 22, no bastion and no SSH keys; access controlled by IAM; sessions audited in CloudTrail with command logs to S3 or CloudWatch Logs. Works for Linux, macOS and Windows, on EC2 and on-premises.",
+      "tags": [
+        "systems-manager",
+        "bastion-host"
+      ]
+    },
+    {
+      "id": "35-other-services-fc-14",
+      "front": "What does Systems Manager Run Command do, and where can its output go?",
+      "back": "Runs an SSM document or command on many nodes (by IDs, tags or resource groups) with rate control, no SSH needed. Output: console, **S3** or **CloudWatch Logs**; status notifications to **SNS**; can be an EventBridge target.",
+      "tags": [
+        "systems-manager"
+      ]
+    },
+    {
+      "id": "35-other-services-fc-15",
+      "front": "What are the two Patch Manager operations, and which document performs them?",
+      "back": "**Scan** (report missing patches for compliance) and **Scan and install**. Both run the `AWS-RunPatchBaseline` document against the node's patch baseline, on demand or on a schedule.",
+      "tags": [
+        "systems-manager"
+      ]
+    },
+    {
+      "id": "35-other-services-fc-16",
+      "front": "What does a Systems Manager maintenance window contain?",
+      "back": "A **schedule**, a maximum **duration** (with cutoff), registered **targets** and registered **tasks** (Run Command, Automation, Lambda or Step Functions).",
+      "tags": [
+        "systems-manager"
+      ]
+    },
+    {
+      "id": "35-other-services-fc-17",
+      "front": "What is a Systems Manager Automation runbook, and what can start one?",
+      "back": "An SSM document of type Automation that performs steps on AWS resources (e.g. `AWS-RestartEC2Instance`, create AMI, EBS snapshot). Started manually (console/CLI/SDK), by **EventBridge**, by a **maintenance window**, or as **AWS Config remediation**.",
+      "tags": [
+        "systems-manager",
+        "config",
+        "eventbridge"
+      ]
+    },
+    {
+      "id": "35-other-services-fc-18",
+      "front": "How much history and forecast does Cost Explorer show by default?",
+      "back": "The current month plus up to the **last 13 months** (daily/monthly), and a forecast for up to **18 months** with an 80% prediction interval. Hourly and resource-level (14 days) and multi-year data are opt-in.",
+      "tags": [
+        "cost-explorer"
+      ]
+    },
+    {
+      "id": "35-other-services-fc-19",
+      "front": "Which Cost Explorer feature helps you pick a Savings Plan?",
+      "back": "**Savings Plans recommendations**: based on 7, 30 or 60 days of usage, it proposes an hourly commitment for a chosen plan type, term and payment option and estimates monthly savings.",
+      "tags": [
+        "cost-explorer",
+        "savings-plans"
+      ]
+    },
+    {
+      "id": "35-other-services-fc-20",
+      "front": "How does Cost Anomaly Detection decide something is unusual, and how does it alert?",
+      "back": "Machine learning learns your historic spend pattern, so you set no normal-spend thresholds. It alerts via **SNS** (individual, immediate) or **daily/weekly email summaries**, with root-cause analysis by service, account, Region and usage type.",
+      "tags": [
+        "cost-anomaly-detection",
+        "sns"
+      ]
+    },
+    {
+      "id": "35-other-services-fc-21",
+      "front": "What can a Cost Anomaly Detection monitor watch?",
+      "back": "All **AWS services**, member **accounts**, values of a **cost allocation tag**, or a **cost category**.",
+      "tags": [
+        "cost-anomaly-detection"
+      ]
+    },
+    {
+      "id": "35-other-services-fc-22",
+      "front": "What is AWS Outposts, and who handles its physical security?",
+      "back": "AWS-managed racks (42U) or servers (1U/2U) installed in **your** data center, running AWS services (EC2, EBS, S3, ECS, EKS, RDS, EMR...) with the same APIs. **You** are responsible for physical security and site power/network.",
+      "tags": [
+        "outposts"
+      ]
+    },
+    {
+      "id": "35-other-services-fc-23",
+      "front": "Give four reasons to choose AWS Outposts.",
+      "back": "Apps run right next to on-premises systems (very low latency); data is processed on site; residency rules are met because data never leaves the building; migration can happen gradually; and AWS still manages the hardware and software.",
+      "tags": [
+        "outposts"
+      ]
+    },
+    {
+      "id": "35-other-services-fc-24",
+      "front": "What is AWS Batch, and what does it run on?",
+      "back": "A managed service that queues and runs containerised batch jobs (start and end) at any scale. It provisions capacity on **ECS or EKS** using EC2 On-Demand, **Spot** or Fargate. No extra charge beyond the compute.",
+      "tags": [
+        "batch",
+        "ec2-spot",
+        "fargate"
+      ]
+    },
+    {
+      "id": "35-other-services-fc-25",
+      "front": "Batch or Lambda: a containerised job needs 3 hours and 200 GB of scratch disk. Which?",
+      "back": "**AWS Batch**. Lambda stops at 15 minutes and `/tmp` tops out at 10 GB; Batch has no time limit and uses EBS or instance store on its EC2 hosts.",
+      "tags": [
+        "batch",
+        "lambda"
+      ]
+    },
+    {
+      "id": "35-other-services-fc-26",
+      "front": "What is Amazon AppFlow for, and how can a flow be triggered?",
+      "back": "No-code data transfer between SaaS apps (Salesforce, SAP, Zendesk, Slack, ServiceNow) and AWS (S3, Redshift) or Snowflake, with filtering and validation. Triggers: **on demand, on a schedule, or on an event**. Private transfer via PrivateLink.",
+      "tags": [
+        "appflow",
+        "s3",
+        "redshift"
+      ]
+    },
+    {
+      "id": "35-other-services-fc-27",
+      "front": "What does AWS Amplify provide?",
+      "back": "Tools and hosting for full-stack web and mobile apps: auth (Cognito), APIs (AppSync/API Gateway), storage (S3), data (DynamoDB), functions (Lambda), plus **Amplify Hosting** CI/CD from GitHub, Bitbucket, GitLab or CodeCommit to a CloudFront CDN.",
+      "tags": [
+        "amplify",
+        "cognito",
+        "appsync"
+      ]
+    },
+    {
+      "id": "35-other-services-fc-28",
+      "front": "How does Instance Scheduler on AWS work, and what does it support?",
+      "back": "An AWS Solution deployed with CloudFormation: schedules in **DynamoDB**, resources selected by **tags**, **Lambda** stops/starts them, cross-account and cross-Region. Supports EC2, Auto Scaling groups, RDS, Aurora, Neptune and DocumentDB; up to about 70% savings.",
+      "tags": [
+        "instance-scheduler",
+        "dynamodb",
+        "lambda"
+      ],
+      "updated": "Aurora clusters, Neptune and DocumentDB are now supported in addition to EC2, ASG and RDS"
+    }
+  ]
+}

@@ -1,0 +1,234 @@
+{
+  "section": "16-storage-extras",
+  "questions": [
+    {
+      "id": "16-storage-extras-q01",
+      "type": "single",
+      "domain": "cost",
+      "difficulty": "medium",
+      "question": "A media company must move 600 TB of archived video from its data center into Amazon S3 within the next 4 weeks. The data center has a 500 Mbps internet connection that is already about 70% used during business hours. The company is an existing user of AWS Snow Family devices. Which solution meets the deadline MOST cost-effectively?",
+      "options": [
+        { "id": "A", "text": "Enable S3 Transfer Acceleration on the bucket and upload the files over the existing internet connection.", "correct": false, "explanation": "Transfer Acceleration speeds up long-distance uploads but cannot exceed the 500 Mbps link; 600 TB would still take many months on the spare capacity." },
+        { "id": "B", "text": "Set up an AWS Site-to-Site VPN and run AWS DataSync tasks over it.", "correct": false, "explanation": "A VPN runs over the same saturated internet link, so throughput is no better and the transfer would take months." },
+        { "id": "C", "text": "Order several Snowball Edge Storage Optimized devices, copy the data locally and ship them back for import into S3.", "correct": true, "explanation": "Each device holds 210 TB of usable storage, so three or four devices (copied in parallel) cover the data; local copying, shipping and import finish within weeks without touching the busy internet link, and device job fees are far below a new dedicated circuit." },
+        { "id": "D", "text": "Order a new 10 Gbps AWS Direct Connect dedicated connection and copy the data with the AWS CLI.", "correct": false, "explanation": "A new dedicated connection often takes weeks to months to provision and costs far more than a few device jobs for a one-time move." }
+      ],
+      "explanation": "When the network would need months, an offline transfer is the answer. Snowball Edge is now limited to existing customers; new customers would look at Data Transfer Terminal or DataSync over a temporary Direct Connect hosted connection.",
+      "updated": "Snowball Edge has been closed to new customers since 7 November 2025.",
+      "tags": ["snow-family", "migration"]
+    },
+    {
+      "id": "16-storage-extras-q02",
+      "type": "single",
+      "domain": "cost",
+      "difficulty": "easy",
+      "question": "A company is importing 150 TB of compliance records into AWS with a Snowball Edge import job. The records must be retained for 10 years, will almost never be read, and must be stored at the lowest possible cost. What should a solutions architect do?",
+      "options": [
+        { "id": "A", "text": "Import the data into an S3 bucket and add an S3 Lifecycle rule that transitions the objects to S3 Glacier Deep Archive right away.", "correct": true, "explanation": "Snowball imports land in S3, and a lifecycle rule is the simple, automatic way to move them into the cheapest archive class." },
+        { "id": "B", "text": "Create the Snowball job with an S3 Glacier Deep Archive vault as the import destination.", "correct": false, "explanation": "Snowball cannot import directly into an archive tier or vault; the destination of an import job is an S3 bucket." },
+        { "id": "C", "text": "Import into S3 Standard and keep the objects there with versioning turned on for durability.", "correct": false, "explanation": "S3 Standard is far more expensive than Deep Archive for data that is almost never read, and versioning adds cost without helping." },
+        { "id": "D", "text": "Import into S3 and run an AWS DataSync task every night to copy the objects into S3 Glacier Deep Archive.", "correct": false, "explanation": "DataSync could copy the data, but it duplicates storage, adds per-GB fees and operational work that a lifecycle rule avoids." }
+      ],
+      "explanation": "Snowball to S3, then an S3 Lifecycle transition to Glacier Flexible Retrieval or Deep Archive.",
+      "tags": ["snow-family", "s3-glacier", "lifecycle"]
+    },
+    {
+      "id": "16-storage-extras-q03",
+      "type": "single",
+      "domain": "resilient",
+      "difficulty": "medium",
+      "question": "A company is migrating a Windows-based document management application to Amazon EC2. The application stores files on an SMB share and relies on NTFS permissions assigned to Active Directory groups. The file share must remain available if an Availability Zone fails. Which storage solution meets these requirements?",
+      "options": [
+        { "id": "A", "text": "Amazon EFS with a Regional (multi-AZ) file system mounted on the Windows instances.", "correct": false, "explanation": "EFS supports only NFS and is not supported on Windows instances, so it cannot provide SMB shares with NTFS ACLs." },
+        { "id": "B", "text": "Amazon FSx for Lustre with a persistent deployment type.", "correct": false, "explanation": "Lustre is a Linux-only parallel file system for HPC; it offers neither SMB nor Active Directory integration." },
+        { "id": "C", "text": "An Amazon S3 File Gateway on an EC2 instance exposing an SMB share backed by S3.", "correct": false, "explanation": "A single gateway instance is a single point of failure and is meant for hybrid access, not as a highly available primary Windows file server." },
+        { "id": "D", "text": "Amazon FSx for Windows File Server with a Multi-AZ deployment joined to the company's Active Directory.", "correct": true, "explanation": "FSx for Windows provides native SMB, NTFS ACLs and AD integration, and Multi-AZ keeps a standby file server in another AZ with automatic failover." }
+      ],
+      "explanation": "SMB + NTFS + Active Directory points to FSx for Windows File Server; Multi-AZ adds AZ-level resilience.",
+      "tags": ["fsx-windows", "multi-az"]
+    },
+    {
+      "id": "16-storage-extras-q04",
+      "type": "single",
+      "domain": "cost",
+      "difficulty": "medium",
+      "question": "A data science team stores a 200 TB training dataset in Amazon S3. Several times a month they launch a GPU cluster for a 3-day training run that needs a shared POSIX file system with sub-millisecond latency and very high aggregate throughput across hundreds of instances. Model checkpoints must end up in S3, and the file system can be deleted after each run. Which solution is MOST cost-effective?",
+      "options": [
+        { "id": "A", "text": "An Amazon FSx for Lustre persistent file system linked to the S3 bucket, kept running between training runs.", "correct": false, "explanation": "Persistent works technically, but keeping a replicated file system running between short jobs costs more than needed when S3 already holds the durable copy." },
+        { "id": "B", "text": "An Amazon FSx for Lustre scratch file system linked to the S3 bucket, created for each run and deleted afterwards, exporting checkpoints to S3.", "correct": true, "explanation": "Scratch is the low-cost option for short, processing-heavy jobs; the S3 link lazy-loads the dataset and exports results, so losing the file system later loses nothing." },
+        { "id": "C", "text": "An Amazon EFS file system in Max I/O mode populated with a copy of the dataset.", "correct": false, "explanation": "EFS cannot match Lustre's parallel throughput for large GPU clusters and would require keeping a second full copy of 200 TB." },
+        { "id": "D", "text": "Amazon EBS io2 volumes with Multi-Attach shared by all GPU instances.", "correct": false, "explanation": "Multi-Attach is limited to 16 instances in one AZ, needs a cluster-aware file system and is not a scalable shared POSIX solution." }
+      ],
+      "explanation": "Short-lived HPC or ML jobs reading from S3: FSx for Lustre Scratch linked to the bucket.",
+      "tags": ["fsx-lustre", "s3"]
+    },
+    {
+      "id": "16-storage-extras-q05",
+      "type": "single",
+      "domain": "performant",
+      "difficulty": "medium",
+      "question": "A company runs on-premises NetApp storage that serves NFS exports to Linux servers, SMB shares to Windows desktops and iSCSI LUNs to a database. The storage team uses SnapMirror and wants to move these workloads to AWS with the fewest changes to clients and tooling. Which AWS service should they use?",
+      "options": [
+        { "id": "A", "text": "Amazon FSx for NetApp ONTAP.", "correct": true, "explanation": "It runs ONTAP itself, serves NFS, SMB and iSCSI from one file system, and supports SnapMirror, so clients and tools keep working." },
+        { "id": "B", "text": "Amazon FSx for OpenZFS.", "correct": false, "explanation": "OpenZFS serves NFS only; it cannot provide SMB shares, iSCSI LUNs or SnapMirror." },
+        { "id": "C", "text": "Amazon EFS for the Linux servers and Amazon FSx for Windows File Server for the desktops.", "correct": false, "explanation": "Two separate services add operational work, still leave the iSCSI LUNs without a home, and drop the NetApp tooling." },
+        { "id": "D", "text": "AWS Storage Gateway Volume Gateway in cached mode.", "correct": false, "explanation": "Volume Gateway offers iSCSI block volumes for on-premises hosts; it does not replace NFS and SMB file services or NetApp features." }
+      ],
+      "explanation": "NetApp, multi-protocol (NFS, SMB, iSCSI) and SnapMirror point to FSx for NetApp ONTAP.",
+      "tags": ["fsx-ontap", "migration"]
+    },
+    {
+      "id": "16-storage-extras-q06",
+      "type": "single",
+      "domain": "cost",
+      "difficulty": "medium",
+      "question": "Application servers in a company's data center write log files to an NFS share. The company wants the files stored in Amazon S3 so that Amazon Athena can query them, wants to stop expanding its local storage array, and needs the most recently written files to remain quickly accessible on-premises. Which solution meets these requirements?",
+      "options": [
+        { "id": "A", "text": "AWS Storage Gateway Volume Gateway with stored volumes mounted over iSCSI.", "correct": false, "explanation": "Stored volumes keep the full dataset on-premises, so local storage keeps growing, and the data is not visible as S3 objects for Athena." },
+        { "id": "B", "text": "An AWS DataSync task that copies the NFS share to S3 once a day.", "correct": false, "explanation": "A daily copy still requires the full dataset on local storage and delays data in S3 by up to a day." },
+        { "id": "C", "text": "An Amazon S3 File Gateway that exposes the bucket as an NFS share, with a local cache for recent data.", "correct": true, "explanation": "Files are stored as S3 objects Athena can query, the gateway's cache keeps hot data close, and local capacity no longer has to grow with the data." },
+        { "id": "D", "text": "An AWS Transfer Family SFTP server that the application servers upload to.", "correct": false, "explanation": "The servers write over NFS; switching them to SFTP uploads would change the application and provides no local cache." }
+      ],
+      "explanation": "On-premises NFS or SMB access to data stored as S3 objects, with local caching, is the S3 File Gateway.",
+      "tags": ["storage-gateway", "s3", "hybrid"]
+    },
+    {
+      "id": "16-storage-extras-q07",
+      "type": "single",
+      "domain": "resilient",
+      "difficulty": "medium",
+      "question": "An on-premises application uses a 12 TB iSCSI volume and needs low-latency access to the entire dataset at all times. The company wants durable off-site backups in AWS and the option to recover the volume onto Amazon EC2 during a disaster. Which solution should a solutions architect recommend?",
+      "options": [
+        { "id": "A", "text": "AWS Storage Gateway Volume Gateway with cached volumes.", "correct": false, "explanation": "Cached volumes keep the full dataset in AWS and only hot data locally, so reads of cold data would not be low latency." },
+        { "id": "B", "text": "AWS Storage Gateway Volume Gateway with stored volumes, taking scheduled snapshots to AWS.", "correct": true, "explanation": "Stored volumes keep all data on-premises and back it up asynchronously as EBS snapshots, which can be restored to EBS volumes for EC2 in a disaster." },
+        { "id": "C", "text": "An Amazon S3 File Gateway with an SMB share.", "correct": false, "explanation": "A file gateway provides file shares, not the iSCSI block volume the application uses." },
+        { "id": "D", "text": "AWS Storage Gateway Tape Gateway with weekly virtual tape backups.", "correct": false, "explanation": "Tape Gateway works with backup software writing virtual tapes; it does not serve a live block volume to the application." }
+      ],
+      "explanation": "Whole dataset local plus snapshots in AWS = Volume Gateway stored volumes; mostly-in-AWS with a hot cache = cached volumes.",
+      "tags": ["storage-gateway", "ebs-snapshots", "disaster-recovery"]
+    },
+    {
+      "id": "16-storage-extras-q08",
+      "type": "single",
+      "domain": "cost",
+      "difficulty": "easy",
+      "question": "A company backs up its servers to a physical tape library using commercial backup software. The tape hardware is reaching end of life. The company wants to keep its backup software and procedures, eliminate physical tapes, and store tapes that are older than 90 days at the lowest possible cost. Which solution meets these requirements?",
+      "options": [
+        { "id": "A", "text": "Deploy a Volume Gateway in cached mode and point the backup software at the iSCSI volumes.", "correct": false, "explanation": "The backup software expects a tape library; switching to disk volumes changes the procedures and does not provide a tape archive." },
+        { "id": "B", "text": "Deploy an S3 File Gateway and add a lifecycle rule that moves backups to S3 Glacier Deep Archive.", "correct": false, "explanation": "Backing up to a file share instead of tapes forces changes to the backup jobs and procedures, which the company wants to avoid." },
+        { "id": "C", "text": "Ship the existing tapes to AWS every month on Snowball Edge devices.", "correct": false, "explanation": "This keeps physical tapes and adds manual logistics; it does not replace the tape library." },
+        { "id": "D", "text": "Deploy a Tape Gateway as a virtual tape library and archive ejected tapes to S3 Glacier Deep Archive.", "correct": true, "explanation": "Tape Gateway looks like a tape library to the backup software over iSCSI, stores active tapes in S3 and moves ejected tapes to the cheapest archive." }
+      ],
+      "explanation": "Keep tape-based backup processes, drop the hardware: Tape Gateway with archiving to Glacier Deep Archive.",
+      "tags": ["storage-gateway", "s3-glacier", "backup"]
+    },
+    {
+      "id": "16-storage-extras-q09",
+      "type": "single",
+      "domain": "secure",
+      "difficulty": "medium",
+      "question": "A financial services company receives daily files from dozens of partners over SFTP. The current SFTP server runs on a single on-premises Linux host. The company wants the files to land in Amazon S3, wants partners to keep their existing SFTP clients, wants user sign-in to be managed through its Microsoft Active Directory, and does not want to manage servers. Which solution meets these requirements?",
+      "options": [
+        { "id": "A", "text": "Create an AWS Transfer Family SFTP server with Amazon S3 as the domain and AWS Directory Service for Microsoft Active Directory as the identity provider.", "correct": true, "explanation": "Transfer Family is a managed SFTP endpoint writing to S3, and it can authenticate users against Microsoft AD, so partners change nothing and no servers are managed." },
+        { "id": "B", "text": "Run an SFTP server on EC2 instances in an Auto Scaling group behind a Network Load Balancer, mounting S3 with a FUSE driver.", "correct": false, "explanation": "This works but means patching, scaling and integrating AD yourself, which is the server management the company wants to avoid." },
+        { "id": "C", "text": "Give each partner IAM credentials and ask them to upload with the AWS CLI.", "correct": false, "explanation": "Partners would have to change their tools, and the company would manage IAM credentials for outsiders instead of using AD." },
+        { "id": "D", "text": "Install an AWS DataSync agent at each partner site and schedule transfers to S3.", "correct": false, "explanation": "DataSync moves data between storage systems you control; it is not a login endpoint for external partners using SFTP clients." }
+      ],
+      "explanation": "Managed SFTP, FTPS or FTP into S3 or EFS, with AD or custom identity providers, is AWS Transfer Family.",
+      "tags": ["transfer-family", "directory-service"]
+    },
+    {
+      "id": "16-storage-extras-q10",
+      "type": "single",
+      "domain": "secure",
+      "difficulty": "medium",
+      "question": "A manufacturer has legacy factory devices that can only send files with plain FTP. The devices are on the corporate network, which connects to a VPC over AWS Direct Connect. The company wants the files stored in Amazon S3 using AWS Transfer Family. How must the Transfer Family server be configured?",
+      "options": [
+        { "id": "A", "text": "Enable FTP on a publicly accessible endpoint and restrict access with an IP allow list.", "correct": false, "explanation": "Transfer Family does not support FTP on publicly accessible endpoints, whatever the IP filtering." },
+        { "id": "B", "text": "Enable FTP with service-managed users who authenticate with SSH keys.", "correct": false, "explanation": "Service-managed users with SSH keys apply to SFTP; FTP users must come from Microsoft AD or a custom identity provider." },
+        { "id": "C", "text": "Enable FTP on a VPC-hosted endpoint with internal access, reached from the corporate network over Direct Connect.", "correct": true, "explanation": "FTP is unencrypted, so Transfer Family only allows it on an internal VPC endpoint; Direct Connect gives the factory network private reachability." },
+        { "id": "D", "text": "Enable FTP on a VPC-hosted endpoint with internet-facing access and Elastic IP addresses.", "correct": false, "explanation": "Internet-facing access is not allowed for FTP; only SFTP, FTPS and AS2 can be exposed to the internet." }
+      ],
+      "explanation": "Plain FTP on Transfer Family = VPC-hosted, internal endpoint only; use SFTP or FTPS across the internet.",
+      "tags": ["transfer-family", "vpc"]
+    },
+    {
+      "id": "16-storage-extras-q11",
+      "type": "multi",
+      "domain": "performant",
+      "difficulty": "medium",
+      "question": "A company must migrate a 50 TB on-premises NFS share to Amazon EFS over an existing 1 Gbps AWS Direct Connect link. File ownership and POSIX permissions must be preserved, and the EFS copy must be kept in sync every night until the final cutover in three weeks. Which combination of steps will meet these requirements with the LEAST operational effort? (Select TWO.)",
+      "options": [
+        { "id": "A", "text": "Deploy an Amazon S3 File Gateway and copy the share into it, then load the files into EFS.", "correct": false, "explanation": "The gateway targets S3, not EFS, so this adds a second copy step and does not handle nightly syncs to EFS." },
+        { "id": "B", "text": "Deploy an AWS DataSync agent as a VM in the data center with network access to the NFS server.", "correct": true, "explanation": "On-premises NFS sources require a DataSync agent close to the storage to read the files and send them to AWS." },
+        { "id": "C", "text": "Order a Snowball Edge device and import the data into EFS.", "correct": false, "explanation": "At about 8.6 TB per day the 1 Gbps link finishes in about a week, and Snowball imports into S3, not EFS, and cannot do nightly syncs." },
+        { "id": "D", "text": "Create a DataSync task from the NFS location to the EFS location with a daily schedule that copies only changed data and keeps permissions.", "correct": true, "explanation": "A scheduled DataSync task performs the initial copy and nightly incremental syncs while preserving POSIX metadata, with no scripts to maintain." },
+        { "id": "E", "text": "Create an AWS Transfer Family SFTP server with EFS as the domain and upload the files with an SFTP client.", "correct": false, "explanation": "Manual SFTP uploads do not preserve ownership reliably or provide scheduled incremental syncs, and they need more effort." }
+      ],
+      "explanation": "NAS migration with metadata preservation and scheduled incremental syncs is the textbook DataSync use case: an agent on-premises plus a scheduled task.",
+      "tags": ["datasync", "efs", "migration"]
+    },
+    {
+      "id": "16-storage-extras-q12",
+      "type": "single",
+      "domain": "cost",
+      "difficulty": "medium",
+      "question": "An application writes reports to an Amazon EFS file system in us-east-1. Every hour, any new or changed reports must be copied to an Amazon S3 bucket for analytics. The solution must require the LEAST operational overhead. What should a solutions architect do?",
+      "options": [
+        { "id": "A", "text": "Launch an EC2 instance, install a DataSync agent on it, and create an hourly DataSync task from EFS to S3.", "correct": false, "explanation": "DataSync does not need an agent for transfers between AWS storage services, so the extra instance only adds cost and maintenance." },
+        { "id": "B", "text": "Create AWS DataSync locations for the EFS file system and the S3 bucket, and a task scheduled to run every hour that transfers only changed data.", "correct": true, "explanation": "AWS-to-AWS DataSync transfers are agentless, support hourly schedules and copy only what changed, so there is nothing to run or patch." },
+        { "id": "C", "text": "Configure S3 Replication from the EFS file system to the S3 bucket.", "correct": false, "explanation": "S3 Replication copies objects between S3 buckets; it cannot use an EFS file system as its source." },
+        { "id": "D", "text": "Schedule an EventBridge rule that starts a Lambda function to mount EFS and upload changed files with custom code.", "correct": false, "explanation": "This can work but means writing, testing and maintaining change-detection and retry logic that DataSync already provides." }
+      ],
+      "explanation": "Between EFS, FSx and S3, DataSync needs no agent and can run on a schedule as often as every hour.",
+      "tags": ["datasync", "efs", "s3"]
+    },
+    {
+      "id": "16-storage-extras-q13",
+      "type": "single",
+      "domain": "performant",
+      "difficulty": "medium",
+      "question": "A research vessel spends six weeks at sea with no reliable internet connection. During each voyage it records about 10 TB of sonar data and must run custom EC2-based processing and machine learning inference on board to filter the data. The results must be loaded into Amazon S3 after the ship returns to port. The organization is an existing Snow Family customer. Which solution meets these requirements?",
+      "options": [
+        { "id": "A", "text": "Upload the raw data to S3 over a satellite link with S3 Transfer Acceleration and process it in AWS.", "correct": false, "explanation": "There is no reliable connectivity, and 10 TB over a satellite link is impractical; processing must also happen on board." },
+        { "id": "B", "text": "Use an AWS Storage Gateway S3 File Gateway on a server on the ship.", "correct": false, "explanation": "A gateway needs a working connection to AWS to upload its cache, and it provides no managed EC2-compatible compute." },
+        { "id": "C", "text": "Set up AWS DataSync on the ship and schedule a task to S3 for when the voyage ends.", "correct": false, "explanation": "DataSync is an online service; it cannot run the on-board processing and still needs a network path to AWS." },
+        { "id": "D", "text": "Use a Snowball Edge Compute Optimized device on board to run EC2-compatible instances for processing, then ship it back for import into S3.", "correct": true, "explanation": "Snowball Edge Compute Optimized runs EC2-compatible instances at disconnected sites, has enough local NVMe storage (28 TB raw) for the voyage's data, and is shipped back so an import job loads the results into S3." }
+      ],
+      "explanation": "Processing at a disconnected edge site, then physical delivery to S3, is Snowball Edge Compute Optimized. New customers would evaluate AWS Outposts servers for edge compute instead.",
+      "updated": "Snowball Edge has been closed to new customers since 7 November 2025; AWS suggests Outposts for new edge computing needs.",
+      "tags": ["snow-family", "edge-computing"]
+    },
+    {
+      "id": "16-storage-extras-q14",
+      "type": "single",
+      "domain": "performant",
+      "difficulty": "hard",
+      "question": "On-premises users access an Amazon S3 bucket through an NFS share on an S3 File Gateway. A new cloud application now writes objects directly into the same bucket through the S3 API. Users report that these new files do not appear in the NFS share, although they are visible in the S3 console. How should a solutions architect fix this with the LEAST effort?",
+      "options": [
+        { "id": "A", "text": "Enable S3 Versioning on the bucket so the gateway can track new object versions.", "correct": false, "explanation": "Versioning does not make the gateway notice new objects and can increase storage costs for file gateway workloads." },
+        { "id": "B", "text": "Replace the S3 File Gateway with a Volume Gateway in cached mode.", "correct": false, "explanation": "Volume Gateway stores block data that is not exposed as S3 objects, so the cloud application could no longer share files this way." },
+        { "id": "C", "text": "Refresh the file share's cache, for example by calling the RefreshCache API after uploads or by setting an automated cache refresh interval on the share.", "correct": true, "explanation": "The gateway lists bucket contents into its cache; refreshing the cache makes objects written outside the gateway visible to NFS clients." },
+        { "id": "D", "text": "Increase the size of the gateway's local cache disk.", "correct": false, "explanation": "Cache size affects how much data is stored locally, not whether the gateway knows about objects written directly to S3." }
+      ],
+      "explanation": "Objects written to the bucket outside the gateway appear in the share only after a cache refresh (RefreshCache or a refresh interval).",
+      "tags": ["storage-gateway", "s3"]
+    },
+    {
+      "id": "16-storage-extras-q15",
+      "type": "multi",
+      "domain": "resilient",
+      "difficulty": "medium",
+      "question": "A genomics company will run a pipeline on Amazon FSx for Lustre continuously for the next year. Pipeline stages must keep working if a file server fails, and the input data and final results must also be kept durably in Amazon S3. Which actions should a solutions architect take? (Select TWO.)",
+      "options": [
+        { "id": "A", "text": "Choose a scratch deployment type because it offers higher burst throughput.", "correct": false, "explanation": "Scratch data is not replicated and failed servers are not replaced, so a server failure would interrupt the pipeline." },
+        { "id": "B", "text": "Mount the file system from Windows instances over SMB for wider compatibility.", "correct": false, "explanation": "FSx for Lustre is accessed with the Linux Lustre client; it does not offer SMB." },
+        { "id": "C", "text": "Choose a persistent deployment type for the file system.", "correct": true, "explanation": "Persistent file systems replicate data and automatically replace a failed file server within minutes, which suits a year-long pipeline." },
+        { "id": "D", "text": "Create the file system with the Multi-AZ deployment type so a standby file server in a second AZ takes over after a failure.", "correct": false, "explanation": "FSx for Lustre has no Multi-AZ deployment type with a standby server; that option belongs to FSx for Windows File Server, ONTAP and OpenZFS. Lustre resilience to server failure comes from the persistent deployment type." },
+        { "id": "E", "text": "Link the file system to an S3 bucket as a data repository and export results back to S3.", "correct": true, "explanation": "The S3 link loads inputs from the bucket and writes results back, so S3 holds the durable copy of both." }
+      ],
+      "explanation": "Long-running or sensitive Lustre workloads use the persistent deployment type, and the S3 data repository link keeps a durable copy.",
+      "tags": ["fsx-lustre", "s3"]
+    }
+  ]
+}

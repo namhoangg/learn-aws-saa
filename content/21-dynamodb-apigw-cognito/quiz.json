@@ -1,0 +1,233 @@
+{
+  "section": "21-dynamodb-apigw-cognito",
+  "questions": [
+    {
+      "id": "21-dynamodb-apigw-cognito-q01",
+      "type": "single",
+      "domain": "performant",
+      "difficulty": "medium",
+      "question": "A gaming company stores player profiles in a DynamoDB table. During tournaments the same few thousand profiles are read hundreds of thousands of times per second, and the team wants read latency in microseconds. The application uses eventually consistent reads, and developers do not want to rewrite the data access layer. Which solution meets these requirements?",
+      "options": [
+        { "id": "A", "text": "Add an Amazon ElastiCache for Redis OSS cluster and implement cache-aside logic for every profile read.", "correct": false, "explanation": "ElastiCache could cache profiles, but it requires new cache-aside code throughout the application, which the developers want to avoid." },
+        { "id": "B", "text": "Switch the table to on-demand capacity mode.", "correct": false, "explanation": "On-demand removes capacity planning but responses still come from DynamoDB in milliseconds, not microseconds." },
+        { "id": "C", "text": "Deploy a DynamoDB Accelerator (DAX) cluster and point the application at it with the DAX client.", "correct": true, "explanation": "DAX is API-compatible with DynamoDB, caches eventually consistent item reads in memory and returns cache hits in microseconds, so only the client changes." },
+        { "id": "D", "text": "Convert the table into a global table with replicas in three Regions.", "correct": false, "explanation": "Global tables add Regional replicas for locality and resilience; each replica still answers in milliseconds and the hot keys are still read from disk-backed storage." }
+      ],
+      "explanation": "Microsecond reads on DynamoDB with no code rewrite is the signature use case for DAX.",
+      "tags": ["dax", "performance"]
+    },
+    {
+      "id": "21-dynamodb-apigw-cognito-q02",
+      "type": "single",
+      "domain": "cost",
+      "difficulty": "easy",
+      "question": "A startup is launching a new mobile app backed by DynamoDB. Nobody knows how many users will sign up, traffic is expected to be idle at night and to spike unpredictably after marketing pushes, and the team has no time for capacity planning. Which capacity configuration is the MOST suitable?",
+      "options": [
+        { "id": "A", "text": "On-demand capacity mode.", "correct": true, "explanation": "On-demand needs no capacity settings, scales with traffic, charges only for requests made and costs nothing for throughput when idle, which suits unknown and spiky load." },
+        { "id": "B", "text": "Provisioned capacity sized for the expected peak, with no auto scaling.", "correct": false, "explanation": "Sizing for an unknown peak means either throttling when the guess is too low or paying for idle capacity all night when it is too high." },
+        { "id": "C", "text": "Provisioned capacity with reserved capacity purchased for one year.", "correct": false, "explanation": "Reserved capacity is a commitment that only pays off for steady, predictable usage, the opposite of this situation." },
+        { "id": "D", "text": "The Standard-Infrequent Access table class with provisioned capacity.", "correct": false, "explanation": "Standard-IA lowers storage cost but raises request prices; it does nothing for unpredictable throughput and still needs capacity planning in provisioned mode." }
+      ],
+      "explanation": "Unpredictable, spiky traffic and no capacity planning point to on-demand mode, which AWS now recommends for most workloads.",
+      "tags": ["dynamodb", "capacity"]
+    },
+    {
+      "id": "21-dynamodb-apigw-cognito-q03",
+      "type": "single",
+      "domain": "resilient",
+      "difficulty": "medium",
+      "question": "A social app has users in North America and Australia. Users in both places must read and write their data with low latency, and if one AWS Region becomes unavailable the app must keep accepting writes in the other Region with minimal effort. The data is stored in DynamoDB. What should a solutions architect do?",
+      "options": [
+        { "id": "A", "text": "Create a DAX cluster in each Region in front of a single table in us-east-1.", "correct": false, "explanation": "A DAX cluster can only work with tables in its own Region, it does not accelerate writes, and the single table remains a single-Region dependency." },
+        { "id": "B", "text": "Convert the table into a DynamoDB global table with replicas in us-east-1 and ap-southeast-2.", "correct": true, "explanation": "Global tables replicate active-active: each Region reads and writes its local replica and can keep working if the other Region fails." },
+        { "id": "C", "text": "Schedule on-demand backups with AWS Backup and copy them to ap-southeast-2 every hour.", "correct": false, "explanation": "Backup copies support disaster recovery with restores into new tables, but they do not give users low-latency reads and writes in both Regions." },
+        { "id": "D", "text": "Enable DynamoDB Streams and use a Lambda function to copy each change into a second table in ap-southeast-2.", "correct": false, "explanation": "A custom one-way copy adds code to maintain, provides no writes back to the first Region and no conflict handling; global tables do this natively." }
+      ],
+      "explanation": "Multi-Region, active-active, low-latency reads and writes on DynamoDB means global tables.",
+      "tags": ["dynamodb-global-tables", "resilience"]
+    },
+    {
+      "id": "21-dynamodb-apigw-cognito-q04",
+      "type": "single",
+      "domain": "performant",
+      "difficulty": "medium",
+      "question": "Thousands of field sensors send small JSON documents over HTTPS. The company wants the documents stored in Amazon S3 in batched files, with request authentication and throttling at the entry point, and it wants no servers or custom code to manage. Which architecture meets these requirements?",
+      "options": [
+        { "id": "A", "text": "An Application Load Balancer that forwards requests to an Auto Scaling group of EC2 instances that write files to S3.", "correct": false, "explanation": "This works but the EC2 fleet and the upload code must be built, patched and scaled, which violates the no-servers requirement." },
+        { "id": "B", "text": "API Gateway with a Lambda proxy integration whose function writes each document as its own S3 object.", "correct": false, "explanation": "It needs custom code, and one object per tiny document is the opposite of batched files." },
+        { "id": "C", "text": "Have every sensor call the S3 PutObject API directly with long-term IAM user access keys.", "correct": false, "explanation": "Embedding long-term keys in thousands of devices is insecure, there is no throttling layer, and objects would not be batched." },
+        { "id": "D", "text": "API Gateway with an AWS service integration that puts records into Kinesis Data Streams, read by Amazon Data Firehose that delivers batched files to S3.", "correct": true, "explanation": "API Gateway authenticates and throttles requests and calls Kinesis directly; Firehose buffers the records and writes batched files to S3, with no servers or functions to manage." }
+      ],
+      "explanation": "API Gateway can expose AWS service actions directly; combined with Kinesis Data Streams and Firehose it builds a fully managed ingestion pipeline into S3.",
+      "tags": ["api-gateway", "kinesis-data-streams", "data-firehose"]
+    },
+    {
+      "id": "21-dynamodb-apigw-cognito-q05",
+      "type": "single",
+      "domain": "resilient",
+      "difficulty": "easy",
+      "question": "When a new customer item is inserted into a DynamoDB table, the company wants to send that customer a welcome email within seconds. The solution should be serverless and must not slow down the application that writes to the table. What should the solutions architect do?",
+      "options": [
+        { "id": "A", "text": "Enable DynamoDB Streams on the table and configure a Lambda function trigger that sends the email through Amazon SES for INSERT events.", "correct": true, "explanation": "Streams capture each change asynchronously with no impact on the writer, and a Lambda trigger reacts within seconds to new items." },
+        { "id": "B", "text": "Run a scheduled Lambda function every hour that scans the table for new customers.", "correct": false, "explanation": "An hourly scan is not within seconds and reads the whole table each time, wasting capacity." },
+        { "id": "C", "text": "Change the application to call the email service synchronously before writing to the table.", "correct": false, "explanation": "A synchronous call couples the write path to the email service and slows the application, which the requirement forbids." },
+        { "id": "D", "text": "Enable TTL on the table so that new items trigger a notification.", "correct": false, "explanation": "TTL deletes expired items; it does not react to inserts or send notifications." }
+      ],
+      "explanation": "React to item-level changes in near real time: DynamoDB Streams plus a Lambda trigger.",
+      "tags": ["dynamodb-streams", "lambda"]
+    },
+    {
+      "id": "21-dynamodb-apigw-cognito-q06",
+      "type": "single",
+      "domain": "cost",
+      "difficulty": "easy",
+      "question": "A web application stores user session data in a DynamoDB table. Sessions are useless after 24 hours, and the table keeps growing because nobody removes old sessions. The company wants old sessions removed automatically at the lowest cost. What should be done?",
+      "options": [
+        { "id": "A", "text": "Run a nightly Lambda function that scans the table and deletes sessions older than 24 hours.", "correct": false, "explanation": "This works but pays for a full scan and for every delete each night, and adds code to maintain." },
+        { "id": "B", "text": "Move the table to the Standard-IA table class.", "correct": false, "explanation": "Standard-IA makes storage cheaper but still keeps every old session forever." },
+        { "id": "C", "text": "Store an expiry timestamp in epoch seconds in each item and enable Time to Live on that attribute.", "correct": true, "explanation": "TTL deletes expired items automatically in the background without consuming write capacity, so cleanup costs nothing extra." },
+        { "id": "D", "text": "Enable point-in-time recovery with a 1-day recovery period.", "correct": false, "explanation": "PITR controls how far back backups can restore; it never deletes items from the live table." }
+      ],
+      "explanation": "Automatic, free expiry of items in DynamoDB is what TTL is for.",
+      "tags": ["dynamodb", "ttl"]
+    },
+    {
+      "id": "21-dynamodb-apigw-cognito-q07",
+      "type": "single",
+      "domain": "resilient",
+      "difficulty": "medium",
+      "question": "A faulty deployment script overwrote thousands of items in a production DynamoDB table about two hours ago. Point-in-time recovery has been enabled on the table for months. The company wants the data as it was just before the script ran. What is the correct approach?",
+      "options": [
+        { "id": "A", "text": "Roll the existing table back in place to the timestamp just before the script ran.", "correct": false, "explanation": "DynamoDB cannot roll a table back in place; every PITR restore creates a new table." },
+        { "id": "B", "text": "Restore the most recent on-demand backup over the existing table.", "correct": false, "explanation": "There is no mention of an on-demand backup, and restores never overwrite the existing table." },
+        { "id": "C", "text": "Read the previous item versions from DynamoDB Streams and replay them.", "correct": false, "explanation": "Streams hold only 24 hours of changes and only if enabled with old images; this is a fragile manual approach compared with PITR." },
+        { "id": "D", "text": "Restore the table to a point in time just before the script ran, into a new table, then switch the application to it or copy the data back.", "correct": true, "explanation": "PITR offers per-second restore points within its window and always restores into a new table that the application can then use." }
+      ],
+      "explanation": "PITR restores to any second in the recovery window, but always into a new table.",
+      "tags": ["dynamodb", "backup"]
+    },
+    {
+      "id": "21-dynamodb-apigw-cognito-q08",
+      "type": "single",
+      "domain": "performant",
+      "difficulty": "medium",
+      "question": "Analysts want to run complex SQL queries every week over a full copy of a busy production DynamoDB table. The queries must not consume the table's read capacity or affect application latency, and the team wants to avoid running servers. Which solution should be used?",
+      "options": [
+        { "id": "A", "text": "Run a weekly Scan of the table from an EC2 instance and load the results into a relational database.", "correct": false, "explanation": "A full Scan consumes read capacity on the busy table and adds servers to manage." },
+        { "id": "B", "text": "Enable point-in-time recovery, export the table to Amazon S3, and query the export with Amazon Athena.", "correct": true, "explanation": "Export to S3 requires PITR, uses no read capacity and has no performance impact; Athena then runs serverless SQL over the exported files." },
+        { "id": "C", "text": "Add a DAX cluster and point the analysts' SQL tool at it.", "correct": false, "explanation": "DAX caches DynamoDB API calls; it is not a SQL engine and analytical scans would still pull from the table." },
+        { "id": "D", "text": "Import the table from S3 into a new DynamoDB table every week for the analysts.", "correct": false, "explanation": "Import from S3 creates a DynamoDB table, which still offers no complex SQL, and the data must first be exported anyway." }
+      ],
+      "explanation": "Analytics on DynamoDB data without touching table capacity: PITR export to S3, then Athena.",
+      "tags": ["dynamodb", "s3", "athena"]
+    },
+    {
+      "id": "21-dynamodb-apigw-cognito-q09",
+      "type": "single",
+      "domain": "secure",
+      "difficulty": "medium",
+      "question": "A company runs an edge-optimized REST API in API Gateway in the eu-west-1 Region. It wants clients to call the API at https://api.example.com using a certificate from AWS Certificate Manager. Where must the certificate be requested or imported?",
+      "options": [
+        { "id": "A", "text": "In us-east-1, then configure the custom domain name and a Route 53 alias record.", "correct": true, "explanation": "Edge-optimized custom domains are served through CloudFront, which only uses ACM certificates from us-east-1." },
+        { "id": "B", "text": "In eu-west-1, because the API is deployed there.", "correct": false, "explanation": "That rule applies to Regional endpoints; an edge-optimized endpoint needs the certificate in us-east-1." },
+        { "id": "C", "text": "In every Region where clients are located.", "correct": false, "explanation": "A single certificate in us-east-1 serves all edge locations; per-Region certificates are neither needed nor used." },
+        { "id": "D", "text": "Certificates cannot be used with edge-optimized APIs; the API must be changed to Regional.", "correct": false, "explanation": "Edge-optimized APIs fully support custom domain names with ACM certificates." }
+      ],
+      "explanation": "Edge-optimized custom domain: ACM certificate in us-east-1. Regional: certificate in the API's Region.",
+      "tags": ["api-gateway", "acm"]
+    },
+    {
+      "id": "21-dynamodb-apigw-cognito-q10",
+      "type": "single",
+      "domain": "secure",
+      "difficulty": "medium",
+      "question": "An internal microservice API must be callable only by applications running inside one VPC. It must not be reachable from the internet at all. The team wants to use API Gateway features such as throttling and request validation. Which solution meets these requirements?",
+      "options": [
+        { "id": "A", "text": "A Regional REST API protected by an API key that only internal applications know.", "correct": false, "explanation": "A Regional API is still reachable from the internet; API keys are for usage plans, not a security boundary." },
+        { "id": "B", "text": "An edge-optimized REST API with AWS WAF blocking all IP addresses outside the VPC CIDR.", "correct": false, "explanation": "Requests from the VPC reach a public endpoint from public NAT or internet gateway addresses, so a private-CIDR rule would block them too, and the endpoint itself stays on the internet." },
+        { "id": "C", "text": "An HTTP API with a Lambda authorizer that checks the caller's source IP.", "correct": false, "explanation": "HTTP APIs do not support private endpoints; the endpoint would remain public and rely on custom code." },
+        { "id": "D", "text": "A private REST API accessed through an interface VPC endpoint for execute-api, with a resource policy that allows only that VPC endpoint.", "correct": true, "explanation": "Private APIs are reachable only through interface VPC endpoints (PrivateLink); the resource policy restricts which VPC or endpoint may call them." }
+      ],
+      "explanation": "API only reachable from a VPC: private REST API + interface VPC endpoint + resource policy.",
+      "tags": ["api-gateway", "vpc-endpoints", "security"]
+    },
+    {
+      "id": "21-dynamodb-apigw-cognito-q11",
+      "type": "single",
+      "domain": "secure",
+      "difficulty": "medium",
+      "question": "A mobile note-taking app with two million users signs people in with Google or a username and password. The app must read and write each user's notes directly in a DynamoDB table and upload attachments to S3, and a user must never be able to access another user's data. No long-term credentials may be stored on the devices. Which solution meets these requirements?",
+      "options": [
+        { "id": "A", "text": "Create an IAM user for each app user and embed that user's access keys in the app after sign-up.", "correct": false, "explanation": "Millions of IAM users with long-term keys on devices is insecure, exceeds IAM quotas and breaks the no-long-term-credentials rule." },
+        { "id": "B", "text": "Use a Cognito user pool alone and pass its ID token to DynamoDB and S3 as credentials.", "correct": false, "explanation": "User pool tokens prove identity but are not AWS credentials; DynamoDB and S3 accept only signed requests with AWS credentials." },
+        { "id": "C", "text": "Use a Cognito user pool (with Google federation) and a Cognito identity pool whose authenticated role allows DynamoDB access only where dynamodb:LeadingKeys equals ${cognito-identity.amazonaws.com:sub} and S3 access only under that same ID as prefix.", "correct": true, "explanation": "The identity pool exchanges the token for temporary credentials, and the policy variable limits every user to items and objects keyed by their own identity ID." },
+        { "id": "D", "text": "Share one IAM role's access keys in the app and filter other users' data in the client code.", "correct": false, "explanation": "Shared keys give every device access to everyone's data; client-side filtering is not a security control." }
+      ],
+      "explanation": "App users who need direct, per-user access to AWS resources: Cognito identity pool plus IAM policy variables.",
+      "tags": ["cognito", "dynamodb", "security"]
+    },
+    {
+      "id": "21-dynamodb-apigw-cognito-q12",
+      "type": "multi",
+      "domain": "secure",
+      "difficulty": "medium",
+      "question": "A company has created an Amazon Cognito user pool for its customers. It wants AWS-managed components to validate customer sign-in before requests reach its backends, without writing authentication code in the backends. Which AWS services can use the user pool directly for this purpose? (Select TWO.)",
+      "options": [
+        { "id": "A", "text": "Amazon API Gateway, with a Cognito user pool authorizer on the API methods.", "correct": true, "explanation": "API Gateway validates the user pool token sent by the client before invoking the backend integration." },
+        { "id": "B", "text": "Network Load Balancer, with a TLS listener rule that authenticates users.", "correct": false, "explanation": "NLBs work at layer 4 and have no user authentication actions." },
+        { "id": "C", "text": "Application Load Balancer, with an authenticate-cognito action on an HTTPS listener rule.", "correct": true, "explanation": "ALB can redirect users to Cognito, validate the session and forward user claims to the targets." },
+        { "id": "D", "text": "Amazon S3, with a bucket policy that references the user pool ID.", "correct": false, "explanation": "S3 authorizes AWS credentials, not user pool tokens; direct S3 access needs an identity pool." },
+        { "id": "E", "text": "AWS Step Functions, with a Choice state that checks the user's password.", "correct": false, "explanation": "Step Functions orchestrates workflows; it is not an authentication front end for user pools." }
+      ],
+      "explanation": "Cognito user pools integrate natively with API Gateway (authorizers) and ALB (authenticate action).",
+      "tags": ["cognito", "api-gateway", "alb"]
+    },
+    {
+      "id": "21-dynamodb-apigw-cognito-q13",
+      "type": "single",
+      "domain": "resilient",
+      "difficulty": "medium",
+      "question": "An insurance company processes claims in several steps implemented as Lambda functions: validate the claim, check fraud, wait for a human adjuster to approve large claims (which can take up to three days), then pay out. Failed steps must be retried automatically and every claim needs an auditable execution history. Which solution requires the LEAST custom code?",
+      "options": [
+        { "id": "A", "text": "Have each Lambda function invoke the next one directly and store progress in a DynamoDB table.", "correct": false, "explanation": "Chaining functions by hand means writing retry, waiting and state-tracking code, and a single function cannot wait three days." },
+        { "id": "B", "text": "An AWS Step Functions Standard workflow with Retry rules, a Choice state for large claims, and a wait-for-callback task that pauses until the adjuster's approval returns the task token.", "correct": true, "explanation": "Standard workflows run up to a year, keep a visual execution history, retry failed steps declaratively and support task-token callbacks for human approval." },
+        { "id": "C", "text": "An AWS Step Functions Express workflow with the same states.", "correct": false, "explanation": "Express workflows last at most five minutes and do not support the wait-for-callback (task token) pattern." },
+        { "id": "D", "text": "An SQS queue between each pair of functions, with a visibility timeout of three days for approvals.", "correct": false, "explanation": "SQS visibility timeouts max out at 12 hours, and the team would still build orchestration, branching and audit history themselves." }
+      ],
+      "explanation": "Multi-step workflows with retries, branching, long waits and human approval: Step Functions Standard with a task token.",
+      "tags": ["step-functions", "lambda"]
+    },
+    {
+      "id": "21-dynamodb-apigw-cognito-q14",
+      "type": "multi",
+      "domain": "performant",
+      "difficulty": "hard",
+      "question": "A retailer must capture every change to a DynamoDB orders table, keep the change records for 7 days so they can be replayed, feed four independent consumer applications, and also archive the changes to Amazon S3 without writing consumer code for the archive. Which steps meet these requirements? (Select TWO.)",
+      "options": [
+        { "id": "A", "text": "Enable Kinesis Data Streams for DynamoDB on the table, sending changes to a data stream with a 7-day retention period.", "correct": true, "explanation": "Kinesis retention can be set anywhere up to a year, covering the 7-day replay, and a stream serves up to 5 shared-throughput consumers per shard (20 with enhanced fan-out), enough for the four applications plus Firehose." },
+        { "id": "B", "text": "Enable DynamoDB Streams and increase its retention period to 7 days.", "correct": false, "explanation": "DynamoDB Streams retention is fixed at 24 hours and cannot be increased." },
+        { "id": "C", "text": "Attach the four consumer applications to the same DynamoDB Streams shards with the Kinesis Adapter.", "correct": false, "explanation": "DynamoDB Streams supports at most two simultaneous readers per shard; four consumers would be throttled." },
+        { "id": "D", "text": "Configure an Amazon Data Firehose stream that reads from the Kinesis data stream and delivers to S3.", "correct": true, "explanation": "Firehose consumes the data stream and writes batched files to S3 with no consumer code to maintain." },
+        { "id": "E", "text": "Put a DAX cluster in front of the table to record all writes for the archive.", "correct": false, "explanation": "DAX is a read cache; it does not record or export changes." }
+      ],
+      "explanation": "Longer retention and more consumers than DynamoDB Streams allows: Kinesis Data Streams for DynamoDB, with Firehose for S3 delivery.",
+      "tags": ["dynamodb-streams", "kinesis-data-streams", "data-firehose"]
+    },
+    {
+      "id": "21-dynamodb-apigw-cognito-q15",
+      "type": "multi",
+      "domain": "cost",
+      "difficulty": "medium",
+      "question": "A company exposes a product catalog API through an API Gateway REST API backed by Lambda. It wants to give each partner an API key with a monthly request quota and a rate limit, and it wants to cut the number of Lambda invocations for catalog GET requests that return the same data many times per minute. Which actions should it take? (Select TWO.)",
+      "options": [
+        { "id": "A", "text": "Create usage plans with throttling and quota settings and associate each partner's API key with a plan.", "correct": true, "explanation": "Usage plans tie API keys to per-client rate limits and quotas on REST APIs." },
+        { "id": "B", "text": "Migrate the API to an HTTP API to lower the per-request price.", "correct": false, "explanation": "HTTP APIs are cheaper per call but support neither API keys with usage plans nor response caching, so both requirements would be lost." },
+        { "id": "C", "text": "Enable API caching on the stage with a TTL suited to how often the catalog changes.", "correct": true, "explanation": "Stage caching serves repeated GET responses from the cache (default 300 s, up to 3,600 s), so Lambda is invoked far less often." },
+        { "id": "D", "text": "Set reserved concurrency on the Lambda function to the partners' combined limit.", "correct": false, "explanation": "Reserved concurrency caps the function for everyone but gives no per-partner quota and does not reduce repeated invocations." },
+        { "id": "E", "text": "Issue each partner credentials from a Cognito identity pool.", "correct": false, "explanation": "Identity pools grant AWS credentials to app users; they do not implement per-partner request quotas or caching." }
+      ],
+      "explanation": "Per-client quotas use REST API usage plans with API keys; repeated identical GETs are absorbed by stage caching.",
+      "tags": ["api-gateway", "cost"]
+    }
+  ]
+}

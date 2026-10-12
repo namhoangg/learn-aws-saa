@@ -1,0 +1,463 @@
+{
+  "id": "33-disaster-recovery-migrations",
+  "order": 33,
+  "title": "Disaster Recovery & Migrations",
+  "courseSection": "Disaster Recovery & Migrations",
+  "slides": [
+    775,
+    801
+  ],
+  "estimatedMinutes": 60,
+  "summary": "How to keep a business running after a disaster and how to move workloads into AWS. Covers RPO and RTO, the four DR strategies from backup and restore to multi-site active/active, Elastic Disaster Recovery, AWS Backup with Vault Lock, DMS with SCT and Multi-AZ, Aurora migration paths, server rehosting with Application Migration Service (now AWS Transform MGN), discovery tools, VMware options and how to size large data transfers.",
+  "services": [
+    "drs",
+    "aws-backup",
+    "dms",
+    "sct",
+    "mgn",
+    "application-discovery",
+    "migration-hub",
+    "aws-transform",
+    "vm-import-export",
+    "vmware-cloud",
+    "evs",
+    "snow-family",
+    "data-transfer-terminal",
+    "datasync",
+    "direct-connect",
+    "site-to-site-vpn",
+    "storage-gateway",
+    "route53",
+    "rds",
+    "aurora",
+    "aurora-global",
+    "dynamodb-global-tables",
+    "ebs-snapshots",
+    "s3",
+    "s3-glacier",
+    "cloudformation",
+    "asg",
+    "ec2",
+    "fis",
+    "resilience-hub"
+  ],
+  "relations": [
+    {
+      "from": "drs",
+      "to": "ec2",
+      "label": "launches recovery instances on"
+    },
+    {
+      "from": "drs",
+      "to": "ebs-snapshots",
+      "label": "keeps point-in-time copies as"
+    },
+    {
+      "from": "aws-backup",
+      "to": "ebs-snapshots",
+      "label": "schedules and retains"
+    },
+    {
+      "from": "aws-backup",
+      "to": "rds",
+      "label": "backs up and copies across Regions"
+    },
+    {
+      "from": "dms",
+      "to": "aurora",
+      "label": "migrates data with full load and CDC into"
+    },
+    {
+      "from": "sct",
+      "to": "dms",
+      "label": "converts the schema before data moves with"
+    },
+    {
+      "from": "mgn",
+      "to": "ec2",
+      "label": "rehosts source servers as"
+    },
+    {
+      "from": "application-discovery",
+      "to": "migration-hub",
+      "label": "reports inventory and dependencies to"
+    },
+    {
+      "from": "aws-transform",
+      "to": "mgn",
+      "label": "uses as its replication engine"
+    },
+    {
+      "from": "cloudformation",
+      "to": "asg",
+      "label": "redeploys the recovery stack including"
+    },
+    {
+      "from": "site-to-site-vpn",
+      "to": "direct-connect",
+      "label": "acts as a backup path for"
+    },
+    {
+      "from": "storage-gateway",
+      "to": "s3",
+      "label": "sends on-premises backups to"
+    },
+    {
+      "from": "datasync",
+      "to": "s3",
+      "label": "replicates files on a schedule into"
+    },
+    {
+      "from": "vm-import-export",
+      "to": "ec2",
+      "label": "turns VM images into AMIs for"
+    },
+    {
+      "from": "fis",
+      "to": "ec2",
+      "label": "injects failures to test recovery of"
+    }
+  ],
+  "examDomains": [
+    "resilient",
+    "cost",
+    "performant",
+    "secure"
+  ],
+  "lastVerified": "2026-10-04",
+  "sources": [
+    {
+      "title": "Disaster recovery options in the cloud (DR whitepaper)",
+      "url": "https://docs.aws.amazon.com/whitepapers/latest/disaster-recovery-workloads-on-aws/disaster-recovery-options-in-the-cloud.html"
+    },
+    {
+      "title": "SAA-C03 exam guide: in-scope AWS services",
+      "url": "https://docs.aws.amazon.com/aws-certification/latest/solutions-architect-associate-03/saa-03-in-scope-services.html"
+    },
+    {
+      "title": "What is Elastic Disaster Recovery?",
+      "url": "https://docs.aws.amazon.com/drs/latest/userguide/what-is-drs.html"
+    },
+    {
+      "title": "AWS Elastic Disaster Recovery pricing",
+      "url": "https://aws.amazon.com/disaster-recovery/pricing/"
+    },
+    {
+      "title": "DRS initialization and permissions",
+      "url": "https://docs.aws.amazon.com/drs/latest/userguide/getting-started-initializing.html"
+    },
+    {
+      "title": "DRS quick start guide",
+      "url": "https://docs.aws.amazon.com/drs/latest/userguide/quick-start-guide-gs.html"
+    },
+    {
+      "title": "DRS: installing the AWS Replication Agent on Linux",
+      "url": "https://docs.aws.amazon.com/drs/latest/userguide/linux-agent.html"
+    },
+    {
+      "title": "DRS: using an instance profile for agent installation in AWS",
+      "url": "https://docs.aws.amazon.com/drs/latest/userguide/agent-installations-in-aws.html"
+    },
+    {
+      "title": "DRS: AWS Replication Agent installer parameters",
+      "url": "https://docs.aws.amazon.com/drs/latest/userguide/installer-parameters.html"
+    },
+    {
+      "title": "DRS: installation requirements for the AWS Replication Agent",
+      "url": "https://docs.aws.amazon.com/drs/latest/userguide/installation-requirements.html"
+    },
+    {
+      "title": "DRS: supported Linux operating systems (AL2023 up to kernel 6.12)",
+      "url": "https://docs.aws.amazon.com/drs/latest/userguide/Supported-Operating-Systems-Linux.html"
+    },
+    {
+      "title": "DRS API reference: DisconnectSourceServer (resources removed within 90 minutes)",
+      "url": "https://docs.aws.amazon.com/drs/latest/APIReference/API_DisconnectSourceServer.html"
+    },
+    {
+      "title": "Updating the Linux kernel on AL2023 (default kernel 6.18 since August 2026)",
+      "url": "https://docs.aws.amazon.com/linux/al2023/ug/kernel-update.html"
+    },
+    {
+      "title": "DRS: preparing for recovery and recovery drills",
+      "url": "https://docs.aws.amazon.com/drs/latest/userguide/preparing-failover.html"
+    },
+    {
+      "title": "DRS: source servers page command menus",
+      "url": "https://docs.aws.amazon.com/drs/latest/userguide/command-menus.html"
+    },
+    {
+      "title": "DRS: EC2 launch template",
+      "url": "https://docs.aws.amazon.com/drs/latest/userguide/ec2-launch.html"
+    },
+    {
+      "title": "DRS: default EC2 launch template",
+      "url": "https://docs.aws.amazon.com/drs/latest/userguide/default-ec2-launch-template.html"
+    },
+    {
+      "title": "AWS Backup Vault Lock",
+      "url": "https://docs.aws.amazon.com/aws-backup/latest/devguide/vault-lock.html"
+    },
+    {
+      "title": "AWS Backup feature availability by resource and Region",
+      "url": "https://docs.aws.amazon.com/aws-backup/latest/devguide/backup-feature-availability.html"
+    },
+    {
+      "title": "AWS Backup: create a backup plan",
+      "url": "https://docs.aws.amazon.com/aws-backup/latest/devguide/creating-a-backup-plan.html"
+    },
+    {
+      "title": "AWS Backup: backup plan options and configuration",
+      "url": "https://docs.aws.amazon.com/aws-backup/latest/devguide/plan-options-and-configuration.html"
+    },
+    {
+      "title": "AWS Backup: logically air-gapped vault",
+      "url": "https://docs.aws.amazon.com/aws-backup/latest/devguide/logicallyairgappedvault.html"
+    },
+    {
+      "title": "Getting started with AWS Backup",
+      "url": "https://docs.aws.amazon.com/aws-backup/latest/devguide/getting-started.html"
+    },
+    {
+      "title": "AWS Backup IAM service roles",
+      "url": "https://docs.aws.amazon.com/aws-backup/latest/devguide/iam-service-roles.html"
+    },
+    {
+      "title": "AWS Backup: create an on-demand backup",
+      "url": "https://docs.aws.amazon.com/aws-backup/latest/devguide/recov-point-create-on-demand-backup.html"
+    },
+    {
+      "title": "AWS Backup: restore an Amazon EBS volume",
+      "url": "https://docs.aws.amazon.com/aws-backup/latest/devguide/restoring-ebs.html"
+    },
+    {
+      "title": "AWS Backup: assign resources using the console",
+      "url": "https://docs.aws.amazon.com/aws-backup/latest/devguide/assigning-resources-console.html"
+    },
+    {
+      "title": "AWS Backup: assign resources with the AWS CLI",
+      "url": "https://docs.aws.amazon.com/aws-backup/latest/devguide/assigning-resources-json.html"
+    },
+    {
+      "title": "AWS Backup: select AWS services to back up (opt-in)",
+      "url": "https://docs.aws.amazon.com/aws-backup/latest/devguide/assigning-resources.html"
+    },
+    {
+      "title": "AWS Backup: creating backup copies across AWS Regions",
+      "url": "https://docs.aws.amazon.com/aws-backup/latest/devguide/cross-region-backup.html"
+    },
+    {
+      "title": "AWS Backup: backup vault creation and deletion",
+      "url": "https://docs.aws.amazon.com/aws-backup/latest/devguide/create-a-vault.html"
+    },
+    {
+      "title": "AWS DMS: sources for data migration",
+      "url": "https://docs.aws.amazon.com/dms/latest/userguide/CHAP_Introduction.Sources.html"
+    },
+    {
+      "title": "AWS DMS: targets for data migration",
+      "url": "https://docs.aws.amazon.com/dms/latest/userguide/CHAP_Introduction.Targets.html"
+    },
+    {
+      "title": "AWS DMS: source endpoint list",
+      "url": "https://docs.aws.amazon.com/dms/latest/userguide/CHAP_Source.html"
+    },
+    {
+      "title": "AWS DMS: target endpoint list",
+      "url": "https://docs.aws.amazon.com/dms/latest/userguide/CHAP_Target.html"
+    },
+    {
+      "title": "Converting database schemas using DMS Schema Conversion",
+      "url": "https://docs.aws.amazon.com/dms/latest/userguide/CHAP_SchemaConversion.html"
+    },
+    {
+      "title": "Working with an AWS DMS replication instance (Multi-AZ)",
+      "url": "https://docs.aws.amazon.com/dms/latest/userguide/CHAP_ReplicationInstance.html"
+    },
+    {
+      "title": "AWS DMS: creating a replication instance",
+      "url": "https://docs.aws.amazon.com/dms/latest/userguide/CHAP_ReplicationInstance.Creating.html"
+    },
+    {
+      "title": "Working with AWS DMS Serverless",
+      "url": "https://docs.aws.amazon.com/dms/latest/userguide/CHAP_Serverless.html"
+    },
+    {
+      "title": "Best practices for AWS DMS",
+      "url": "https://docs.aws.amazon.com/dms/latest/userguide/CHAP_BestPractices.html"
+    },
+    {
+      "title": "Using a MySQL-compatible database as a source for AWS DMS",
+      "url": "https://docs.aws.amazon.com/dms/latest/userguide/CHAP_Source.MySQL.html"
+    },
+    {
+      "title": "Using a MySQL-compatible database as a target for AWS DMS",
+      "url": "https://docs.aws.amazon.com/dms/latest/userguide/CHAP_Target.MySQL.html"
+    },
+    {
+      "title": "AWS DMS: set up replication (getting started)",
+      "url": "https://docs.aws.amazon.com/dms/latest/userguide/CHAP_GettingStarted.Replication.html"
+    },
+    {
+      "title": "AWS DMS: identity and access management (dms-vpc-role)",
+      "url": "https://docs.aws.amazon.com/dms/latest/userguide/security-iam.html"
+    },
+    {
+      "title": "AWS DMS release notes",
+      "url": "https://docs.aws.amazon.com/dms/latest/userguide/CHAP_ReleaseNotes.html"
+    },
+    {
+      "title": "AWS DMS pricing",
+      "url": "https://aws.amazon.com/dms/pricing/"
+    },
+    {
+      "title": "AWS Price List API: DMS offer file (us-east-1)",
+      "url": "https://pricing.us-east-1.amazonaws.com/offers/v1.0/aws/AWSDatabaseMigrationSvc/current/us-east-1/index.json"
+    },
+    {
+      "title": "AWS DMS Free Tier (Free plan and Paid plan accounts)",
+      "url": "https://aws.amazon.com/dms/free-dms/"
+    },
+    {
+      "title": "AWS Free Tier: choosing a Free plan or Paid plan",
+      "url": "https://docs.aws.amazon.com/awsaccountbilling/latest/aboutv2/free-tier-plans.html"
+    },
+    {
+      "title": "Creating your first Amazon RDS DB instance (Free tier / Sandbox templates)",
+      "url": "https://docs.aws.amazon.com/AmazonRDS/latest/gettingstartedguide/create-instance-overview.html"
+    },
+    {
+      "title": "What is the AWS Schema Conversion Tool?",
+      "url": "https://docs.aws.amazon.com/SchemaConversionTool/latest/userguide/CHAP_Welcome.html"
+    },
+    {
+      "title": "Physical migration from MySQL by using Percona XtraBackup and Amazon S3",
+      "url": "https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/AuroraMySQL.Migrating.ExtMySQL.S3.html"
+    },
+    {
+      "title": "Migrating data from RDS for MySQL to Aurora MySQL",
+      "url": "https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/AuroraMySQL.Migrating.RDSMySQL.html"
+    },
+    {
+      "title": "Migrating RDS for MySQL to Aurora MySQL with an Aurora read replica",
+      "url": "https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/AuroraMySQL.Migrating.RDSMySQL.Replica.html"
+    },
+    {
+      "title": "DRS API reference: DataReplicationInfo, SourceServer, UpdateLaunchConfiguration, StartRecovery",
+      "url": "https://docs.aws.amazon.com/drs/latest/APIReference/API_UpdateLaunchConfiguration.html"
+    },
+    {
+      "title": "AWS managed policy: AWSElasticDisasterRecoveryEc2InstancePolicy",
+      "url": "https://docs.aws.amazon.com/aws-managed-policy/latest/reference/AWSElasticDisasterRecoveryEc2InstancePolicy.html"
+    },
+    {
+      "title": "Importing data from Amazon S3 into Aurora PostgreSQL (aws_s3)",
+      "url": "https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/USER_PostgreSQL.S3Import.html"
+    },
+    {
+      "title": "Configuring RDS for MySQL binary logging",
+      "url": "https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/USER_LogAccess.MySQL.BinaryFormat.html"
+    },
+    {
+      "title": "MySQL on Amazon RDS versions (support dates)",
+      "url": "https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/MySQL.Concepts.VersionMgmt.html"
+    },
+    {
+      "title": "Requiring SSL/TLS for all connections to RDS for MySQL",
+      "url": "https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/mysql-ssl-connections.require-ssl.html"
+    },
+    {
+      "title": "RDS for MySQL known issues (default authentication plugin)",
+      "url": "https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/MySQL.KnownIssuesAndLimitations.html"
+    },
+    {
+      "title": "AWS Price List API: RDS offer file (us-east-1)",
+      "url": "https://pricing.us-east-1.amazonaws.com/offers/v1.0/aws/AmazonRDS/current/us-east-1/index.json"
+    },
+    {
+      "title": "What is AWS Transform MGN?",
+      "url": "https://docs.aws.amazon.com/mgn/latest/ug/what-is-application-migration-service.html"
+    },
+    {
+      "title": "AWS Application Migration Service is now AWS Transform MGN",
+      "url": "https://aws.amazon.com/about-aws/whats-new/2026/06/aws-transform-mgn-rebrand/"
+    },
+    {
+      "title": "AWS Transform MGN pricing",
+      "url": "https://aws.amazon.com/application-migration-service/pricing/"
+    },
+    {
+      "title": "AWS Transform MGN FAQs (2,160 free hours per source server)",
+      "url": "https://aws.amazon.com/application-migration-service/faqs/"
+    },
+    {
+      "title": "What is AWS Application Discovery Service?",
+      "url": "https://docs.aws.amazon.com/application-discovery/latest/userguide/what-is-appdiscovery.html"
+    },
+    {
+      "title": "AWS Application Discovery Service availability change",
+      "url": "https://docs.aws.amazon.com/application-discovery/latest/userguide/application-discovery-service-availability-change.html"
+    },
+    {
+      "title": "AWS Migration Hub availability change",
+      "url": "https://docs.aws.amazon.com/migrationhub/latest/ug/migrationhub-availability-change.html"
+    },
+    {
+      "title": "What is VM Import/Export?",
+      "url": "https://docs.aws.amazon.com/vm-import/latest/userguide/what-is-vmimport.html"
+    },
+    {
+      "title": "Amazon Linux 2 FAQs (end of support)",
+      "url": "https://aws.amazon.com/amazon-linux-2/faqs/"
+    },
+    {
+      "title": "Using Amazon Linux 2023 outside of Amazon EC2",
+      "url": "https://docs.aws.amazon.com/linux/al2023/ug/outside-ec2.html"
+    },
+    {
+      "title": "AL2023 release cadence and support dates",
+      "url": "https://docs.aws.amazon.com/linux/al2023/ug/release-cadence.html"
+    },
+    {
+      "title": "VMware Cloud on AWS FAQs (resale change)",
+      "url": "https://aws.amazon.com/vmware/faqs/"
+    },
+    {
+      "title": "What is Amazon Elastic VMware Service?",
+      "url": "https://docs.aws.amazon.com/evs/latest/userguide/what-is-evs.html"
+    },
+    {
+      "title": "AWS announces general availability of Amazon EVS",
+      "url": "https://aws.amazon.com/about-aws/whats-new/2025/08/aws-general-availability-amazon-elastic-evs"
+    },
+    {
+      "title": "Amazon EC2 automatic instance recovery",
+      "url": "https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-instance-recover.html"
+    },
+    {
+      "title": "AWS Snowball Edge availability change",
+      "url": "https://docs.aws.amazon.com/snowball/latest/developer-guide/snowball-edge-availability-change.html"
+    },
+    {
+      "title": "What is Data Transfer Terminal?",
+      "url": "https://docs.aws.amazon.com/datatransferterminal/latest/userguide/what-is-dtt.html"
+    },
+    {
+      "title": "AWS price list: EC2 On-Demand Linux prices (US East N. Virginia)",
+      "url": "https://b0.p.awsstatic.com/pricing/2.0/meteredUnitMaps/ec2/USD/current/ec2-ondemand-without-sec-sel/US%20East%20(N.%20Virginia)/Linux/index.json"
+    },
+    {
+      "title": "AWS price list: EC2 On-Demand Linux prices (US West Oregon)",
+      "url": "https://b0.p.awsstatic.com/pricing/2.0/meteredUnitMaps/ec2/USD/current/ec2-ondemand-without-sec-sel/US%20West%20(Oregon)/Linux/index.json"
+    },
+    {
+      "title": "Supported AWS services for Sign up for AWS (new) (DRS not supported without advanced features)",
+      "url": "https://docs.aws.amazon.com/accounts/latest/reference/supported-services-sign-up-new.html"
+    },
+    {
+      "title": "AWS Free Tier (Free plan and Paid plan comparison)",
+      "url": "https://aws.amazon.com/free/"
+    }
+  ],
+  "newServices": []
+}

@@ -1,0 +1,190 @@
+{
+  "section": "12-s3-fundamentals",
+  "cards": [
+    {
+      "id": "12-s3-fundamentals-fc-01",
+      "front": "Is an S3 bucket global or Regional?",
+      "back": "**Regional.** Each bucket is created in one Region and its data stays there unless you copy or replicate it. Only the general purpose bucket **name** is global (unique across all accounts in the partition).",
+      "tags": ["s3", "buckets"]
+    },
+    {
+      "id": "12-s3-fundamentals-fc-02",
+      "front": "What is the S3 account regional namespace?",
+      "back": "A reserved part of the bucket namespace (since March 2026) where only your account can create names, in the form `<prefix>-<account-id>-<region>-an`. It removes global name collisions and bucket squatting.",
+      "tags": ["s3", "buckets"],
+      "updated": "New feature launched 12 March 2026"
+    },
+    {
+      "id": "12-s3-fundamentals-fc-03",
+      "front": "Name five general purpose bucket naming rules.",
+      "back": "3 to 63 characters; lowercase letters, digits, hyphens and periods only (no uppercase, no underscore); start and end with a letter or digit; not formatted like an IP address; no `xn--` prefix and no `-s3alias` suffix (plus other reserved prefixes and suffixes).",
+      "tags": ["s3", "buckets"]
+    },
+    {
+      "id": "12-s3-fundamentals-fc-04",
+      "front": "In `s3://acme/videos/2026/launch.mp4`, what is the key and what is the prefix?",
+      "back": "Key = `videos/2026/launch.mp4` (the full path after the bucket). Prefix = `videos/2026/`. S3 has no real directories; console folders are just prefixes.",
+      "tags": ["s3", "objects"]
+    },
+    {
+      "id": "12-s3-fundamentals-fc-05",
+      "front": "What is the maximum size of an S3 object, and of a single PUT?",
+      "back": "Object: **50 TB** (exactly 10,000 parts x 5 GiB). Single `PUT`: **5 GB**. Anything larger than 5 GB must use multipart upload, which AWS recommends from about 100 MB.",
+      "tags": ["s3", "multipart"],
+      "updated": "Maximum object size raised from 5 TB to 50 TB"
+    },
+    {
+      "id": "12-s3-fundamentals-fc-06",
+      "front": "Multipart upload: part size range and maximum number of parts?",
+      "back": "Parts from **5 MiB to 5 GiB** (the last part may be smaller), up to **10,000 parts** per upload. Parts upload in parallel and failed parts are retried individually.",
+      "tags": ["s3", "multipart"]
+    },
+    {
+      "id": "12-s3-fundamentals-fc-07",
+      "front": "How many tags can an S3 object have, and what are they used for?",
+      "back": "Up to **10** tags (key up to 128, value up to 256 characters). Used as filters for lifecycle rules and replication, in IAM/bucket policy conditions, for S3 analytics and CloudWatch metrics filters.",
+      "tags": ["s3", "objects"]
+    },
+    {
+      "id": "12-s3-fundamentals-fc-08",
+      "front": "Can you edit user-defined metadata (`x-amz-meta-*`) after uploading an object?",
+      "back": "No. It is fixed at upload (max 2 KB). To change it you copy the object with new metadata, which creates a new object or version. Tags, by contrast, can be changed any time.",
+      "tags": ["s3", "objects"]
+    },
+    {
+      "id": "12-s3-fundamentals-fc-09",
+      "front": "IAM policy vs bucket policy: which one is resource-based?",
+      "back": "The **bucket policy** is resource-based (attached to the bucket, has a `Principal`, max 20 KB). IAM policies are identity-based (attached to users, groups, roles).",
+      "tags": ["s3", "iam-policies"]
+    },
+    {
+      "id": "12-s3-fundamentals-fc-10",
+      "front": "When can an IAM principal in the same account access an S3 object?",
+      "back": "When the IAM policy **or** the bucket policy allows it **and** there is no explicit deny anywhere (and Block Public Access or Organizations policies do not block it).",
+      "tags": ["s3", "iam-policies"]
+    },
+    {
+      "id": "12-s3-fundamentals-fc-11",
+      "front": "What is needed for a user in another AWS account to read your bucket?",
+      "back": "**Both**: your bucket policy must allow that account or role, **and** the other account's IAM policy must allow the action on your bucket. Either side denying (or not allowing) blocks it.",
+      "tags": ["s3", "cross-account"]
+    },
+    {
+      "id": "12-s3-fundamentals-fc-12",
+      "front": "What is the default S3 Object Ownership setting for new buckets?",
+      "back": "**Bucket owner enforced**: ACLs are disabled, the bucket owner owns every object, and access is controlled only by policies.",
+      "tags": ["s3", "acl"],
+      "updated": "ACLs are now disabled by default; the slides only say they can be disabled"
+    },
+    {
+      "id": "12-s3-fundamentals-fc-13",
+      "front": "What are the four S3 Block Public Access settings?",
+      "back": "`BlockPublicAcls` (reject new public ACLs), `IgnorePublicAcls` (ignore existing ones), `BlockPublicPolicy` (reject new public bucket/access point policies), `RestrictPublicBuckets` (limit an existing public policy to AWS services and the owner account).",
+      "tags": ["s3", "block-public-access"]
+    },
+    {
+      "id": "12-s3-fundamentals-fc-14",
+      "front": "At which levels can Block Public Access be set, and which wins?",
+      "back": "Organization (AWS Organizations S3 policy, all four together), account, bucket and access point. S3 enforces the **most restrictive** combination.",
+      "tags": ["s3", "block-public-access", "organizations"],
+      "updated": "Organization-level Block Public Access is newer than the slides"
+    },
+    {
+      "id": "12-s3-fundamentals-fc-15",
+      "front": "Your S3 static website returns 403 Forbidden. What do you check?",
+      "back": "Block Public Access (bucket and account) still blocking public policies, and a missing bucket policy allowing `s3:GetObject` on `arn:aws:s3:::bucket/*` to `\"*\"`. Website hosting alone makes nothing public.",
+      "tags": ["s3", "static-website"]
+    },
+    {
+      "id": "12-s3-fundamentals-fc-16",
+      "front": "Does the S3 website endpoint support HTTPS?",
+      "back": "No, HTTP only (`http://bucket.s3-website-region.amazonaws.com` or `.s3-website.region`). For HTTPS put CloudFront (with OAC) or Amplify Hosting in front of the bucket.",
+      "tags": ["s3", "static-website", "cloudfront"]
+    },
+    {
+      "id": "12-s3-fundamentals-fc-17",
+      "front": "What happens when you delete an object in a versioning-enabled bucket without a version ID?",
+      "back": "S3 adds a **delete marker** as the current version; all data versions remain. Deleting the delete marker restores the object. Only a delete **with a version ID** removes data permanently.",
+      "tags": ["s3", "versioning"]
+    },
+    {
+      "id": "12-s3-fundamentals-fc-18",
+      "front": "Can you turn versioning off after enabling it?",
+      "back": "No. You can only **suspend** it. Suspending keeps all existing versions; new writes get version ID `null`. Objects stored before versioning was enabled also have version ID `null`.",
+      "tags": ["s3", "versioning"]
+    },
+    {
+      "id": "12-s3-fundamentals-fc-19",
+      "front": "What are the prerequisites for S3 CRR or SRR?",
+      "back": "Versioning enabled on **source and destination**, and an IAM role S3 can assume with read permission on the source and replicate permission on the destination. Cross-account also needs a destination bucket policy.",
+      "tags": ["s3", "replication"]
+    },
+    {
+      "id": "12-s3-fundamentals-fc-20",
+      "front": "After enabling replication, how do you copy objects that already existed?",
+      "back": "With **S3 Batch Replication**, an on-demand job that also retries objects with replication status `FAILED`. Live replication only handles new writes.",
+      "tags": ["s3", "replication", "s3-batch-operations"]
+    },
+    {
+      "id": "12-s3-fundamentals-fc-21",
+      "front": "Which deletes does S3 replication copy?",
+      "back": "Delete markers only if **delete marker replication** is turned on. Deletes of a **specific version ID are never replicated**, protecting the destination from malicious deletes.",
+      "tags": ["s3", "replication"]
+    },
+    {
+      "id": "12-s3-fundamentals-fc-22",
+      "front": "Bucket A replicates to B, and B replicates to C. Do objects uploaded to A reach C?",
+      "back": "No. Replication is **not chained**: replicas in B are not replicated again. Add C as a second destination on A, or use Batch Replication.",
+      "tags": ["s3", "replication"]
+    },
+    {
+      "id": "12-s3-fundamentals-fc-23",
+      "front": "CRR vs SRR: give one typical use case for each.",
+      "back": "**CRR**: compliance copy in a distant Region, lower latency for users elsewhere, Regional DR. **SRR**: aggregate logs from several buckets or accounts, live copy from production to a test account, in-country data sovereignty.",
+      "tags": ["s3", "replication"]
+    },
+    {
+      "id": "12-s3-fundamentals-fc-24",
+      "front": "What is S3 Replication Time Control (RTC)?",
+      "back": "A paid replication option with an SLA: **99.99% of new objects replicated within 15 minutes**, with replication metrics and events.",
+      "tags": ["s3", "replication"]
+    },
+    {
+      "id": "12-s3-fundamentals-fc-25",
+      "front": "Durability vs availability for S3 storage classes?",
+      "back": "**Durability** (chance of not losing data) is 11 nines for every class. **Availability** varies: Standard 99.99%, Standard-IA, Intelligent-Tiering and Glacier IR 99.9%, Express One Zone 99.95%, One Zone-IA 99.5%.",
+      "tags": ["s3", "storage-classes"]
+    },
+    {
+      "id": "12-s3-fundamentals-fc-26",
+      "front": "Minimum storage duration for Standard-IA, One Zone-IA, Glacier Instant, Glacier Flexible and Deep Archive?",
+      "back": "Standard-IA and One Zone-IA **30 days**; Glacier Instant Retrieval and Glacier Flexible Retrieval **90 days**; Glacier Deep Archive **180 days**. Standard, Intelligent-Tiering and Express One Zone have none.",
+      "tags": ["s3", "storage-classes", "s3-glacier"]
+    },
+    {
+      "id": "12-s3-fundamentals-fc-27",
+      "front": "Glacier Flexible Retrieval restore tiers and times?",
+      "back": "**Expedited**: typically 1-5 min. **Standard**: typically 3-5 h. **Bulk**: typically 5-12 h, no retrieval charge. (Deep Archive offers only Standard, within 12 h, and Bulk, within 48 h.)",
+      "tags": ["s3-glacier", "storage-classes"]
+    },
+    {
+      "id": "12-s3-fundamentals-fc-28",
+      "front": "How does S3 Intelligent-Tiering move objects?",
+      "back": "Frequent Access by default; after **30** days without access to Infrequent Access; after **90** days to Archive Instant Access. Optional Archive Access (90 to 730 days) and Deep Archive Access (180 to 730 days). No retrieval fees; small per-object monitoring fee; objects under 128 KB are not tiered.",
+      "tags": ["s3-intelligent-tiering", "storage-classes"]
+    },
+    {
+      "id": "12-s3-fundamentals-fc-29",
+      "front": "When should you choose S3 One Zone-IA?",
+      "back": "For infrequently accessed data that you can **recreate** if an AZ is lost: resized images, transcoded media, secondary backup copies, CRR replicas. Cheapest millisecond-access class (USD 0.01/GB-month in us-east-1), 99.5% availability.",
+      "tags": ["s3", "storage-classes"]
+    },
+    {
+      "id": "12-s3-fundamentals-fc-30",
+      "front": "What is S3 Express One Zone and how is a directory bucket named?",
+      "back": "A single-AZ class with single-digit ms latency, up to 10x faster and request costs up to 80% lower than Standard (storage costs more). Data sits in a **directory bucket** named `base--<zone-id>--x-s3`, ideally next to EC2/EKS compute in the same AZ.",
+      "tags": ["s3-express", "storage-classes"],
+      "updated": "AWS now quotes request costs up to 80% lower (slides: 50%)"
+    }
+  ]
+}

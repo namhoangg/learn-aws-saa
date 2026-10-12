@@ -1,0 +1,191 @@
+{
+  "section": "14-s3-security",
+  "cards": [
+    {
+      "id": "14-s3-security-fc-01",
+      "front": "Which server-side encryption does S3 apply to new objects when you specify nothing?",
+      "back": "**SSE-S3** (AES-256 with keys owned and managed by S3). It has been the default for every bucket since 5 January 2023 and costs nothing extra.",
+      "tags": ["sse-s3", "default-encryption"]
+    },
+    {
+      "id": "14-s3-security-fc-02",
+      "front": "What value of the `x-amz-server-side-encryption` header requests SSE-S3, SSE-KMS and DSSE-KMS?",
+      "back": "`AES256` for SSE-S3, `aws:kms` for SSE-KMS, `aws:kms:dsse` for DSSE-KMS.",
+      "tags": ["encryption-headers"]
+    },
+    {
+      "id": "14-s3-security-fc-03",
+      "front": "Name two advantages of SSE-KMS over SSE-S3.",
+      "back": "**Control** over the key (key policy decides who may use it; you can rotate or disable a customer managed key) and **auditing**: every `GenerateDataKey`/`Decrypt` call made for your objects is logged in **CloudTrail**.",
+      "tags": ["sse-kms", "kms", "cloudtrail"]
+    },
+    {
+      "id": "14-s3-security-fc-04",
+      "front": "Which KMS API calls does S3 make for an SSE-KMS upload and for a download?",
+      "back": "Upload: **GenerateDataKey**. Download: **Decrypt**. Both count toward the account's shared KMS cryptographic request quota in that Region.",
+      "tags": ["sse-kms", "kms-quota"]
+    },
+    {
+      "id": "14-s3-security-fc-05",
+      "front": "What is the default KMS request quota for symmetric cryptographic operations?",
+      "back": "Shared per account and Region: **10,000/s** in most Regions, **20,000/s** in some (such as us-east-2, eu-central-1, ap-northeast-1) and **100,000/s** in us-east-1, us-west-2 and eu-west-1. Adjustable through Service Quotas.",
+      "tags": ["kms-quota"],
+      "updated": "The slides quote 5,500 / 10,000 / 30,000; the KMS quota table now lists 10,000 / 20,000 / 100,000."
+    },
+    {
+      "id": "14-s3-security-fc-06",
+      "front": "What do S3 Bucket Keys do?",
+      "back": "KMS issues a short-lived bucket-level key that S3 uses to derive per-object data keys, cutting S3-to-KMS request traffic and KMS request costs by **up to 99%**. Works with SSE-KMS, not with DSSE-KMS.",
+      "tags": ["bucket-keys", "sse-kms", "cost"]
+    },
+    {
+      "id": "14-s3-security-fc-07",
+      "front": "Can objects encrypted with the AWS managed key `aws/s3` be read by another AWS account?",
+      "back": "**No.** For cross-account access to SSE-KMS data, use a **customer managed key** and grant the other account in its key policy.",
+      "tags": ["sse-kms", "cross-account"]
+    },
+    {
+      "id": "14-s3-security-fc-08",
+      "front": "With SSE-C, does S3 keep a copy of your encryption key?",
+      "back": "**No.** S3 keeps only a salted HMAC to check that later requests use the same key, so you must send the key on every request, and if you lose it, the object is lost.",
+      "tags": ["sse-c"]
+    },
+    {
+      "id": "14-s3-security-fc-09",
+      "front": "What changed for SSE-C in April 2026?",
+      "back": "New general purpose buckets (and existing buckets in accounts with no SSE-C objects) **block SSE-C writes by default** with 403 AccessDenied. Allow it by setting `BlockedEncryptionTypes` to `NONE` with PutBucketEncryption (or in the console under Default encryption).",
+      "tags": ["sse-c"],
+      "updated": "Not in the slides: SSE-C is disabled by default for new buckets since April 2026."
+    },
+    {
+      "id": "14-s3-security-fc-10",
+      "front": "When is client-side encryption the only correct choice?",
+      "back": "When data must be encrypted **before** it leaves your environment and AWS must never see the plaintext or the key. Use the **Amazon S3 Encryption Client**; S3 just stores ciphertext.",
+      "tags": ["client-side-encryption"]
+    },
+    {
+      "id": "14-s3-security-fc-11",
+      "front": "How do you force all requests to a bucket to use HTTPS?",
+      "back": "A bucket policy statement with **Effect Deny**, Principal `*`, Action `s3:*`, on the bucket and its objects, with condition `\"Bool\": {\"aws:SecureTransport\": \"false\"}`.",
+      "tags": ["encryption-in-transit", "bucket-policy"]
+    },
+    {
+      "id": "14-s3-security-fc-12",
+      "front": "Which is evaluated first: a bucket policy or default encryption?",
+      "back": "The **bucket policy**. An upload denied by the policy (for example, missing the `aws:kms` header) is rejected before default encryption could apply.",
+      "tags": ["default-encryption", "bucket-policy"]
+    },
+    {
+      "id": "14-s3-security-fc-13",
+      "front": "What defines an \"origin\" for CORS?",
+      "back": "**Scheme + host + port.** `https://www.example.com` and `https://shop.example.com` are different origins; `https://example.com/a` and `https://example.com/b` are the same origin.",
+      "tags": ["cors"]
+    },
+    {
+      "id": "14-s3-security-fc-14",
+      "front": "A page on site A uses JavaScript to fetch files from S3 bucket B and the browser blocks it. Where do you configure CORS?",
+      "back": "On **bucket B**, the bucket that serves the requested files, with a rule allowing site A's origin (or `*`) and the needed methods. CORS on the page's own bucket does nothing.",
+      "tags": ["cors"]
+    },
+    {
+      "id": "14-s3-security-fc-15",
+      "front": "Which operations require MFA once MFA Delete is enabled?",
+      "back": "**Permanently deleting an object version** and **changing the versioning state** (suspending versioning). Not needed for enabling versioning, listing versions, reads, or simple deletes that add a delete marker.",
+      "tags": ["mfa-delete"]
+    },
+    {
+      "id": "14-s3-security-fc-16",
+      "front": "Who can enable MFA Delete, and how?",
+      "back": "Only the **bucket owner's root user**, with the **AWS CLI, SDK or REST API** (`put-bucket-versioning ... MFADelete=Enabled --mfa \"serial code\"`). Versioning must be on; the console cannot enable it.",
+      "tags": ["mfa-delete"]
+    },
+    {
+      "id": "14-s3-security-fc-17",
+      "front": "When server access logs are delivered to an S3 bucket, where must that destination bucket be?",
+      "back": "In the **same Region and the same AWS account** as the source bucket, and it should be a **different** bucket from the one being logged.",
+      "tags": ["access-logs"],
+      "updated": "The slides mention only the same Region; AWS docs also require the same account."
+    },
+    {
+      "id": "14-s3-security-fc-18",
+      "front": "What happens if a bucket's server access logs are delivered into the same bucket?",
+      "back": "A **logging loop**: every log file written is itself logged, creating more log files, so the bucket (and the bill) keeps growing. Always log to a separate bucket.",
+      "tags": ["access-logs"]
+    },
+    {
+      "id": "14-s3-security-fc-19",
+      "front": "What are the expiration limits of S3 pre-signed URLs?",
+      "back": "Console: **1 minute to 12 hours**. CLI `--expires-in`: default **3,600 s**, max **604,800 s (7 days)**. SDK with IAM user keys: up to 7 days. Signed with temporary credentials: never longer than those credentials.",
+      "tags": ["presigned-url"]
+    },
+    {
+      "id": "14-s3-security-fc-20",
+      "front": "Whose permissions does a pre-signed URL use?",
+      "back": "Those of the **IAM principal that generated it**. If that principal lacks the permission, or its credentials are revoked or expire, the URL fails.",
+      "tags": ["presigned-url"]
+    },
+    {
+      "id": "14-s3-security-fc-21",
+      "front": "What does a Glacier Vault Lock policy do, and what happens after you lock it?",
+      "back": "It enforces WORM-style compliance rules on an Amazon Glacier vault. You initiate the lock, test it, and complete it within 24 hours; after that the policy can **never be changed or deleted**.",
+      "tags": ["vault-lock", "worm"],
+      "updated": "The vault-based Amazon Glacier service has not accepted new customers since 15 December 2025; new designs use S3 Glacier storage classes with Object Lock."
+    },
+    {
+      "id": "14-s3-security-fc-22",
+      "front": "Object Lock: compliance mode vs governance mode?",
+      "back": "**Compliance**: no one, not even root, can delete or overwrite the version, change the mode or shorten the period. **Governance**: users with `s3:BypassGovernanceRetention` (sending the bypass header) can override it.",
+      "tags": ["object-lock"]
+    },
+    {
+      "id": "14-s3-security-fc-23",
+      "front": "What is an Object Lock legal hold?",
+      "back": "WORM protection with **no expiry date**, independent of any retention period. It stays until someone with `s3:PutObjectLegalHold` removes it. Used for litigation or audits of unknown length.",
+      "tags": ["object-lock", "legal-hold"]
+    },
+    {
+      "id": "14-s3-security-fc-24",
+      "front": "What does Object Lock require, and can it be turned off later?",
+      "back": "It requires **S3 Versioning** and protects individual object versions. After it is enabled on a bucket you **cannot disable Object Lock or suspend versioning**.",
+      "tags": ["object-lock", "versioning"]
+    },
+    {
+      "id": "14-s3-security-fc-25",
+      "front": "What does each S3 access point have?",
+      "back": "Its own **DNS name/alias**, its own **access point policy**, its own **network origin** (Internet or VPC, fixed at creation) and its own Block Public Access settings. Up to 10,000 per account per Region by default.",
+      "tags": ["access-points"]
+    },
+    {
+      "id": "14-s3-security-fc-26",
+      "front": "What is needed for EC2 instances to use a VPC-origin access point?",
+      "back": "An **S3 VPC endpoint** (gateway or interface) in that VPC whose **endpoint policy allows both the access point and the bucket**, plus an access point policy and bucket policy that allow the request.",
+      "tags": ["access-points", "vpc-endpoints"]
+    },
+    {
+      "id": "14-s3-security-fc-27",
+      "front": "How does a bucket delegate access control to its access points?",
+      "back": "A bucket policy that allows all actions to any principal **when the request comes through an access point owned by the account** (`s3:DataAccessPointAccount` = account ID). The access point policies then decide the real permissions.",
+      "tags": ["access-points", "bucket-policy"]
+    },
+    {
+      "id": "14-s3-security-fc-28",
+      "front": "What is S3 Object Lambda used for, and what does it need?",
+      "back": "A Lambda function transforms objects on **GET/HEAD/LIST** (redact PII, convert XML to JSON, resize or watermark images) via an **Object Lambda Access Point** on top of a **supporting access point**. One bucket, no extra copies.",
+      "tags": ["object-lambda"],
+      "updated": "Since 7 November 2025 Object Lambda is available only to existing customers and selected partners."
+    },
+    {
+      "id": "14-s3-security-fc-29",
+      "front": "Which S3 encryption choices make HTTPS mandatory for the requests that use them?",
+      "back": "**SSE-C** (S3 rejects any SSE-C request over HTTP) and **SSE-KMS** (every GET and PUT of a KMS-encrypted object must use TLS and be signed).",
+      "tags": ["encryption-in-transit", "sse-c", "sse-kms"]
+    },
+    {
+      "id": "14-s3-security-fc-30",
+      "front": "Besides an S3 bucket, where can S3 server access logs be delivered?",
+      "back": "**Amazon CloudWatch Logs**, in structured JSON. It adds Logs Insights queries, KMS encryption and cross-account or cross-Region aggregation; ingestion is billed at vended-log rates.",
+      "tags": ["access-logs", "cloudwatch-logs"],
+      "updated": "Not in the slides: AWS now documents CloudWatch Logs as a second delivery option."
+    }
+  ]
+}

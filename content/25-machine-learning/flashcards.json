@@ -1,0 +1,264 @@
+{
+  "section": "25-machine-learning",
+  "cards": [
+    {
+      "id": "25-machine-learning-fc-01",
+      "front": "Which service finds objects, scenes, faces, celebrities and text in images and videos?",
+      "back": "**Amazon Rekognition** (computer vision as an API).",
+      "tags": [
+        "rekognition"
+      ]
+    },
+    {
+      "id": "25-machine-learning-fc-02",
+      "front": "In Rekognition content moderation, what does the MinConfidence parameter do, and what is its default?",
+      "back": "Labels detected with lower confidence are **not returned**. Default is **50**. Higher threshold = fewer false positives but more misses.",
+      "tags": [
+        "rekognition",
+        "moderation"
+      ]
+    },
+    {
+      "id": "25-machine-learning-fc-03",
+      "front": "How do you send borderline Rekognition moderation results to human reviewers?",
+      "back": "Create a human review workflow in **Amazon Augmented AI (A2I)** and pass it in `HumanLoopConfig` on `DetectModerationLabels`; matching images go to a private workforce, vendors or Mechanical Turk.",
+      "tags": [
+        "rekognition",
+        "a2i"
+      ],
+      "updated": "A2I entered maintenance: not available to new customers from 30 July 2026"
+    },
+    {
+      "id": "25-machine-learning-fc-04",
+      "front": "Rekognition face search vs face detection: what is the difference?",
+      "back": "**Detection/analysis** finds faces and attributes (age range, emotions, glasses). **Search** compares a face against faces you indexed in a **face collection** to identify or verify a person.",
+      "tags": [
+        "rekognition",
+        "faces"
+      ]
+    },
+    {
+      "id": "25-machine-learning-fc-05",
+      "front": "Which Rekognition video feature from the course has been discontinued?",
+      "back": "**People pathing** (tracking people's paths through a video), end of support **31 October 2025**.",
+      "tags": [
+        "rekognition"
+      ],
+      "updated": "Discontinued 31 October 2025"
+    },
+    {
+      "id": "25-machine-learning-fc-06",
+      "front": "Which service converts speech to text, and what technology does it use?",
+      "back": "**Amazon Transcribe**, using automatic speech recognition (**ASR**). Batch jobs on files in S3 or real-time streaming.",
+      "tags": [
+        "transcribe"
+      ]
+    },
+    {
+      "id": "25-machine-learning-fc-07",
+      "front": "Call recordings must be transcribed without customers' card numbers and names. Which feature?",
+      "back": "**Transcribe PII redaction**: identified PII is replaced by `[PII]` in the transcript (optionally keep an unredacted copy too).",
+      "tags": [
+        "transcribe",
+        "pii"
+      ]
+    },
+    {
+      "id": "25-machine-learning-fc-08",
+      "front": "Audio contains several languages and you do not know which. Which Transcribe feature helps?",
+      "back": "**Automatic language identification** (single dominant language or multi-language identification). Note: batch PII redaction cannot be combined with it.",
+      "tags": [
+        "transcribe"
+      ]
+    },
+    {
+      "id": "25-machine-learning-fc-09",
+      "front": "Which service turns text into lifelike speech?",
+      "back": "**Amazon Polly** (engines: standard, neural, long-form, generative).",
+      "tags": [
+        "polly"
+      ]
+    },
+    {
+      "id": "25-machine-learning-fc-10",
+      "front": "Polly: how do you make a brand name or acronym always be pronounced a specific way?",
+      "back": "Upload a **pronunciation lexicon** (W3C PLS XML with alias or phoneme) and reference it in `SynthesizeSpeech`; up to **5 lexicons** per request.",
+      "tags": [
+        "polly",
+        "lexicon"
+      ]
+    },
+    {
+      "id": "25-machine-learning-fc-11",
+      "front": "Polly: what is SSML used for? Give three examples.",
+      "back": "Markup that controls delivery per request: pauses (`<break>`), emphasis, phonetic pronunciation, **whispering**, breathing, **newscaster** style, substitutions.",
+      "tags": [
+        "polly",
+        "ssml"
+      ]
+    },
+    {
+      "id": "25-machine-learning-fc-12",
+      "front": "Which Polly engine is needed for whispering and emphasis, and which for the newscaster style?",
+      "back": "Whispering, breathing and emphasis: **standard** voices only. Newscaster: **neural** engine with select voices (Matthew, Joanna, Amy, Lupe).",
+      "tags": [
+        "polly",
+        "ssml"
+      ],
+      "updated": "Tag support now differs across four engines"
+    },
+    {
+      "id": "25-machine-learning-fc-13",
+      "front": "Which service localizes website content into other languages?",
+      "back": "**Amazon Translate** (neural machine translation, 75 languages, real-time or batch; custom terminology for brand names).",
+      "tags": [
+        "translate"
+      ]
+    },
+    {
+      "id": "25-machine-learning-fc-14",
+      "front": "When Translate's source language is set to auto, which service detects the language?",
+      "back": "**Amazon Comprehend**, called by Translate on your behalf (may add a Comprehend charge).",
+      "tags": [
+        "translate",
+        "comprehend"
+      ]
+    },
+    {
+      "id": "25-machine-learning-fc-15",
+      "front": "Name five insights Amazon Comprehend extracts from text.",
+      "back": "Dominant **language**, **entities**, **key phrases**, **sentiment** (positive/negative/neutral/mixed), targeted sentiment, **syntax**, **PII**.",
+      "tags": [
+        "comprehend"
+      ]
+    },
+    {
+      "id": "25-machine-learning-fc-16",
+      "front": "What happened to Comprehend topic modeling?",
+      "back": "Since **30 April 2026** topic modeling (plus event detection and prompt safety) is **not available to new customers**; recent users keep access. AWS suggests Bedrock models instead.",
+      "tags": [
+        "comprehend"
+      ],
+      "updated": "Closed to new customers 30 April 2026"
+    },
+    {
+      "id": "25-machine-learning-fc-17",
+      "front": "Which service extracts conditions, medications and PHI from doctors' notes?",
+      "back": "**Amazon Comprehend Medical**; `DetectPHI` finds protected health information. HIPAA eligible, US English text.",
+      "tags": [
+        "comprehend-medical"
+      ]
+    },
+    {
+      "id": "25-machine-learning-fc-18",
+      "front": "Amazon Lex: which two technologies does it combine?",
+      "back": "**Automatic speech recognition** (speech to text) and **natural language understanding** (intent recognition). Same technology as Alexa.",
+      "tags": [
+        "lex"
+      ]
+    },
+    {
+      "id": "25-machine-learning-fc-19",
+      "front": "In a Lex bot, what are intents, slots and fulfillment?",
+      "back": "**Intent** = what the user wants; **slots** = data the intent needs (date, time); **fulfillment** = usually a **Lambda** function that completes the action.",
+      "tags": [
+        "lex",
+        "lambda"
+      ]
+    },
+    {
+      "id": "25-machine-learning-fc-20",
+      "front": "What is Amazon Connect, and what is it called now?",
+      "back": "A cloud-based virtual **contact center** (phone numbers, flows, queues, agents, CRM integration), pay per use. Renamed **Amazon Connect Customer** in 2026.",
+      "tags": [
+        "connect"
+      ],
+      "updated": "Renamed Amazon Connect Customer (2026)"
+    },
+    {
+      "id": "25-machine-learning-fc-21",
+      "front": "Which service extracts forms (key-value pairs) and tables from scanned documents?",
+      "back": "**Amazon Textract** (`AnalyzeDocument` with FORMS, TABLES, QUERIES; `AnalyzeExpense` for invoices; `AnalyzeID` for IDs).",
+      "tags": [
+        "textract"
+      ]
+    },
+    {
+      "id": "25-machine-learning-fc-22",
+      "front": "Textract limits: sync vs async processing?",
+      "back": "**Sync**: one page, up to 10 MB. **Async** (S3): multi-page PDF/TIFF up to **500 MB** and **3,000 pages**. Handwriting: English only.",
+      "tags": [
+        "textract",
+        "limits"
+      ]
+    },
+    {
+      "id": "25-machine-learning-fc-23",
+      "front": "Which service answers natural-language questions over internal documents, and what is its status?",
+      "back": "**Amazon Kendra** (ML-powered enterprise search, incremental learning). In maintenance since 30 June 2026 and **closed to new customers from 30 July 2026**; AWS recommends Bedrock Knowledge Bases.",
+      "tags": [
+        "kendra"
+      ],
+      "updated": "Closed to new customers 30 July 2026"
+    },
+    {
+      "id": "25-machine-learning-fc-24",
+      "front": "Which service gives real-time product recommendations and re-ranking without building ML models?",
+      "back": "**Amazon Personalize** (data from S3 plus real-time events; outputs to websites, apps, email, SMS).",
+      "tags": [
+        "personalize"
+      ]
+    },
+    {
+      "id": "25-machine-learning-fc-25",
+      "front": "When should you choose SageMaker AI over a managed AI service?",
+      "back": "When you need a **custom model** trained on your own data for a problem no AI service covers, and you have ML skills. Otherwise a managed AI service has less operational overhead.",
+      "tags": [
+        "sagemaker"
+      ]
+    },
+    {
+      "id": "25-machine-learning-fc-26",
+      "front": "SageMaker AI inference: which option for large payloads (up to 1 GB) or processing up to one hour?",
+      "back": "**Asynchronous inference** (requests are queued). Real-time endpoints = low latency; serverless = spiky traffic; batch transform = offline scoring of a data set.",
+      "tags": [
+        "sagemaker"
+      ]
+    },
+    {
+      "id": "25-machine-learning-fc-27",
+      "front": "Polly: SynthesizeSpeech vs StartSpeechSynthesisTask?",
+      "back": "**SynthesizeSpeech** streams audio back in near real time, up to **3,000** billed characters. **StartSpeechSynthesisTask** is asynchronous: up to **100,000** billed characters, output written to an **S3** bucket, optional **SNS** notification.",
+      "tags": [
+        "polly"
+      ]
+    },
+    {
+      "id": "25-machine-learning-fc-28",
+      "front": "Scanned images of doctors' notes must be checked for PHI. Which services, in which order?",
+      "back": "**Textract** first (turn the image into text), then **Comprehend Medical `DetectPHI`**. Comprehend Medical only reads text.",
+      "tags": [
+        "textract",
+        "comprehend-medical"
+      ]
+    },
+    {
+      "id": "25-machine-learning-fc-29",
+      "front": "Which machine learning services are on the current SAA-C03 in-scope list?",
+      "back": "Eight: **Comprehend, Lex, Polly, Rekognition, SageMaker AI, Textract, Transcribe, Translate**. Kendra, Personalize and Connect are taught in the course but not listed (the list is non-exhaustive).",
+      "tags": [
+        "exam-scope"
+      ],
+      "updated": "Current in-scope list names SageMaker AI"
+    },
+    {
+      "id": "25-machine-learning-fc-30",
+      "front": "Which Rekognition features stopped accepting new customers on 30 April 2026?",
+      "back": "**Streaming Video** (live analysis of Kinesis Video Streams feeds) and **Bulk Image Analysis** (batch moderation jobs). Accounts that used them in the last 12 months keep access; image APIs and stored-video jobs are unaffected.",
+      "tags": [
+        "rekognition"
+      ],
+      "updated": "Closed to new customers 30 April 2026"
+    }
+  ]
+}

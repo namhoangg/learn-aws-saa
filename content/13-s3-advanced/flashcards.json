@@ -1,0 +1,189 @@
+{
+  "section": "13-s3-advanced",
+  "cards": [
+    {
+      "id": "13-s3-advanced-fc-01",
+      "front": "In an S3 Lifecycle rule, what is the difference between a **transition** action and an **expiration** action?",
+      "back": "A **transition** moves objects to another (colder) storage class after N days. An **expiration** deletes them after N days; in a versioned bucket it adds a delete marker and keeps the old data as a noncurrent version.",
+      "tags": ["lifecycle"]
+    },
+    {
+      "id": "13-s3-advanced-fc-02",
+      "front": "Can a lifecycle rule move objects from S3 Glacier Deep Archive back to S3 Standard?",
+      "back": "No. Lifecycle only moves objects **down** the waterfall. To go back up, **restore** a temporary copy and then **copy** the object with the new storage class (Batch Operations can do both at scale).",
+      "tags": ["lifecycle", "s3-glacier"]
+    },
+    {
+      "id": "13-s3-advanced-fc-03",
+      "front": "From S3 One Zone-IA, which storage classes can a lifecycle rule transition objects to?",
+      "back": "Only **S3 Glacier Flexible Retrieval** and **S3 Glacier Deep Archive** (not Glacier Instant Retrieval, not back to Standard-IA).",
+      "tags": ["lifecycle"]
+    },
+    {
+      "id": "13-s3-advanced-fc-04",
+      "front": "By default, which objects does S3 Lifecycle refuse to transition, and why?",
+      "back": "Objects **smaller than 128 KB**: each transition is a billed request and IA classes bill at least 128 KB, so moving tiny objects often costs more than it saves. Add an object size filter to override.",
+      "tags": ["lifecycle"],
+      "updated": "Default behavior since September 2024"
+    },
+    {
+      "id": "13-s3-advanced-fc-05",
+      "front": "How soon after creation can a lifecycle rule move objects to S3 Standard-IA or One Zone-IA today?",
+      "back": "From **day 0**. The old rule requiring 30 days in S3 Standard first was removed in July 2026, but the 30-day **minimum storage charge** of those classes still applies.",
+      "tags": ["lifecycle"],
+      "updated": "30-day transition minimum removed on 16 July 2026"
+    },
+    {
+      "id": "13-s3-advanced-fc-06",
+      "front": "Which filters can scope an S3 Lifecycle rule to a subset of objects?",
+      "back": "A key **prefix** (e.g. `logs/`), one or more **object tags** (e.g. `Department=Finance`) and an **object size** range. Several conditions are combined with **AND**; use separate rules for different prefixes.",
+      "tags": ["lifecycle"]
+    },
+    {
+      "id": "13-s3-advanced-fc-07",
+      "front": "Which lifecycle action stops you paying for parts of multipart uploads that were never finished?",
+      "back": "**AbortIncompleteMultipartUpload** (\"Delete incomplete multipart uploads\" in the console), e.g. after 7 days. Normal expiration does not remove these parts, and the action cannot be used in a tag-filtered rule.",
+      "tags": ["lifecycle", "multipart"]
+    },
+    {
+      "id": "13-s3-advanced-fc-08",
+      "front": "What do **NoncurrentDays** and **NewerNoncurrentVersions** control in a noncurrent-version lifecycle action?",
+      "back": "NoncurrentDays = how long after a version stopped being current the action runs. NewerNoncurrentVersions (1–100) = how many newest old versions to keep out of the action. Both must be exceeded.",
+      "tags": ["lifecycle", "versioning"]
+    },
+    {
+      "id": "13-s3-advanced-fc-09",
+      "front": "When does your bill change after a lifecycle rule becomes due, given that S3 runs actions asynchronously?",
+      "back": "Immediately when the rule is satisfied, even if the object moves days later: you stop paying for expired objects and start paying the destination rate for transitions. Exception: transitions to **Intelligent-Tiering** bill after the move.",
+      "tags": ["lifecycle", "cost"]
+    },
+    {
+      "id": "13-s3-advanced-fc-10",
+      "front": "What does **S3 Storage Class Analysis** recommend, and how long does it take?",
+      "back": "When to move objects from **S3 Standard to S3 Standard-IA** (nothing else: no One Zone-IA or Glacier advice). First charts in **24–48 hours**; a solid recommendation needs about **30 days** of observation. Daily CSV export available.",
+      "tags": ["storage-class-analysis"]
+    },
+    {
+      "id": "13-s3-advanced-fc-11",
+      "front": "In a **Requester Pays** bucket, who pays for storage, requests and data transfer?",
+      "back": "The **bucket owner** pays for storage. The **requester** pays for the requests and the data downloaded.",
+      "tags": ["requester-pays"]
+    },
+    {
+      "id": "13-s3-advanced-fc-12",
+      "front": "What must a requester do to download from a Requester Pays bucket, and can anonymous users do it?",
+      "back": "Be an **authenticated** AWS identity and send `x-amz-request-payer: requester` (CLI: `--request-payer requester`). Anonymous access is not allowed; without the header S3 returns 403.",
+      "tags": ["requester-pays"]
+    },
+    {
+      "id": "13-s3-advanced-fc-13",
+      "front": "A consumer reads a Requester Pays bucket after assuming an IAM role that lives in the **bucket owner's** account. Who is billed?",
+      "back": "The **bucket owner's account**, because charges go to the account that owns the role. Grant access to principals in the consumer's own account instead.",
+      "tags": ["requester-pays", "iam"]
+    },
+    {
+      "id": "13-s3-advanced-fc-14",
+      "front": "Which destinations can native S3 event notifications use?",
+      "back": "**SNS standard topics**, **SQS standard queues**, **Lambda functions** and **Amazon EventBridge**. SQS FIFO queues and SNS FIFO topics are not supported directly (route through EventBridge).",
+      "tags": ["event-notifications"]
+    },
+    {
+      "id": "13-s3-advanced-fc-15",
+      "front": "How does S3 get permission to send event notifications to an SQS queue, SNS topic or Lambda function?",
+      "back": "Through the destination's **resource-based policy** allowing the `s3.amazonaws.com` principal (`sqs:SendMessage`, `sns:Publish`, `lambda:InvokeFunction`), ideally limited by `aws:SourceArn` and `aws:SourceAccount`. Not through an IAM role.",
+      "tags": ["event-notifications", "security"]
+    },
+    {
+      "id": "13-s3-advanced-fc-16",
+      "front": "What delivery guarantees do S3 event notifications give?",
+      "back": "**At least once** (duplicates possible), **no ordering guarantee**, usually within seconds but sometimes a minute or more. Make consumers idempotent.",
+      "tags": ["event-notifications"]
+    },
+    {
+      "id": "13-s3-advanced-fc-17",
+      "front": "How many event notification configurations can one S3 bucket have?",
+      "back": "Up to **100** per bucket (a fixed, non-adjustable quota). Each configuration has one destination and optional prefix/suffix filters.",
+      "tags": ["event-notifications", "limits"],
+      "updated": "The slides say you can create as many as you like; the current quota is 100."
+    },
+    {
+      "id": "13-s3-advanced-fc-18",
+      "front": "When would you send S3 events through **Amazon EventBridge** instead of a native notification?",
+      "back": "When you need JSON filtering on fields such as **object size** or requester, several or unusual targets (**Step Functions**, Kinesis, Firehose, **SQS FIFO**), **archive and replay**, or retries with dead-letter queues.",
+      "tags": ["eventbridge", "event-notifications"]
+    },
+    {
+      "id": "13-s3-advanced-fc-19",
+      "front": "Deletions done by a lifecycle rule: which S3 event type reports them?",
+      "back": "`s3:LifecycleExpiration:*` (Delete or DeleteMarkerCreated). `s3:ObjectRemoved:*` only covers API deletes.",
+      "tags": ["event-notifications", "lifecycle"]
+    },
+    {
+      "id": "13-s3-advanced-fc-20",
+      "front": "What request rate can one S3 prefix sustain?",
+      "back": "At least **3,500 PUT/COPY/POST/DELETE** and **5,500 GET/HEAD** requests per second per prefix. Prefixes are unlimited, so spread keys across prefixes to scale (4 prefixes ≈ 22,000 GET/s).",
+      "tags": ["performance"]
+    },
+    {
+      "id": "13-s3-advanced-fc-21",
+      "front": "What is the prefix of the key `sales/2026/q1/report.csv`?",
+      "back": "`sales/2026/q1/` — everything between the bucket name and the object name.",
+      "tags": ["performance"]
+    },
+    {
+      "id": "13-s3-advanced-fc-22",
+      "front": "When is multipart upload recommended, and when is it required?",
+      "back": "Recommended for objects of about **100 MB** or more; **required** above **5 GB**, the largest object a single PUT accepts.",
+      "tags": ["performance", "multipart"]
+    },
+    {
+      "id": "13-s3-advanced-fc-23",
+      "front": "How does **S3 Transfer Acceleration** speed up uploads, and what does the bucket need?",
+      "back": "Clients send data to the nearest **CloudFront edge location**, which forwards it over the AWS backbone to the bucket's Region. The bucket needs acceleration enabled and a name with **no dots**; clients use `bucket.s3-accelerate.amazonaws.com`.",
+      "tags": ["transfer-acceleration"]
+    },
+    {
+      "id": "13-s3-advanced-fc-24",
+      "front": "Give two uses of **byte-range fetches**.",
+      "back": "1) **Parallel downloads** of one large object (faster, and a failed range retries alone). 2) **Partial reads**, such as fetching only a file header with `Range: bytes=0-1023`.",
+      "tags": ["performance"]
+    },
+    {
+      "id": "13-s3-advanced-fc-25",
+      "front": "What are the parts of an **S3 Batch Operations** job?",
+      "back": "A **manifest** (CSV, S3 Inventory report or generated list), one **operation** with parameters, an **IAM role** the service assumes, an optional **completion report** and a **priority**.",
+      "tags": ["batch-operations"]
+    },
+    {
+      "id": "13-s3-advanced-fc-26",
+      "front": "Name five operations S3 Batch Operations can run.",
+      "back": "Any five of: copy objects, replace or delete all object tags, replace ACL, restore from Glacier, invoke a Lambda function, update object encryption, compute checksums, Batch Replication, Object Lock retention, Object Lock legal hold.",
+      "tags": ["batch-operations"],
+      "updated": "Compute checksums, update object encryption and Batch Replication were added after the slides"
+    },
+    {
+      "id": "13-s3-advanced-fc-27",
+      "front": "What is the classic pattern for encrypting only the unencrypted objects among millions?",
+      "back": "**S3 Inventory** lists objects with their encryption status → **Athena** filters the unencrypted ones → the filtered list is the manifest for an **S3 Batch Operations** copy job with the desired encryption.",
+      "tags": ["batch-operations", "athena"]
+    },
+    {
+      "id": "13-s3-advanced-fc-28",
+      "front": "What is special about the S3 Storage Lens **default dashboard**?",
+      "back": "It is preconfigured by S3 as `default-account-dashboard`, covers the whole account across Regions, updates daily, and **cannot be deleted** (only disabled or upgraded to advanced metrics).",
+      "tags": ["storage-lens"]
+    },
+    {
+      "id": "13-s3-advanced-fc-29",
+      "front": "S3 Storage Lens free vs advanced metrics: what changes?",
+      "back": "Free: usage-type metrics, **14 days** of queryable data. Advanced (paid): activity, status-code and advanced cost/protection metrics, **15 months** of data, **prefix aggregation**, **CloudWatch publishing** and recommendations.",
+      "tags": ["storage-lens"]
+    },
+    {
+      "id": "13-s3-advanced-fc-30",
+      "front": "Which Storage Lens metric category helps find buckets with incomplete multipart uploads older than 7 days or lots of noncurrent versions?",
+      "back": "**Cost optimization** metrics, e.g. `IncompleteMultipartUploadStorageBytes` and `NonCurrentVersionStorageBytes`. Fix the waste with lifecycle rules.",
+      "tags": ["storage-lens", "cost"]
+    }
+  ]
+}

@@ -1,0 +1,203 @@
+{
+  "section": "18-kinesis-mq",
+  "questions": [
+    {
+      "id": "18-kinesis-mq-q01",
+      "type": "single",
+      "domain": "performant",
+      "difficulty": "easy",
+      "question": "An e-commerce company wants to capture website clickstream events and feed a recommendation engine within a second of each click. A separate analytics application must be able to reprocess any of the events from the previous 7 days at any time. Which AWS service should the company use to ingest the events?",
+      "options": [
+        { "id": "A", "text": "An Amazon SQS standard queue with a 7-day message retention period", "correct": false, "explanation": "A message is deleted once a consumer processes it, so the recommendation engine and the analytics app cannot both read every event, and nothing can be replayed after processing." },
+        { "id": "B", "text": "An Amazon SNS standard topic with both applications subscribed", "correct": false, "explanation": "SNS pushes each message once and does not store it, so the analytics application could not go back and reprocess last week's events." },
+        { "id": "C", "text": "An Amazon Kinesis data stream with its retention period set to 7 days", "correct": true, "explanation": "Kinesis Data Streams delivers records in real time to several independent consumers and keeps them for the retention period (up to 365 days), so any consumer can replay from an earlier position." },
+        { "id": "D", "text": "An Amazon Data Firehose stream that delivers the events to Amazon S3", "correct": false, "explanation": "Firehose buffers data for seconds to minutes before writing, so it is near real-time rather than sub-second, and it has no replay or multi-consumer capability of its own." }
+      ],
+      "explanation": "Real-time processing by several consumers plus replay of past days is the signature use case for Kinesis Data Streams.",
+      "tags": ["kinesis-data-streams", "replay"]
+    },
+    {
+      "id": "18-kinesis-mq-q02",
+      "type": "single",
+      "domain": "cost",
+      "difficulty": "medium",
+      "question": "Thousands of IoT devices send small JSON readings over HTTPS. A data team wants the readings stored in Amazon S3 as Apache Parquet files so that Amazon Athena queries scan less data. The solution must have the LEAST operational overhead. What should a solutions architect recommend?",
+      "options": [
+        { "id": "A", "text": "Send the readings to an Amazon Data Firehose stream with record format conversion to Parquet enabled, using a table schema in the AWS Glue Data Catalog, and deliver to S3", "correct": true, "explanation": "Firehose natively converts JSON to Parquet or ORC with a Glue schema and writes batched files to S3, with no servers or code to maintain." },
+        { "id": "B", "text": "Send the readings to a Kinesis data stream and run a KCL application on EC2 that converts each batch to Parquet and uploads it to S3", "correct": false, "explanation": "This works but adds EC2 instances, scaling, patching and custom conversion code, which is far more overhead than a managed Firehose feature." },
+        { "id": "C", "text": "Deliver the raw JSON to S3 with Firehose and run a nightly Amazon EMR job that rewrites the files as Parquet", "correct": false, "explanation": "A nightly EMR cluster adds cost and operations, and the data is only in Parquet a day later; Firehose can convert the format on the way in." },
+        { "id": "D", "text": "Send the readings to an Amazon SQS queue and use a Lambda function to write one Parquet file to S3 per message", "correct": false, "explanation": "This requires custom Parquet-writing code and creates millions of tiny files, which makes Athena queries slower and more expensive." }
+      ],
+      "explanation": "For 'land streaming JSON in S3 as Parquet with no code', use Firehose record format conversion backed by an AWS Glue Data Catalog schema.",
+      "tags": ["data-firehose", "glue-data-catalog", "s3"]
+    },
+    {
+      "id": "18-kinesis-mq-q03",
+      "type": "single",
+      "domain": "performant",
+      "difficulty": "medium",
+      "question": "A ride-sharing application writes driver location updates to an Amazon Kinesis data stream with 20 shards. Each producer currently uses a random UUID as the partition key for every record. The consumer application occasionally processes updates for the same driver out of order, which corrupts trip calculations. What is the MOST effective fix that keeps the stream's throughput?",
+      "options": [
+        { "id": "A", "text": "Switch the stream from provisioned to on-demand capacity mode", "correct": false, "explanation": "The capacity mode changes how shards are managed and billed but not how records are assigned to shards, so updates from one driver would still be scattered." },
+        { "id": "B", "text": "Register the consumer for enhanced fan-out", "correct": false, "explanation": "Enhanced fan-out gives the consumer more read throughput and lower latency, but ordering depends on which shard a record lands in, which is decided by the partition key." },
+        { "id": "C", "text": "Reduce the stream to a single shard", "correct": false, "explanation": "One shard would give total ordering but would cap the whole stream at 1 MB/s or 1,000 records/s in, so it does not keep the throughput." },
+        { "id": "D", "text": "Use the driver ID as the partition key for each record", "correct": true, "explanation": "All records with the same partition key go to the same shard in write order, so each driver's updates are read in sequence, and thousands of driver IDs still spread load across all shards." }
+      ],
+      "explanation": "Kinesis orders records per partition key; choose a key that represents the entity whose events must stay in order and that has many distinct values.",
+      "tags": ["kinesis-data-streams", "partition-key", "ordering"]
+    },
+    {
+      "id": "18-kinesis-mq-q04",
+      "type": "single",
+      "domain": "performant",
+      "difficulty": "medium",
+      "question": "A Kinesis data stream with 10 provisioned shards is read by three KCL applications. After two more applications were added to read the same data, all five applications began to lag and report read throttling. Each application must receive every record with the lowest possible latency. What should the solutions architect do?",
+      "options": [
+        { "id": "A", "text": "Increase the stream's retention period to 7 days so the applications can catch up later", "correct": false, "explanation": "Longer retention lets a lagging consumer catch up eventually but does nothing for the read throughput limit or the latency requirement." },
+        { "id": "B", "text": "Register the applications as enhanced fan-out consumers", "correct": true, "explanation": "Enhanced fan-out gives each registered consumer its own 2 MB/s per shard, pushed over HTTP/2 with about 70 ms latency, so consumers stop competing for the shared 2 MB/s read budget." },
+        { "id": "C", "text": "Replace the five applications with five Amazon Data Firehose streams", "correct": false, "explanation": "Firehose only delivers to storage or partner destinations after buffering, so it cannot replace custom real-time applications, and each Firehose stream still uses shared read throughput." },
+        { "id": "D", "text": "Put an Amazon SQS queue between the stream and each application", "correct": false, "explanation": "Something would still have to read the stream for each queue, so read contention remains, and adding queues increases latency and complexity." }
+      ],
+      "explanation": "Standard consumers share 2 MB/s per shard; when several applications read the same stream and latency matters, enable enhanced fan-out.",
+      "tags": ["kinesis-data-streams", "enhanced-fan-out"]
+    },
+    {
+      "id": "18-kinesis-mq-q05",
+      "type": "single",
+      "domain": "resilient",
+      "difficulty": "medium",
+      "question": "A company is moving an on-premises order system to AWS. The system uses Apache ActiveMQ: back-end services connect with JMS over OpenWire, and warehouse devices publish over MQTT. The company wants a managed service, minimal changes to application code, and continued operation if an Availability Zone fails. Which solution meets these requirements?",
+      "options": [
+        { "id": "A", "text": "Rewrite the producers and consumers to use Amazon SQS FIFO queues and Amazon SNS FIFO topics", "correct": false, "explanation": "SQS and SNS use AWS APIs rather than OpenWire or MQTT, so every component would need new messaging code, which breaks the minimal-change requirement." },
+        { "id": "B", "text": "Install ActiveMQ on EC2 instances in an Auto Scaling group spread across two Availability Zones", "correct": false, "explanation": "This keeps the protocols but leaves broker installation, patching, storage replication and failover to the company, so it is not a managed service." },
+        { "id": "C", "text": "Create an Amazon MQ for ActiveMQ active/standby broker across two Availability Zones and point the clients at its failover endpoints", "correct": true, "explanation": "Amazon MQ runs ActiveMQ as a managed broker that speaks OpenWire and MQTT, and the active/standby deployment keeps a standby broker in a second AZ on shared EFS storage, so clients only change their connection URLs." },
+        { "id": "D", "text": "Create an Amazon MQ for ActiveMQ single-instance broker that uses Amazon EBS storage", "correct": false, "explanation": "A single-instance broker lives in one AZ, and EBS storage replicates only within that AZ, so an AZ failure would stop the system." }
+      ],
+      "explanation": "Open broker protocols plus 'no rewrite' points to Amazon MQ; 'survive an AZ failure' adds the active/standby (ActiveMQ) or cluster (RabbitMQ) deployment.",
+      "tags": ["amazon-mq", "high-availability", "migration"]
+    },
+    {
+      "id": "18-kinesis-mq-q06",
+      "type": "single",
+      "domain": "cost",
+      "difficulty": "medium",
+      "question": "A studio is launching a new online game that sends player telemetry to AWS for real-time processing by AWS Lambda. Nobody can predict the traffic, and it may jump tenfold during launch weekends. The team does not want to manage capacity and wants to pay according to the data actually sent. Which ingestion option fits BEST?",
+      "options": [
+        { "id": "A", "text": "An Amazon Kinesis data stream in on-demand capacity mode", "correct": true, "explanation": "On-demand mode needs no shard planning, scales automatically up to double the peak of the previous 30 days, and bills mainly per GB written and read, which suits unknown, spiky traffic." },
+        { "id": "B", "text": "An Amazon Kinesis data stream in provisioned mode with 50 shards sized for the launch peak", "correct": false, "explanation": "Provisioning for the peak means paying for 50 shard-hours every hour even when traffic is low, and someone must still adjust the shard count if the guess is wrong." },
+        { "id": "C", "text": "An Amazon Data Firehose stream that uses AWS Lambda as its destination", "correct": false, "explanation": "Lambda is a transformation step in Firehose, not a delivery destination, and Firehose buffering does not give real-time processing." },
+        { "id": "D", "text": "An Amazon MQ for RabbitMQ cluster sized for the expected peak", "correct": false, "explanation": "Amazon MQ runs on broker instances billed per hour that must be sized in advance, and it is meant for protocol compatibility rather than elastic telemetry ingestion." }
+      ],
+      "explanation": "Unpredictable traffic with no capacity management points to Kinesis Data Streams on-demand mode; provisioned mode fits steady, forecastable throughput.",
+      "tags": ["kinesis-data-streams", "capacity-modes", "cost"]
+    },
+    {
+      "id": "18-kinesis-mq-q07",
+      "type": "multi",
+      "domain": "performant",
+      "difficulty": "hard",
+      "question": "Producers send building sensor readings of about 100 bytes each to a provisioned Kinesis data stream with 10 shards. The partition key is the building's Region code, which has only three values. Amazon CloudWatch shows write throttling on three shards while the other seven are nearly idle. Ordering is only required per sensor. Which TWO actions will reduce the write throttling? (Select TWO.)",
+      "options": [
+        { "id": "A", "text": "Change the partition key to the sensor ID", "correct": true, "explanation": "Sensor IDs have thousands of distinct values, so the hash spreads records over all 10 shards while still keeping each sensor's readings in order." },
+        { "id": "B", "text": "Register the downstream consumers for enhanced fan-out", "correct": false, "explanation": "Enhanced fan-out adds read capacity for consumers; it has no effect on the 1 MB/s or 1,000 records/s write limit of each shard." },
+        { "id": "C", "text": "Increase the stream's retention period from 24 hours to 7 days", "correct": false, "explanation": "Retention controls how long records are kept, not how fast they can be written, and longer retention adds cost." },
+        { "id": "D", "text": "Use the Kinesis Producer Library to aggregate many small readings into each Kinesis record", "correct": true, "explanation": "With 100-byte records the 1,000 records per second per shard limit is reached long before 1 MB/s; KPL aggregation packs many readings into one Kinesis record (consumers de-aggregate with the KCL)." },
+        { "id": "E", "text": "Send the readings to an Amazon SNS standard topic instead of the stream", "correct": false, "explanation": "SNS does not store messages, offers no per-sensor ordering on standard topics, and removes the stream that consumers rely on; it is not a fix for hot shards." }
+      ],
+      "explanation": "Hot shards come from low-cardinality partition keys; spread load with a high-cardinality key, and for tiny records use KPL aggregation to stay under the per-shard records-per-second limit.",
+      "tags": ["kinesis-data-streams", "partition-key", "kpl"]
+    },
+    {
+      "id": "18-kinesis-mq-q08",
+      "type": "single",
+      "domain": "resilient",
+      "difficulty": "easy",
+      "question": "A security team wants application logs from several Amazon CloudWatch Logs log groups delivered to their Splunk deployment. Any records that Splunk fails to accept must be kept in Amazon S3 for later analysis. The team does not want to run or patch any servers or maintain custom delivery code. Which solution meets these requirements with the LEAST operational overhead?",
+      "options": [
+        { "id": "A", "text": "Write a Lambda function per log group that calls the Splunk HTTP Event Collector and logs failures to CloudWatch", "correct": false, "explanation": "Lambda removes the servers, but this is custom delivery code to build, scale and maintain for every log group, and failed records end up in CloudWatch logs rather than in S3." },
+        { "id": "B", "text": "Stream the logs into a Kinesis data stream and run a KCL consumer on EC2 that forwards them to Splunk", "correct": false, "explanation": "The EC2 consumer is a server the team would have to run and patch, which the requirement rules out." },
+        { "id": "C", "text": "Subscribe an Amazon SNS topic to the log groups and add the Splunk server as an email subscriber", "correct": false, "explanation": "SNS email delivery is for people, not for log ingestion, and SNS keeps no copy of messages that fail to deliver." },
+        { "id": "D", "text": "Create CloudWatch Logs subscription filters that send to an Amazon Data Firehose stream with a Splunk destination and S3 backup of failed data", "correct": true, "explanation": "Firehose is serverless, has Splunk as a built-in destination, accepts CloudWatch Logs as a source, and can back up only the records that failed to deliver to an S3 bucket." }
+      ],
+      "explanation": "Delivering streaming data to a supported destination (S3, Redshift, OpenSearch, Splunk, Datadog, HTTP) with no servers, plus S3 backup of failures, is a Firehose job.",
+      "tags": ["data-firehose", "cloudwatch-logs"]
+    },
+    {
+      "id": "18-kinesis-mq-q09",
+      "type": "single",
+      "domain": "resilient",
+      "difficulty": "medium",
+      "question": "A company's producers write events directly to an Amazon Data Firehose stream that delivers to Amazon S3. The company now wants to add real-time consumers in the future, and it must be able to reprocess the raw events of the previous 3 days from the source whenever a consumer's logic changes. Which change meets these requirements with the LEAST custom code?",
+      "options": [
+        { "id": "A", "text": "Increase the Firehose buffer interval to 900 seconds so that events stay in Firehose longer", "correct": false, "explanation": "The buffer only delays delivery by up to 15 minutes; Firehose does not store data for days and has no way to replay what it already delivered." },
+        { "id": "B", "text": "Have producers write to a Kinesis data stream with 72 hours or more of retention, use it as the source of the Firehose stream, and attach new consumers to the data stream", "correct": true, "explanation": "The data stream keeps every record for the retention period, any consumer can start reading from an earlier timestamp, and Firehose keeps archiving to S3 as one of the consumers." },
+        { "id": "C", "text": "Enable S3 backup of all source records in Firehose and write a tool that re-sends backed-up files to the Firehose stream", "correct": false, "explanation": "This needs custom replay tooling, and re-sending into Firehose only reaches its single destination rather than independent real-time consumers." },
+        { "id": "D", "text": "Replace Firehose with an Amazon SQS standard queue that has a 4-day retention period", "correct": false, "explanation": "SQS deletes a message once it is processed and shares messages among workers, so several consumers cannot each read all events or replay them." }
+      ],
+      "explanation": "Replay and multiple independent consumers require Kinesis Data Streams; Firehose can sit behind it for delivery to S3.",
+      "tags": ["kinesis-data-streams", "data-firehose", "replay"]
+    },
+    {
+      "id": "18-kinesis-mq-q10",
+      "type": "single",
+      "domain": "resilient",
+      "difficulty": "medium",
+      "question": "An order-processing system receives about 200 orders per second. Orders for the same customer must be processed in the order they were placed, each order must be processed only once, and an order should disappear from the system after a worker finishes it. Workers scale based on the backlog. Which service should hold the orders?",
+      "options": [
+        { "id": "A", "text": "A Kinesis data stream that uses the customer ID as the partition key", "correct": false, "explanation": "Kinesis keeps per-customer order, but records are not removed when processed and consumers must track positions themselves, which does not match a work queue with per-message completion." },
+        { "id": "B", "text": "An Amazon SNS standard topic with the workers subscribed over HTTPS", "correct": false, "explanation": "A standard SNS topic offers no ordering, pushes every message to every subscriber, and stores nothing for a backlog." },
+        { "id": "C", "text": "An Amazon SQS FIFO queue that uses the customer ID as the message group ID", "correct": true, "explanation": "FIFO queues keep order within a message group, deduplicate to avoid double processing, delete each message once a worker finishes it, and expose a backlog metric for scaling." },
+        { "id": "D", "text": "An Amazon Data Firehose stream that delivers orders to an S3 bucket for the workers", "correct": false, "explanation": "Firehose writes batched files to storage; it has no per-message processing, ordering per customer or deletion after completion." }
+      ],
+      "explanation": "Per-entity ordering in a work queue where messages are deleted after processing is SQS FIFO with message group IDs; Kinesis is for retained, replayable streams.",
+      "tags": ["sqs", "kinesis-data-streams", "ordering"]
+    },
+    {
+      "id": "18-kinesis-mq-q11",
+      "type": "multi",
+      "domain": "secure",
+      "difficulty": "medium",
+      "question": "A bank sends transaction events from EC2 instances in private subnets to an Amazon Kinesis data stream. Compliance requires that the data is encrypted at rest with a key the bank controls and whose use it can audit, and that the traffic between the instances and Kinesis does not traverse the internet. Which TWO actions meet these requirements? (Select TWO.)",
+      "options": [
+        { "id": "A", "text": "Enable server-side encryption on the stream with a customer managed AWS KMS key", "correct": true, "explanation": "Kinesis encrypts records at rest with the KMS key you choose; a customer managed key lets the bank control its policy and rotation, and every use is logged in CloudTrail." },
+        { "id": "B", "text": "Enable default SSE-S3 encryption on an S3 bucket in the account", "correct": false, "explanation": "S3 bucket encryption protects objects in S3, not records stored in a Kinesis data stream." },
+        { "id": "C", "text": "Create an interface VPC endpoint for Kinesis Data Streams in the VPC", "correct": true, "explanation": "An interface endpoint (AWS PrivateLink) gives the instances a private path to the Kinesis API, so traffic stays on the AWS network instead of going through the internet." },
+        { "id": "D", "text": "Route the instances' traffic to Kinesis through a NAT gateway", "correct": false, "explanation": "A NAT gateway sends requests to the public Kinesis endpoint through an internet gateway, which is exactly what the requirement forbids." },
+        { "id": "E", "text": "Register the consumers for enhanced fan-out", "correct": false, "explanation": "Enhanced fan-out improves read throughput and latency; it has nothing to do with encryption or network paths." }
+      ],
+      "explanation": "Kinesis at-rest encryption uses KMS (customer managed key for control and audit); interface VPC endpoints keep traffic from a VPC private.",
+      "tags": ["kinesis-data-streams", "kms", "privatelink"]
+    },
+    {
+      "id": "18-kinesis-mq-q12",
+      "type": "single",
+      "domain": "performant",
+      "difficulty": "medium",
+      "question": "An Amazon Data Firehose stream delivers application events to Amazon S3 with the default buffer settings of 5 MiB and 300 seconds. The application produces only about 200 KB of events per minute, and the analytics team complains that new events take about 5 minutes to appear in S3. They need events in S3 within roughly one minute. What is the SIMPLEST change?",
+      "options": [
+        { "id": "A", "text": "Lower the Firehose buffer interval to 60 seconds or less", "correct": true, "explanation": "At 200 KB per minute the 5 MiB size is never reached, so the 300-second interval triggers every flush; a 60-second (or shorter) interval makes Firehose deliver about once a minute." },
+        { "id": "B", "text": "Raise the Firehose buffer size to 128 MiB", "correct": false, "explanation": "A larger buffer size makes the size condition even less likely to trigger, so delivery would still wait for the interval or longer." },
+        { "id": "C", "text": "Add a Lambda transformation function to the Firehose stream", "correct": false, "explanation": "A transformation changes record contents but adds its own buffering step; it does not shorten the destination buffer interval." },
+        { "id": "D", "text": "Replace Firehose with a Kinesis data stream and a custom consumer on EC2 that writes each event to S3", "correct": false, "explanation": "This adds servers and code and creates a huge number of tiny S3 objects, when a single buffer setting solves the problem." }
+      ],
+      "explanation": "Firehose flushes when the buffer size OR the buffer interval is reached first; for low-volume streams the interval sets the delivery delay.",
+      "tags": ["data-firehose", "buffering"],
+      "updated": "Firehose now accepts buffer intervals from 0 to 900 seconds; older material quotes a 60-second minimum."
+    },
+    {
+      "id": "18-kinesis-mq-q13",
+      "type": "single",
+      "domain": "resilient",
+      "difficulty": "hard",
+      "question": "A startup is building a new order-processing platform on AWS from scratch. Services must be decoupled, the message rate may spike to tens of thousands of messages per second, and the team wants no servers or brokers to size or patch. There are no existing messaging protocols to preserve. Which service should the team choose?",
+      "options": [
+        { "id": "A", "text": "Amazon MQ for RabbitMQ in a three-node cluster deployment", "correct": false, "explanation": "A RabbitMQ cluster is highly available but runs on broker instances that must be sized and paid for hourly, and its throughput is limited by those instances." },
+        { "id": "B", "text": "Amazon MQ for ActiveMQ with an active/standby broker pair", "correct": false, "explanation": "Amazon MQ exists for protocol compatibility during migrations; here there is nothing to stay compatible with, and the broker still has to be sized." },
+        { "id": "C", "text": "An Amazon Kinesis data stream in provisioned mode with 100 shards", "correct": false, "explanation": "A provisioned stream needs shard planning, and records are not deleted per message, so it is a poor fit for a decoupling work queue." },
+        { "id": "D", "text": "An Amazon SQS standard queue", "correct": true, "explanation": "SQS is serverless, scales to a nearly unlimited message rate without any capacity settings, and is the cloud-native choice for decoupling services." }
+      ],
+      "explanation": "Pick Amazon MQ only when existing applications need open broker protocols; new cloud-native designs use SQS, SNS or Kinesis, which scale further with less management.",
+      "tags": ["amazon-mq", "sqs"]
+    }
+  ]
+}

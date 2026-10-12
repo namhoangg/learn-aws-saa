@@ -1,0 +1,193 @@
+{
+  "section": "09-rds-aurora-elasticache",
+  "cards": [
+    {
+      "id": "09-rds-aurora-elasticache-fc-01",
+      "front": "Which database engines can you run on Amazon RDS?",
+      "back": "**MySQL, PostgreSQL, MariaDB, Oracle, Microsoft SQL Server and IBM Db2**, plus **Aurora** (MySQL- or PostgreSQL-compatible), which has its own user guide.",
+      "tags": ["rds"]
+    },
+    {
+      "id": "09-rds-aurora-elasticache-fc-02",
+      "front": "What can you do with a database on EC2 that you cannot do on standard Amazon RDS?",
+      "back": "Log in to the host (SSH) and change the OS or engine freely. RDS hides the host; only **RDS Custom** (Oracle, SQL Server) gives OS and database admin access.",
+      "tags": ["rds", "rds-custom"]
+    },
+    {
+      "id": "09-rds-aurora-elasticache-fc-03",
+      "front": "When does RDS storage autoscaling grow the volume?",
+      "back": "When free space is **10% or less** of allocated storage for at least **5 minutes**, the previous storage change has finished optimizing, and fewer than four changes happened in 24 hours. It grows up to the **maximum storage threshold** and never shrinks.",
+      "tags": ["rds", "storage-autoscaling"],
+      "updated": "The slides' '6 hours since the last modification' rule was replaced by the optimization-complete / 4-per-24h rule."
+    },
+    {
+      "id": "09-rds-aurora-elasticache-fc-04",
+      "front": "How does an RDS read replica receive changes, and what does that mean for reads?",
+      "back": "**Asynchronously**, through the engine's own replication. Reads on a replica are **eventually consistent**: a just-written row may not be there yet.",
+      "tags": ["rds", "read-replicas"]
+    },
+    {
+      "id": "09-rds-aurora-elasticache-fc-05",
+      "front": "How many read replicas can one RDS DB instance have, and where can they be?",
+      "back": "Up to **15** per source instance, placed in the **same AZ, another AZ or another Region**.",
+      "tags": ["rds", "read-replicas"]
+    },
+    {
+      "id": "09-rds-aurora-elasticache-fc-06",
+      "front": "Do you pay data transfer for replicating to an RDS read replica?",
+      "back": "Not within the same Region, even across AZs. **Cross-Region** replication data transfer is billed. The replica itself is billed as a normal DB instance.",
+      "tags": ["rds", "read-replicas", "cost"]
+    },
+    {
+      "id": "09-rds-aurora-elasticache-fc-07",
+      "front": "In a Multi-AZ DB instance deployment, can the standby serve read queries?",
+      "back": "**No.** The standby only exists for failover. To scale reads, add read replicas or use a Multi-AZ DB cluster or Aurora.",
+      "tags": ["rds", "multi-az"]
+    },
+    {
+      "id": "09-rds-aurora-elasticache-fc-08",
+      "front": "How does a Multi-AZ DB instance fail over, and how long does it typically take?",
+      "back": "RDS points the **same DNS endpoint** at the synchronous standby in another AZ; apps just reconnect. Typically **60–120 seconds**.",
+      "tags": ["rds", "multi-az"]
+    },
+    {
+      "id": "09-rds-aurora-elasticache-fc-09",
+      "front": "What happens when you convert a Single-AZ RDS instance to Multi-AZ?",
+      "back": "No downtime. RDS snapshots the primary's volumes, builds the standby from that snapshot in another AZ, then turns on synchronous replication. Expect some extra latency while the standby's volumes load.",
+      "tags": ["rds", "multi-az"]
+    },
+    {
+      "id": "09-rds-aurora-elasticache-fc-10",
+      "front": "What is an RDS Multi-AZ DB cluster deployment?",
+      "back": "One writer and **two readable** standbys in three AZs with semisynchronous replication, a reader endpoint, and failover typically **under 35 seconds** (MySQL and PostgreSQL).",
+      "tags": ["rds", "multi-az"],
+      "updated": "Not covered in the slides; newer deployment option."
+    },
+    {
+      "id": "09-rds-aurora-elasticache-fc-11",
+      "front": "Which engines does RDS Custom support, and what must you do before customizing?",
+      "back": "**Oracle** and **SQL Server**. Before customizing, pause RDS Custom automation (60–1,440 minutes) and take a DB snapshot.",
+      "tags": ["rds-custom"],
+      "updated": "RDS Custom for Oracle end of support announced for 31 March 2027."
+    },
+    {
+      "id": "09-rds-aurora-elasticache-fc-12",
+      "front": "How does Aurora store data, and how many copies must agree for writes and reads?",
+      "back": "**6 copies across 3 AZs** in one shared, self-healing cluster volume. Writes need **4 of 6**, reads need **3 of 6**.",
+      "tags": ["aurora"]
+    },
+    {
+      "id": "09-rds-aurora-elasticache-fc-13",
+      "front": "How many Aurora Replicas can a cluster have, and how fast is failover?",
+      "back": "Up to **15**. When the writer fails, Aurora promotes a replica and service is typically back in **under 60 seconds, often under 30**.",
+      "tags": ["aurora"],
+      "updated": "Slides say under 30 s; docs say under 60 s, often under 30 s."
+    },
+    {
+      "id": "09-rds-aurora-elasticache-fc-14",
+      "front": "What does the Aurora reader endpoint balance?",
+      "back": "**Connections** (not individual queries) across all Aurora Replicas. Writes go to the **cluster (writer) endpoint**, which always follows the current writer.",
+      "tags": ["aurora", "endpoints"]
+    },
+    {
+      "id": "09-rds-aurora-elasticache-fc-15",
+      "front": "When would you create an Aurora custom endpoint?",
+      "back": "To send a workload to a chosen **subset** of instances, for example analytics queries on two larger replicas, while the web app uses others. The default quota is 5 custom endpoints per cluster.",
+      "tags": ["aurora", "endpoints"]
+    },
+    {
+      "id": "09-rds-aurora-elasticache-fc-16",
+      "front": "What is an ACU in Aurora Serverless, and what range can you set?",
+      "back": "An Aurora capacity unit, about **2 GiB of memory** with matching CPU and networking. Range **0 to 256 ACUs**; a minimum of 0 lets idle instances auto-pause. Billed per second.",
+      "tags": ["aurora-serverless"],
+      "updated": "Serverless v1 retired March 2025; scale-to-zero is newer than the slides."
+    },
+    {
+      "id": "09-rds-aurora-elasticache-fc-17",
+      "front": "Aurora Global Database: how many Regions, how much lag, how many readers per secondary?",
+      "back": "1 read/write primary Region + up to **10** read-only secondary Regions, replication lag typically **under 1 second**, up to **16** readers per secondary cluster.",
+      "tags": ["aurora-global"]
+    },
+    {
+      "id": "09-rds-aurora-elasticache-fc-18",
+      "front": "Aurora Global Database: switchover vs failover?",
+      "back": "**Switchover** = planned move of the primary Region; waits for sync, so **RPO 0**. **Failover** = unplanned outage; promotes a secondary immediately and may lose seconds of writes.",
+      "tags": ["aurora-global", "disaster-recovery"],
+      "updated": "Switchover was called 'managed planned failover' before."
+    },
+    {
+      "id": "09-rds-aurora-elasticache-fc-19",
+      "front": "What does Babelfish for Aurora PostgreSQL do?",
+      "back": "Lets Aurora PostgreSQL accept **SQL Server T-SQL** over the **TDS** protocol, so SQL Server applications keep their drivers and need few or no code changes.",
+      "tags": ["aurora", "babelfish"]
+    },
+    {
+      "id": "09-rds-aurora-elasticache-fc-20",
+      "front": "Which services can Aurora Machine Learning call from SQL?",
+      "back": "**Amazon SageMaker AI** (any hosted model), **Amazon Comprehend** (sentiment and text analysis) and **Amazon Bedrock** (foundation models).",
+      "tags": ["aurora", "ml"],
+      "updated": "Bedrock support is newer than the slides."
+    },
+    {
+      "id": "09-rds-aurora-elasticache-fc-21",
+      "front": "RDS vs Aurora automated backup retention?",
+      "back": "RDS: **0–35 days** (0 disables automated backups). Aurora: **1–35 days**, cannot be disabled. Both allow point-in-time restore up to about 5 minutes ago.",
+      "tags": ["rds", "aurora", "backups"]
+    },
+    {
+      "id": "09-rds-aurora-elasticache-fc-22",
+      "front": "What does restoring an RDS or Aurora snapshot or point-in-time backup produce?",
+      "back": "A **new** DB instance or cluster with a new endpoint. The original is untouched.",
+      "tags": ["backups"]
+    },
+    {
+      "id": "09-rds-aurora-elasticache-fc-23",
+      "front": "How does Aurora cloning stay fast and cheap?",
+      "back": "**Copy-on-write**: the clone starts by sharing the source's storage pages; only pages changed afterwards are stored separately. Ideal for a staging copy of production.",
+      "tags": ["aurora", "cloning"]
+    },
+    {
+      "id": "09-rds-aurora-elasticache-fc-24",
+      "front": "What is Aurora Backtrack?",
+      "back": "Rewinds the **same** Aurora MySQL cluster to an earlier time (window up to **72 hours**) without restoring a backup. It must be turned on when the cluster is created or restored from a snapshot.",
+      "tags": ["aurora", "backups"]
+    },
+    {
+      "id": "09-rds-aurora-elasticache-fc-25",
+      "front": "How do you encrypt an existing unencrypted RDS database?",
+      "back": "Take a snapshot, **copy the snapshot with encryption enabled** (KMS key), restore a new instance from the encrypted copy, then switch the app to it.",
+      "tags": ["security", "kms"]
+    },
+    {
+      "id": "09-rds-aurora-elasticache-fc-26",
+      "front": "What problems does RDS Proxy solve, and from where can you reach it?",
+      "back": "Connection storms (pooling and reuse), slow failover (up to **66%** faster) and IAM-enforced access. It is **never public**: reachable only from inside its VPC.",
+      "tags": ["rds-proxy"]
+    },
+    {
+      "id": "09-rds-aurora-elasticache-fc-27",
+      "front": "Lazy loading vs write-through caching?",
+      "back": "**Lazy loading**: fill the cache on a miss; caches only requested data but can serve **stale** data. **Write-through**: update the cache on every DB write; never stale, but extra write work and unused data. Add **TTLs** to both.",
+      "tags": ["elasticache", "caching"]
+    },
+    {
+      "id": "09-rds-aurora-elasticache-fc-28",
+      "front": "Which ElastiCache feature fits a real-time game leaderboard?",
+      "back": "**Valkey or Redis OSS sorted sets**: members stay unique and ordered by score, so ranks update instantly (ZADD, ZINCRBY, ZREVRANGE).",
+      "tags": ["elasticache", "sorted-sets"]
+    },
+    {
+      "id": "09-rds-aurora-elasticache-fc-29",
+      "front": "Valkey/Redis OSS vs Memcached: which one offers replication and automatic failover?",
+      "back": "**Valkey/Redis OSS** (replicas, Multi-AZ failover, backups). **Memcached** has no replication or persistence but is multi-threaded and shards across nodes.",
+      "tags": ["elasticache"]
+    },
+    {
+      "id": "09-rds-aurora-elasticache-fc-30",
+      "front": "Which ElastiCache engines exist today, and what changed in naming?",
+      "back": "**Valkey**, **Redis OSS** (formerly 'ElastiCache for Redis') and **Memcached**, each as a serverless cache or a node-based cluster.",
+      "tags": ["elasticache"],
+      "updated": "Valkey and the serverless option are newer than the slides."
+    }
+  ]
+}

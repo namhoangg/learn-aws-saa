@@ -1,0 +1,603 @@
+{
+  "section": "35-other-services",
+  "questions": [
+    {
+      "id": "35-other-services-q01",
+      "type": "single",
+      "domain": "secure",
+      "difficulty": "medium",
+      "question": "A platform team publishes approved CloudFormation templates that create S3 buckets. Developers must be able to deploy these templates as stacks, but the security team does not want developers to hold any direct S3 permissions. Which solution follows the principle of least privilege?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Attach the AmazonS3FullAccess managed policy to the developers' IAM group so CloudFormation can create the buckets with their credentials.",
+          "correct": false,
+          "explanation": "Without a service role CloudFormation does act with the caller's permissions, but this hands developers full S3 rights outside CloudFormation, which the security team forbids."
+        },
+        {
+          "id": "B",
+          "text": "Give the developers the AdministratorAccess policy only during deployments and remove it afterwards.",
+          "correct": false,
+          "explanation": "Temporary admin rights are far broader than needed and rely on a manual process; they violate least privilege."
+        },
+        {
+          "id": "C",
+          "text": "Create an IAM service role that CloudFormation can assume with S3 bucket permissions, and grant developers CloudFormation permissions plus iam:PassRole on that role.",
+          "correct": true,
+          "explanation": "CloudFormation performs the stack operations with the service role's credentials, so developers need only CloudFormation actions and permission to pass that specific role."
+        },
+        {
+          "id": "D",
+          "text": "Store the templates in an S3 bucket with a bucket policy that lets anyone in the account read them.",
+          "correct": false,
+          "explanation": "Reading a template is not the same as being allowed to create the resources in it; stack creation would still fail without S3 permissions."
+        }
+      ],
+      "explanation": "A CloudFormation service role plus iam:PassRole lets users deploy stacks without holding the permissions for the resources themselves.",
+      "tags": [
+        "cloudformation",
+        "iam-roles",
+        "least-privilege"
+      ]
+    },
+    {
+      "id": "35-other-services-q02",
+      "type": "single",
+      "domain": "secure",
+      "difficulty": "easy",
+      "question": "Administrators reach private EC2 instances through a bastion host that allows SSH on port 22 from the office network. A new security policy requires closing all inbound administrative ports, removing shared SSH keys and keeping a log of every command run on the instances. What should a solutions architect recommend?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Use AWS Systems Manager Session Manager with an instance profile on each instance and session logging to Amazon S3 or CloudWatch Logs.",
+          "correct": true,
+          "explanation": "Session Manager needs no inbound ports, bastion or SSH keys, controls access with IAM and can log session activity to S3 or CloudWatch Logs."
+        },
+        {
+          "id": "B",
+          "text": "Move the bastion host to a public subnet and restrict SSH to the administrators' home IP addresses.",
+          "correct": false,
+          "explanation": "Port 22 stays open and keys remain in use, so the policy requirements are not met."
+        },
+        {
+          "id": "C",
+          "text": "Replace SSH keys with EC2 Instance Connect while keeping port 22 open to the bastion.",
+          "correct": false,
+          "explanation": "Instance Connect removes long-lived keys but still uses SSH on port 22, which must be closed."
+        },
+        {
+          "id": "D",
+          "text": "Enable VPC Flow Logs on the bastion host's subnet to record administrator activity.",
+          "correct": false,
+          "explanation": "Flow Logs capture IP traffic metadata, not the commands typed in a session, and nothing about the access method changes."
+        }
+      ],
+      "explanation": "No inbound ports, no bastion, no SSH keys and command logging together point to Session Manager.",
+      "tags": [
+        "systems-manager",
+        "session-manager",
+        "bastion-host"
+      ]
+    },
+    {
+      "id": "35-other-services-q03",
+      "type": "single",
+      "domain": "resilient",
+      "difficulty": "medium",
+      "question": "A company runs 300 Amazon Linux and Windows Server EC2 instances managed by Systems Manager. Operating system security patches must be installed automatically every Sunday between 01:00 and 04:00, and auditors want a report of instances that are missing patches. Which solution meets these requirements with the LEAST operational overhead?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Write a cron job on every instance that runs the package manager each Sunday and emails the output to the operations team.",
+          "correct": false,
+          "explanation": "Per-instance scripts are hard to maintain across two OS families, give no central compliance view and are not least overhead."
+        },
+        {
+          "id": "B",
+          "text": "Create an AWS Lambda function on an EventBridge schedule that opens SSH connections to each instance and installs updates.",
+          "correct": false,
+          "explanation": "This requires open SSH access, credentials management and custom code for both Linux and Windows."
+        },
+        {
+          "id": "C",
+          "text": "Rebuild every instance from the latest AMI each Sunday using an Auto Scaling instance refresh.",
+          "correct": false,
+          "explanation": "It does not produce a missing-patch compliance report and may not suit instances outside Auto Scaling groups."
+        },
+        {
+          "id": "D",
+          "text": "Use Patch Manager with a patch baseline and register an AWS-RunPatchBaseline install task in a Systems Manager maintenance window scheduled for Sundays 01:00-04:00.",
+          "correct": true,
+          "explanation": "Maintenance windows restrict patching to the approved period, AWS-RunPatchBaseline installs patches defined by the baseline, and Patch Manager reports patch compliance."
+        }
+      ],
+      "explanation": "Scheduled patching with compliance reporting is Patch Manager plus a maintenance window.",
+      "tags": [
+        "systems-manager",
+        "patch-manager",
+        "maintenance-windows"
+      ]
+    },
+    {
+      "id": "35-other-services-q04",
+      "type": "single",
+      "domain": "cost",
+      "difficulty": "easy",
+      "question": "A startup's AWS bill changes a lot from month to month as the product grows, so fixed spending thresholds keep producing false alarms. The CTO wants to be alerted automatically when spend looks unusual for a particular service, with a hint about the root cause. Which AWS feature should be used?",
+      "options": [
+        {
+          "id": "A",
+          "text": "AWS Budgets with a monthly cost budget and an alert at 80% of the amount.",
+          "correct": false,
+          "explanation": "Budgets alert on a fixed amount you choose, which is exactly what produces false alarms for fast-changing spend."
+        },
+        {
+          "id": "B",
+          "text": "AWS Cost Anomaly Detection with an AWS services monitor and an alert subscription.",
+          "correct": true,
+          "explanation": "It uses machine learning to learn the normal spend pattern, needs no fixed threshold for what is normal, and provides root-cause analysis."
+        },
+        {
+          "id": "C",
+          "text": "Cost Explorer forecasting reviewed manually at the end of each month.",
+          "correct": false,
+          "explanation": "A forecast shows expected spend but does not alert automatically on unusual spend."
+        },
+        {
+          "id": "D",
+          "text": "A CloudWatch billing alarm on the EstimatedCharges metric.",
+          "correct": false,
+          "explanation": "A billing alarm compares total estimated charges with a static threshold and gives no root cause."
+        }
+      ],
+      "explanation": "Unusual spend without defining normal thresholds, plus root-cause analysis, is Cost Anomaly Detection.",
+      "tags": [
+        "cost-anomaly-detection",
+        "budgets"
+      ]
+    },
+    {
+      "id": "35-other-services-q05",
+      "type": "single",
+      "domain": "performant",
+      "difficulty": "medium",
+      "question": "A manufacturer runs plant-floor control systems in its own data center. New analytics applications must reach those systems with single-digit-millisecond latency, regulations require the production data to stay on site, and developers want to use the same EC2 and EBS APIs and tools they use in the AWS Region. Which solution meets these requirements?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Deploy the applications in the nearest AWS Region and connect the data center with AWS Direct Connect.",
+          "correct": false,
+          "explanation": "Direct Connect lowers network variability, but the data would leave the site and Region latency may still be too high."
+        },
+        {
+          "id": "B",
+          "text": "Deploy the applications in an AWS Local Zone close to the plant.",
+          "correct": false,
+          "explanation": "Local Zones are AWS-run facilities in a metro area, so data would leave the company's own site."
+        },
+        {
+          "id": "C",
+          "text": "Order AWS Outposts racks for the data center and run the applications on EC2 instances and EBS volumes in an Outpost subnet.",
+          "correct": true,
+          "explanation": "Outposts brings AWS-managed infrastructure and the same APIs into the customer's facility, giving local low-latency access and keeping data on premises."
+        },
+        {
+          "id": "D",
+          "text": "Use AWS Snowball Edge devices to collect the data and ship it to Amazon S3 each week.",
+          "correct": false,
+          "explanation": "Snowball is for offline data transfer and edge processing in disconnected locations, not for running continuously connected AWS services with low latency."
+        }
+      ],
+      "explanation": "AWS services on premises with low latency and data residency point to AWS Outposts.",
+      "tags": [
+        "outposts",
+        "hybrid"
+      ]
+    },
+    {
+      "id": "35-other-services-q06",
+      "type": "single",
+      "domain": "cost",
+      "difficulty": "medium",
+      "question": "A media company transcodes uploaded videos with a containerised tool. Each job runs between 2 and 4 hours, needs about 100 GB of scratch space, and can be retried if interrupted. Thousands of jobs arrive unpredictably each week. Which solution is the MOST cost-effective while requiring the least infrastructure management?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Submit the jobs to AWS Batch with a managed compute environment that uses EC2 Spot Instances.",
+          "correct": true,
+          "explanation": "Batch queues containerised jobs with no time limit, provisions and scales EC2 capacity for you, and Spot pricing suits interruptible, retryable jobs."
+        },
+        {
+          "id": "B",
+          "text": "Run each job as an AWS Lambda function with 10 GB of ephemeral storage.",
+          "correct": false,
+          "explanation": "Lambda stops after 15 minutes and /tmp is capped at 10 GB, so multi-hour jobs with 100 GB scratch cannot run."
+        },
+        {
+          "id": "C",
+          "text": "Keep a fleet of On-Demand EC2 instances running 24/7 sized for the busiest week.",
+          "correct": false,
+          "explanation": "Idle capacity during quiet periods and On-Demand prices make this expensive, and you manage the instances yourself."
+        },
+        {
+          "id": "D",
+          "text": "Run the jobs on Amazon EMR clusters with Reserved Instances.",
+          "correct": false,
+          "explanation": "EMR targets big data frameworks such as Spark, not arbitrary container jobs, and reservations do not fit unpredictable demand."
+        }
+      ],
+      "explanation": "Long-running, retryable container jobs at variable volume fit AWS Batch on Spot capacity.",
+      "tags": [
+        "batch",
+        "ec2-spot",
+        "lambda"
+      ]
+    },
+    {
+      "id": "35-other-services-q07",
+      "type": "single",
+      "domain": "secure",
+      "difficulty": "medium",
+      "question": "The sales operations team wants Salesforce opportunity records copied into an Amazon S3 data lake every night so analysts can query them with Athena. Only records changed since the last run should be transferred, the data must not travel over the public internet, and the team does not want to write or maintain code. Which solution meets these requirements?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Write a Lambda function on an EventBridge schedule that calls the Salesforce REST API and writes JSON files to S3.",
+          "correct": false,
+          "explanation": "It works, but it is custom code to build and maintain, and the calls go over the internet unless extra networking is added."
+        },
+        {
+          "id": "B",
+          "text": "Use AWS DataSync to copy the Salesforce data into S3 every night.",
+          "correct": false,
+          "explanation": "DataSync moves files between storage systems (NFS, SMB, HDFS, object storage); it does not connect to SaaS applications such as Salesforce."
+        },
+        {
+          "id": "C",
+          "text": "Ask Salesforce administrators to export CSV files daily and upload them through the S3 console.",
+          "correct": false,
+          "explanation": "A manual process is error-prone and does not meet the automation requirement."
+        },
+        {
+          "id": "D",
+          "text": "Create an Amazon AppFlow flow from Salesforce to S3 that runs on a schedule with incremental transfer and uses AWS PrivateLink.",
+          "correct": true,
+          "explanation": "AppFlow is a no-code SaaS integration service with scheduled incremental transfers, and PrivateLink keeps the transfer off the public internet."
+        }
+      ],
+      "explanation": "SaaS-to-AWS data movement without code, on a schedule and privately, is Amazon AppFlow.",
+      "tags": [
+        "appflow",
+        "s3",
+        "privatelink"
+      ]
+    },
+    {
+      "id": "35-other-services-q08",
+      "type": "single",
+      "domain": "cost",
+      "difficulty": "easy",
+      "question": "A company has development EC2 instances and RDS databases in five AWS accounts. They are used only from 08:00 to 18:00 on weekdays but run all week. The company wants to stop them automatically outside working hours with minimal custom development. What should a solutions architect recommend?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Purchase Reserved Instances for the development instances and databases.",
+          "correct": false,
+          "explanation": "Reservations lower the hourly rate for always-on usage; they do not stop idle resources and commit the company to paying for every hour."
+        },
+        {
+          "id": "B",
+          "text": "Deploy the Instance Scheduler on AWS solution and tag the resources with a business-hours schedule.",
+          "correct": true,
+          "explanation": "The solution, deployed by CloudFormation, uses tags, a DynamoDB schedule table and Lambda to stop and start EC2 and RDS resources across accounts and Regions."
+        },
+        {
+          "id": "C",
+          "text": "Ask developers to stop their resources manually at the end of each day.",
+          "correct": false,
+          "explanation": "Manual processes are unreliable and the requirement is automatic stopping."
+        },
+        {
+          "id": "D",
+          "text": "Move the workloads to larger instances so they finish work faster each day.",
+          "correct": false,
+          "explanation": "Larger instances cost more per hour and still run outside working hours."
+        }
+      ],
+      "explanation": "Scheduled start and stop of EC2 and RDS across accounts is the Instance Scheduler on AWS solution.",
+      "tags": [
+        "instance-scheduler",
+        "cost-optimization"
+      ]
+    },
+    {
+      "id": "35-other-services-q09",
+      "type": "single",
+      "domain": "performant",
+      "difficulty": "easy",
+      "question": "An e-commerce application running on EC2 must send order confirmation and password reset emails from the company's own domain. The emails use HTML templates, must be authenticated with DKIM to avoid spam folders, and the team needs bounce and complaint statistics. Which AWS service should the application use?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Amazon SNS with an email subscription for each customer.",
+          "correct": false,
+          "explanation": "SNS email subscriptions require each recipient to confirm a topic subscription and deliver plain notifications, not branded transactional email."
+        },
+        {
+          "id": "B",
+          "text": "Amazon SQS with a consumer that sends mail from a Postfix server on EC2.",
+          "correct": false,
+          "explanation": "Running your own mail server means managing deliverability, IP reputation and DKIM yourself; SQS only queues messages."
+        },
+        {
+          "id": "C",
+          "text": "Amazon SES using the SES API or its SMTP interface.",
+          "correct": true,
+          "explanation": "SES is the managed email service for transactional and marketing email, with DKIM and SPF support and delivery, bounce and complaint metrics."
+        },
+        {
+          "id": "D",
+          "text": "AWS End User Messaging with an SMS channel.",
+          "correct": false,
+          "explanation": "End User Messaging sends SMS, voice and push messages, not email."
+        }
+      ],
+      "explanation": "Application email from your own domain with DKIM and bounce tracking is Amazon SES.",
+      "tags": [
+        "ses",
+        "sns"
+      ]
+    },
+    {
+      "id": "35-other-services-q10",
+      "type": "multi",
+      "domain": "cost",
+      "difficulty": "medium",
+      "question": "A finance team wants to understand which AWS services caused last quarter's increase in spend and to receive a recommendation for a commitment-based discount that matches its steady EC2 and Fargate usage. Which TWO actions should the team take? (Select TWO.)",
+      "options": [
+        {
+          "id": "A",
+          "text": "Enable AWS Config to record resource configuration history.",
+          "correct": false,
+          "explanation": "Config tracks configuration changes and compliance, not cost trends or pricing recommendations."
+        },
+        {
+          "id": "B",
+          "text": "Use Cost Explorer to view monthly costs for the last quarter grouped by service.",
+          "correct": true,
+          "explanation": "Cost Explorer filters and groups historical cost data (up to 13 months by default), showing which services grew."
+        },
+        {
+          "id": "C",
+          "text": "Create a Savings Plans coverage budget in AWS Budgets so that it calculates the recommended hourly commitment.",
+          "correct": false,
+          "explanation": "Coverage and utilization budgets only alert when coverage or utilization falls below a target you set; they do not analyse usage to recommend a commitment."
+        },
+        {
+          "id": "D",
+          "text": "Query AWS CloudTrail event history for the RunInstances API calls of the quarter.",
+          "correct": false,
+          "explanation": "CloudTrail shows who called which API, not cost per service or discount recommendations."
+        },
+        {
+          "id": "E",
+          "text": "Review the Savings Plans purchase recommendations based on recent usage.",
+          "correct": true,
+          "explanation": "Recommendations analyse 7, 30 or 60 days of usage and propose a Compute Savings Plan commitment, which covers both EC2 and Fargate."
+        }
+      ],
+      "explanation": "Cost Explorer explains historical spend and, together with Savings Plans recommendations, helps choose a commitment.",
+      "tags": [
+        "cost-explorer",
+        "savings-plans"
+      ]
+    },
+    {
+      "id": "35-other-services-q11",
+      "type": "single",
+      "domain": "secure",
+      "difficulty": "hard",
+      "question": "An AWS Config managed rule flags security groups that allow unrestricted inbound SSH (0.0.0.0/0 on port 22). The security team wants every non-compliant security group to be fixed automatically within minutes, using an AWS-managed mechanism rather than custom servers. Which solution meets these requirements?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Use Systems Manager Run Command to execute a shell script on every EC2 instance that disables the SSH daemon.",
+          "correct": false,
+          "explanation": "The problem is the security group rule, an AWS resource; running scripts inside instances does not change the rule and Run Command is not how Config remediates."
+        },
+        {
+          "id": "B",
+          "text": "Configure CloudTrail to deliver logs to S3 and review them weekly for AuthorizeSecurityGroupIngress calls.",
+          "correct": false,
+          "explanation": "A weekly manual review neither fixes the rule automatically nor within minutes."
+        },
+        {
+          "id": "C",
+          "text": "Use AWS Trusted Advisor to delete the security groups that have open SSH access.",
+          "correct": false,
+          "explanation": "Trusted Advisor reports open ports but does not remediate them automatically, and deleting security groups could break workloads."
+        },
+        {
+          "id": "D",
+          "text": "Attach an automatic remediation action to the Config rule that runs a Systems Manager Automation runbook to remove the offending inbound rule.",
+          "correct": true,
+          "explanation": "Config rules can trigger Systems Manager Automation runbooks as automatic remediation, which call AWS APIs to revoke the non-compliant ingress rule."
+        }
+      ],
+      "explanation": "AWS Config remediation runs Systems Manager Automation runbooks against non-compliant AWS resources.",
+      "tags": [
+        "systems-manager",
+        "automation",
+        "config"
+      ]
+    },
+    {
+      "id": "35-other-services-q12",
+      "type": "multi",
+      "domain": "resilient",
+      "difficulty": "medium",
+      "question": "An operations team must run a diagnostic shell script on 500 Linux EC2 instances tagged Environment=prod. No more than 10% of the instances may run the script at the same time, the rollout must stop if too many instances fail, the output must be kept for later review, and the team wants to be notified about failures. All instances are managed by Systems Manager. Which TWO steps meet these requirements? (Select TWO.)",
+      "options": [
+        {
+          "id": "A",
+          "text": "Start a Session Manager session on each instance and paste the script manually.",
+          "correct": false,
+          "explanation": "Session Manager is for interactive access to one node at a time; doing 500 instances by hand gives no rate control or central output."
+        },
+        {
+          "id": "B",
+          "text": "Run the AWS-RestartEC2Instance Automation runbook against the tagged instances.",
+          "correct": false,
+          "explanation": "That runbook restarts instances; it does not run a diagnostic script inside the operating system."
+        },
+        {
+          "id": "C",
+          "text": "Use Run Command with the AWS-RunShellScript document, target the tag Environment=prod, and set concurrency to 10% with an error threshold.",
+          "correct": true,
+          "explanation": "Run Command targets nodes by tag and its rate control limits concurrency and stops after the error threshold, without logging in to any instance."
+        },
+        {
+          "id": "D",
+          "text": "Configure the Run Command invocation to write output to an S3 bucket and to send SNS notifications for failed invocations.",
+          "correct": true,
+          "explanation": "Run Command can store output in S3 (or CloudWatch Logs) and publish status changes such as Failed to an SNS topic."
+        },
+        {
+          "id": "E",
+          "text": "Open port 22 on the instances and run the script with parallel SSH from a bastion host.",
+          "correct": false,
+          "explanation": "This adds attack surface and key management, and gives none of Run Command's built-in rate control, output storage or notifications."
+        }
+      ],
+      "explanation": "Run Command with tag targeting, rate control, S3 output and SNS notifications is the fleet-wide scripting tool.",
+      "tags": [
+        "systems-manager",
+        "run-command"
+      ]
+    },
+    {
+      "id": "35-other-services-q13",
+      "type": "single",
+      "domain": "performant",
+      "difficulty": "medium",
+      "question": "A retail marketing team wants to send personalised promotions to customer segments (for example, customers who bought shoes in the last 90 days) over SMS and email. The team wants reusable message templates, scheduled campaigns, the ability to receive customer replies, and delivery events streamed for analysis, without building its own targeting logic. Based on the classic SAA-C03 service set, which service fits best?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Amazon SNS topics with SMS and email subscriptions for each segment.",
+          "correct": false,
+          "explanation": "With SNS the team must manage every audience, message and schedule itself and maintain subscriptions per segment; there are no campaigns or templates."
+        },
+        {
+          "id": "B",
+          "text": "Amazon Pinpoint with segments, message templates and scheduled campaigns.",
+          "correct": true,
+          "explanation": "Pinpoint provides segmentation, templates, campaign scheduling, two-way messaging and event streaming across SMS, email and push."
+        },
+        {
+          "id": "C",
+          "text": "Amazon SES with a contact list for each segment.",
+          "correct": false,
+          "explanation": "SES handles email only, so SMS and segment-based campaigns across channels are not covered."
+        },
+        {
+          "id": "D",
+          "text": "Amazon SQS queues that a custom application reads to send messages.",
+          "correct": false,
+          "explanation": "This means building the targeting, scheduling and channel delivery yourself, which the team wants to avoid."
+        }
+      ],
+      "explanation": "Segmented, scheduled multi-channel campaigns were Amazon Pinpoint's role; for new builds AWS now points to Amazon Connect outbound campaigns.",
+      "tags": [
+        "pinpoint",
+        "sns",
+        "ses"
+      ],
+      "updated": "Amazon Pinpoint reaches end of support on 30 October 2026 and stopped accepting new customers on 20 May 2025; AWS recommends Amazon Connect outbound campaigns for segments, campaigns and journeys."
+    },
+    {
+      "id": "35-other-services-q14",
+      "type": "single",
+      "domain": "performant",
+      "difficulty": "easy",
+      "question": "A small team is building a React web app and a companion mobile app. They need user sign-up and sign-in, a GraphQL API backed by a database, file uploads, and automatic build and deployment of the front end to a global CDN every time they push to GitHub. Which AWS service lets them do this with the least effort?",
+      "options": [
+        {
+          "id": "A",
+          "text": "AWS Amplify, using Amplify Hosting connected to the GitHub repository and an Amplify backend for auth, data and storage.",
+          "correct": true,
+          "explanation": "Amplify provisions Cognito, AppSync, DynamoDB and S3 for the backend, provides front-end libraries, and Amplify Hosting builds and deploys each push to a CDN."
+        },
+        {
+          "id": "B",
+          "text": "AWS Elastic Beanstalk with a load-balanced EC2 environment.",
+          "correct": false,
+          "explanation": "Beanstalk runs server applications on EC2; it does not provide mobile-ready auth, GraphQL APIs or Git-based front-end hosting out of the box."
+        },
+        {
+          "id": "C",
+          "text": "AWS Batch with a job that builds the site after each commit.",
+          "correct": false,
+          "explanation": "Batch runs batch jobs; it is not a web hosting or app backend service."
+        },
+        {
+          "id": "D",
+          "text": "AWS Outposts racks to host the application close to users.",
+          "correct": false,
+          "explanation": "Outposts puts AWS hardware in your data center; it is unrelated to building and hosting a web and mobile app."
+        }
+      ],
+      "explanation": "Full-stack web and mobile apps with managed auth, APIs and Git-based hosting point to AWS Amplify.",
+      "tags": [
+        "amplify",
+        "cognito",
+        "appsync"
+      ]
+    },
+    {
+      "id": "35-other-services-q15",
+      "type": "multi",
+      "domain": "secure",
+      "difficulty": "hard",
+      "question": "A company launches EC2 instances in private subnets that have no route to an internet gateway or NAT gateway. Administrators must connect to these instances with Session Manager, and the security group must allow no inbound traffic. The AMI already includes the SSM Agent. Which TWO additional steps are required? (Select TWO.)",
+      "options": [
+        {
+          "id": "A",
+          "text": "Attach an instance profile whose role includes the AmazonSSMManagedInstanceCore policy (or enable Default Host Management Configuration).",
+          "correct": true,
+          "explanation": "The agent needs AWS credentials with Systems Manager permissions to register the instance as a managed node."
+        },
+        {
+          "id": "B",
+          "text": "Add an inbound security group rule that allows TCP port 22 from the VPC CIDR.",
+          "correct": false,
+          "explanation": "Session Manager connections are initiated outbound by the agent, so no inbound rule is required."
+        },
+        {
+          "id": "C",
+          "text": "Create an EC2 key pair and copy the private key to each administrator.",
+          "correct": false,
+          "explanation": "Session Manager uses IAM for access, not SSH key pairs."
+        },
+        {
+          "id": "D",
+          "text": "Associate an Elastic IP address with each instance.",
+          "correct": false,
+          "explanation": "A public IP is useless without an internet gateway route and is not needed when interface endpoints provide private connectivity."
+        },
+        {
+          "id": "E",
+          "text": "Create VPC interface endpoints for Systems Manager (ssm and ssmmessages, plus ec2messages for older agents) in the VPC.",
+          "correct": true,
+          "explanation": "Without internet or NAT access, the agent reaches Systems Manager privately over HTTPS through these interface endpoints; the endpoints' security group must allow inbound 443 from the instances' subnets (the instances' own security group still needs no inbound rule)."
+        }
+      ],
+      "explanation": "Session Manager needs the agent, IAM permissions for the instance, and an outbound path to Systems Manager, which VPC interface endpoints provide in isolated subnets.",
+      "tags": [
+        "systems-manager",
+        "session-manager",
+        "vpc-endpoints"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,412 @@
+{
+  "id": "35-other-services",
+  "order": 35,
+  "title": "Other Services",
+  "courseSection": "Other Services",
+  "slides": [
+    824,
+    851
+  ],
+  "estimatedMinutes": 60,
+  "summary": "A tour of services that show up in a few exam questions each: CloudFormation for infrastructure as code (with service roles), SES and Pinpoint for messaging, Systems Manager (Session Manager, Run Command, Patch Manager, Maintenance Windows, Automation), Cost Explorer and Cost Anomaly Detection, Outposts, AWS Batch versus Lambda, AppFlow, Amplify and the Instance Scheduler solution.",
+  "services": [
+    "cloudformation",
+    "infrastructure-composer",
+    "iam-roles",
+    "ses",
+    "pinpoint",
+    "end-user-messaging",
+    "sns",
+    "data-firehose",
+    "connect",
+    "systems-manager",
+    "ec2",
+    "s3",
+    "cloudwatch-logs",
+    "eventbridge",
+    "config",
+    "cost-explorer",
+    "cost-anomaly-detection",
+    "savings-plans",
+    "outposts",
+    "batch",
+    "lambda",
+    "ecs",
+    "eks",
+    "fargate",
+    "ec2-spot",
+    "appflow",
+    "redshift",
+    "amplify",
+    "cloudfront",
+    "cognito",
+    "appsync",
+    "instance-scheduler",
+    "dynamodb",
+    "rds",
+    "asg"
+  ],
+  "relations": [
+    {
+      "from": "cloudformation",
+      "to": "ec2",
+      "label": "creates, updates and deletes stacks of resources such as"
+    },
+    {
+      "from": "infrastructure-composer",
+      "to": "cloudformation",
+      "label": "draws and edits templates for"
+    },
+    {
+      "from": "iam-roles",
+      "to": "cloudformation",
+      "label": "supply the service role used for stack operations by"
+    },
+    {
+      "from": "ses",
+      "to": "sns",
+      "label": "publishes bounce, complaint and delivery notifications to"
+    },
+    {
+      "from": "pinpoint",
+      "to": "data-firehose",
+      "label": "streams message events to"
+    },
+    {
+      "from": "pinpoint",
+      "to": "end-user-messaging",
+      "label": "hands its SMS, voice and push APIs over to"
+    },
+    {
+      "from": "systems-manager",
+      "to": "ec2",
+      "label": "runs commands, patches and opens shell sessions on"
+    },
+    {
+      "from": "config",
+      "to": "systems-manager",
+      "label": "starts Automation runbooks for remediation in"
+    },
+    {
+      "from": "cost-anomaly-detection",
+      "to": "sns",
+      "label": "sends individual anomaly alerts through"
+    },
+    {
+      "from": "cost-explorer",
+      "to": "savings-plans",
+      "label": "recommends purchases of"
+    },
+    {
+      "from": "outposts",
+      "to": "ec2",
+      "label": "runs instances on premises for"
+    },
+    {
+      "from": "batch",
+      "to": "ec2-spot",
+      "label": "launches low-cost job capacity on"
+    },
+    {
+      "from": "appflow",
+      "to": "s3",
+      "label": "copies SaaS application data into"
+    },
+    {
+      "from": "amplify",
+      "to": "cloudfront",
+      "label": "hosts and serves web front ends through"
+    },
+    {
+      "from": "instance-scheduler",
+      "to": "ec2",
+      "label": "stops and starts on a schedule"
+    }
+  ],
+  "examDomains": [
+    "cost",
+    "secure",
+    "resilient",
+    "performant"
+  ],
+  "lastVerified": "2026-10-04",
+  "sources": [
+    {
+      "title": "What is CloudFormation?",
+      "url": "https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/Welcome.html"
+    },
+    {
+      "title": "CloudFormation service role",
+      "url": "https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-iam-servicerole.html"
+    },
+    {
+      "title": "Create a stack from the CloudFormation console (stack options, change sets)",
+      "url": "https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/cfn-console-create-stack.html"
+    },
+    {
+      "title": "Edit templates visually with template studio (CloudFormation console)",
+      "url": "https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/template-studio.html"
+    },
+    {
+      "title": "Create custom provisioning logic with custom resources",
+      "url": "https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/template-custom-resources.html"
+    },
+    {
+      "title": "AWS CLI reference: cloudformation estimate-template-cost",
+      "url": "https://docs.aws.amazon.com/cli/latest/reference/cloudformation/estimate-template-cost.html"
+    },
+    {
+      "title": "AWS CloudFormation pricing",
+      "url": "https://aws.amazon.com/cloudformation/pricing/"
+    },
+    {
+      "title": "Migrating Simple Monthly Calculator estimates to Pricing Calculator (SMC no longer supported)",
+      "url": "https://docs.aws.amazon.com/pricing-calculator/latest/userguide/migrate-SMC.html"
+    },
+    {
+      "title": "What is AWS Infrastructure Composer?",
+      "url": "https://docs.aws.amazon.com/infrastructure-composer/latest/dg/what-is-composer.html"
+    },
+    {
+      "title": "AWS Infrastructure Composer end of support",
+      "url": "https://docs.aws.amazon.com/infrastructure-composer/latest/dg/infrastructure-composer-end-of-support.html"
+    },
+    {
+      "title": "What is Amazon SES?",
+      "url": "https://docs.aws.amazon.com/ses/latest/dg/Welcome.html"
+    },
+    {
+      "title": "Request production access (moving out of the Amazon SES sandbox)",
+      "url": "https://docs.aws.amazon.com/ses/latest/dg/request-production-access.html"
+    },
+    {
+      "title": "Dedicated IP addresses for Amazon SES (standard and managed)",
+      "url": "https://docs.aws.amazon.com/ses/latest/dg/dedicated-ip.html"
+    },
+    {
+      "title": "Using your own IP addresses to send email using Amazon SES (BYOIP)",
+      "url": "https://docs.aws.amazon.com/ses/latest/dg/dedicated-ip-byo.html"
+    },
+    {
+      "title": "Virtual Deliverability Manager for Amazon SES",
+      "url": "https://docs.aws.amazon.com/ses/latest/dg/vdm.html"
+    },
+    {
+      "title": "Amazon Pinpoint end of support",
+      "url": "https://docs.aws.amazon.com/pinpoint/latest/userguide/migrate.html"
+    },
+    {
+      "title": "AWS Systems Manager Session Manager",
+      "url": "https://docs.aws.amazon.com/systems-manager/latest/userguide/session-manager.html"
+    },
+    {
+      "title": "Start a session (Session Manager)",
+      "url": "https://docs.aws.amazon.com/systems-manager/latest/userguide/session-manager-working-with-sessions-start.html"
+    },
+    {
+      "title": "What is the unified Systems Manager console?",
+      "url": "https://docs.aws.amazon.com/systems-manager/latest/userguide/systems-manager-unified-console.html"
+    },
+    {
+      "title": "AWS Systems Manager Run Command",
+      "url": "https://docs.aws.amazon.com/systems-manager/latest/userguide/run-command.html"
+    },
+    {
+      "title": "Running commands from the console (Run Command)",
+      "url": "https://docs.aws.amazon.com/systems-manager/latest/userguide/running-commands-console.html"
+    },
+    {
+      "title": "AWS Systems Manager Patch Manager",
+      "url": "https://docs.aws.amazon.com/systems-manager/latest/userguide/patch-manager.html"
+    },
+    {
+      "title": "Patching managed nodes on demand (Patch now)",
+      "url": "https://docs.aws.amazon.com/systems-manager/latest/userguide/patch-manager-patch-now-on-demand.html"
+    },
+    {
+      "title": "AWS Systems Manager Maintenance Windows",
+      "url": "https://docs.aws.amazon.com/systems-manager/latest/userguide/maintenance-windows.html"
+    },
+    {
+      "title": "AWS Systems Manager Automation",
+      "url": "https://docs.aws.amazon.com/systems-manager/latest/userguide/systems-manager-automation.html"
+    },
+    {
+      "title": "Configure instance permissions required for Systems Manager",
+      "url": "https://docs.aws.amazon.com/systems-manager/latest/userguide/setup-instance-permissions.html"
+    },
+    {
+      "title": "Improve the security of EC2 instances by using VPC endpoints for Systems Manager",
+      "url": "https://docs.aws.amazon.com/systems-manager/latest/userguide/setup-create-vpc.html"
+    },
+    {
+      "title": "AWS Systems Manager pricing",
+      "url": "https://aws.amazon.com/systems-manager/pricing/"
+    },
+    {
+      "title": "Analyzing your costs and usage with AWS Cost Explorer",
+      "url": "https://docs.aws.amazon.com/cost-management/latest/userguide/ce-what-is.html"
+    },
+    {
+      "title": "Enabling Cost Explorer",
+      "url": "https://docs.aws.amazon.com/cost-management/latest/userguide/ce-enable.html"
+    },
+    {
+      "title": "Exploring more data for advanced cost analysis (multi-year and granular data)",
+      "url": "https://docs.aws.amazon.com/cost-management/latest/userguide/ce-advanced-cost-analysis.html"
+    },
+    {
+      "title": "Forecasting with Cost Explorer",
+      "url": "https://docs.aws.amazon.com/cost-management/latest/userguide/ce-forecast.html"
+    },
+    {
+      "title": "Understanding Savings Plans recommendations",
+      "url": "https://docs.aws.amazon.com/savingsplans/latest/userguide/sp-recommendations.html"
+    },
+    {
+      "title": "Detecting unusual spend with AWS Cost Anomaly Detection",
+      "url": "https://docs.aws.amazon.com/cost-management/latest/userguide/manage-ad.html"
+    },
+    {
+      "title": "Getting started with AWS Cost Anomaly Detection (monitors, subscriptions)",
+      "url": "https://docs.aws.amazon.com/cost-management/latest/userguide/getting-started-ad.html"
+    },
+    {
+      "title": "Setting up your anomaly detection",
+      "url": "https://docs.aws.amazon.com/cost-management/latest/userguide/settingup-ad.html"
+    },
+    {
+      "title": "AWS Cost Management quotas and restrictions",
+      "url": "https://docs.aws.amazon.com/cost-management/latest/userguide/management-limits.html"
+    },
+    {
+      "title": "AWS CLI reference: ce create-anomaly-monitor",
+      "url": "https://docs.aws.amazon.com/cli/latest/reference/ce/create-anomaly-monitor.html"
+    },
+    {
+      "title": "AWS CLI reference: ce create-anomaly-subscription",
+      "url": "https://docs.aws.amazon.com/cli/latest/reference/ce/create-anomaly-subscription.html"
+    },
+    {
+      "title": "New AWS Cost Explorer users can now automatically detect cost anomalies (AWS blog, no additional cost)",
+      "url": "https://aws.amazon.com/blogs/aws-cloud-financial-management/new-aws-cost-explorer-users-can-now-automatically-detect-cost-anomalies-2/"
+    },
+    {
+      "title": "What is AWS Outposts?",
+      "url": "https://docs.aws.amazon.com/outposts/latest/userguide/what-is-outposts.html"
+    },
+    {
+      "title": "AWS Outposts rack FAQs",
+      "url": "https://aws.amazon.com/outposts/rack/faqs/"
+    },
+    {
+      "title": "What is AWS Batch?",
+      "url": "https://docs.aws.amazon.com/batch/latest/userguide/what-is-batch.html"
+    },
+    {
+      "title": "Components of AWS Batch",
+      "url": "https://docs.aws.amazon.com/batch/latest/userguide/batch_components.html"
+    },
+    {
+      "title": "AWS Batch pricing",
+      "url": "https://aws.amazon.com/batch/pricing/"
+    },
+    {
+      "title": "Lambda quotas",
+      "url": "https://docs.aws.amazon.com/lambda/latest/dg/gettingstarted-limits.html"
+    },
+    {
+      "title": "Lambda durable functions",
+      "url": "https://docs.aws.amazon.com/lambda/latest/dg/durable-functions.html"
+    },
+    {
+      "title": "Modifying your chart in Cost Explorer (granularity, forecast ranges, grouping)",
+      "url": "https://docs.aws.amazon.com/cost-management/latest/userguide/ce-modify.html"
+    },
+    {
+      "title": "Cost Explorer API: GetSavingsPlansPurchaseRecommendation (lookback periods, plan types)",
+      "url": "https://docs.aws.amazon.com/aws-cost-management/latest/APIReference/API_GetSavingsPlansPurchaseRecommendation.html"
+    },
+    {
+      "title": "Editing your alert preferences (Cost Anomaly Detection)",
+      "url": "https://docs.aws.amazon.com/cost-management/latest/userguide/edit-alert-pref.html"
+    },
+    {
+      "title": "CloudFormation resource tagging (automatic aws:cloudformation tags)",
+      "url": "https://docs.aws.amazon.com/AWSCloudFormation/latest/TemplateReference/aws-properties-resource-tags.html"
+    },
+    {
+      "title": "Create a change set for a CloudFormation stack",
+      "url": "https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-changesets-create.html"
+    },
+    {
+      "title": "Run an automated operation powered by Systems Manager Automation",
+      "url": "https://docs.aws.amazon.com/systems-manager/latest/userguide/automation-working-executing.html"
+    },
+    {
+      "title": "Working with patch compliance reports (Patch Manager)",
+      "url": "https://docs.aws.amazon.com/systems-manager/latest/userguide/patch-manager-compliance-reports.html"
+    },
+    {
+      "title": "What is Amazon AppFlow?",
+      "url": "https://docs.aws.amazon.com/appflow/latest/userguide/what-is-appflow.html"
+    },
+    {
+      "title": "Amazon AppFlow flow triggers",
+      "url": "https://docs.aws.amazon.com/appflow/latest/userguide/flow-triggers.html"
+    },
+    {
+      "title": "Amazon AppFlow pricing",
+      "url": "https://aws.amazon.com/appflow/pricing/"
+    },
+    {
+      "title": "Welcome to AWS Amplify Hosting",
+      "url": "https://docs.aws.amazon.com/amplify/latest/userguide/welcome.html"
+    },
+    {
+      "title": "Instance Scheduler on AWS: solution overview",
+      "url": "https://docs.aws.amazon.com/solutions/latest/instance-scheduler-on-aws/solution-overview.html"
+    },
+    {
+      "title": "Instance Scheduler on AWS: services supported for scheduling",
+      "url": "https://docs.aws.amazon.com/solutions/latest/instance-scheduler-on-aws/services-supported-for-scheduling.html"
+    },
+    {
+      "title": "AWS CloudShell compute environment: pre-installed software",
+      "url": "https://docs.aws.amazon.com/cloudshell/latest/userguide/vm-specs.html"
+    },
+    {
+      "title": "AWS Systems Manager Automation enhances runbook execution control and updates free tier (What's New, Aug 2025)",
+      "url": "https://aws.amazon.com/about-aws/whats-new/2025/08/aws-systems-manager-automation-enhances-runbook/"
+    },
+    {
+      "title": "AWS-RestartEC2Instance runbook reference",
+      "url": "https://docs.aws.amazon.com/systems-manager-automation-runbooks/latest/userguide/automation-aws-restartec2instance.html"
+    },
+    {
+      "title": "Create a role to delegate permissions to an AWS service (IAM console labels)",
+      "url": "https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles_create_for-service.html"
+    },
+    {
+      "title": "AWS Cost Explorer pricing (API requests, hourly granularity)",
+      "url": "https://aws.amazon.com/aws-cost-management/aws-cost-explorer/pricing/"
+    },
+    {
+      "title": "Configuring multi-year and granular data (Cost Explorer)",
+      "url": "https://docs.aws.amazon.com/cost-management/latest/userguide/ce-configuring-data.html"
+    },
+    {
+      "title": "Multi-year data at monthly granularity (up to 38 months)",
+      "url": "https://docs.aws.amazon.com/cost-management/latest/userguide/ce-multi-year-data.html"
+    },
+    {
+      "title": "Transitioning from customer to AWS managed monitors (Cost Anomaly Detection)",
+      "url": "https://docs.aws.amazon.com/cost-management/latest/userguide/transition-monitors.html"
+    },
+    {
+      "title": "Private Amazon AppFlow flows (AWS PrivateLink connectors)",
+      "url": "https://docs.aws.amazon.com/appflow/latest/userguide/private-flows.html"
+    }
+  ],
+  "newServices": []
+}

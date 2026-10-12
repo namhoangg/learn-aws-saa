@@ -1,0 +1,465 @@
+{
+  "id": "36-well-architected-exam",
+  "order": 36,
+  "title": "Well-Architected & Exam Preparation",
+  "courseSection": "White Papers & Architectures + Exam Preparation",
+  "slides": [
+    852,
+    876
+  ],
+  "estimatedMinutes": 50,
+  "summary": "The AWS Well-Architected Framework (general design principles and six pillars), the free Well-Architected Tool for workload reviews, Trusted Advisor checks and the support plans that unlock them, where to find reference architectures and whitepapers, and how the SAA-C03 exam works: format, scoring, keyword-driven elimination strategy and the wider AWS certification paths.",
+  "services": [
+    "well-architected-tool",
+    "trusted-advisor",
+    "aws-support",
+    "service-quotas",
+    "eventbridge",
+    "organizations",
+    "compute-optimizer",
+    "security-hub",
+    "config",
+    "service-catalog",
+    "cost-explorer",
+    "fis",
+    "resilience-hub",
+    "asg",
+    "security-groups"
+  ],
+  "relations": [
+    {
+      "from": "well-architected-tool",
+      "to": "trusted-advisor",
+      "label": "pulls check results into workload reviews from"
+    },
+    {
+      "from": "well-architected-tool",
+      "to": "service-catalog",
+      "label": "links workloads to AppRegistry applications in"
+    },
+    {
+      "from": "aws-support",
+      "to": "trusted-advisor",
+      "label": "unlocks the full check set and API of"
+    },
+    {
+      "from": "trusted-advisor",
+      "to": "service-quotas",
+      "label": "warns when usage nears limits tracked by"
+    },
+    {
+      "from": "trusted-advisor",
+      "to": "eventbridge",
+      "label": "sends check status changes (us-east-1) to"
+    },
+    {
+      "from": "trusted-advisor",
+      "to": "organizations",
+      "label": "aggregates check results across accounts in"
+    },
+    {
+      "from": "trusted-advisor",
+      "to": "compute-optimizer",
+      "label": "shows rightsizing findings from"
+    },
+    {
+      "from": "trusted-advisor",
+      "to": "security-hub",
+      "label": "displays security controls from"
+    },
+    {
+      "from": "trusted-advisor",
+      "to": "config",
+      "label": "runs some checks powered by"
+    },
+    {
+      "from": "trusted-advisor",
+      "to": "security-groups",
+      "label": "flags ports open to the world in"
+    },
+    {
+      "from": "fis",
+      "to": "asg",
+      "label": "injects faults during game days into"
+    },
+    {
+      "from": "resilience-hub",
+      "to": "well-architected-tool",
+      "label": "complements reliability reviews in"
+    }
+  ],
+  "examDomains": [
+    "secure",
+    "resilient",
+    "performant",
+    "cost"
+  ],
+  "lastVerified": "2026-10-04",
+  "sources": [
+    {
+      "title": "AWS Well-Architected Framework (publication date and introduction)",
+      "url": "https://docs.aws.amazon.com/wellarchitected/latest/framework/welcome.html"
+    },
+    {
+      "title": "Well-Architected Framework: document revisions",
+      "url": "https://docs.aws.amazon.com/wellarchitected/latest/framework/document-revisions.html"
+    },
+    {
+      "title": "Well-Architected Framework: definitions and trade-offs between pillars",
+      "url": "https://docs.aws.amazon.com/wellarchitected/latest/framework/definitions.html"
+    },
+    {
+      "title": "Well-Architected Framework: general design principles",
+      "url": "https://docs.aws.amazon.com/wellarchitected/latest/framework/general-design-principles.html"
+    },
+    {
+      "title": "Well-Architected Framework: the pillars of the framework",
+      "url": "https://docs.aws.amazon.com/wellarchitected/latest/framework/the-pillars-of-the-framework.html"
+    },
+    {
+      "title": "Operational excellence pillar: design principles",
+      "url": "https://docs.aws.amazon.com/wellarchitected/latest/framework/oe-design-principles.html"
+    },
+    {
+      "title": "Operational excellence pillar: best practice areas",
+      "url": "https://docs.aws.amazon.com/wellarchitected/latest/framework/oe-bp.html"
+    },
+    {
+      "title": "Security pillar: design principles",
+      "url": "https://docs.aws.amazon.com/wellarchitected/latest/framework/sec-design.html"
+    },
+    {
+      "title": "Security pillar: best practice areas",
+      "url": "https://docs.aws.amazon.com/wellarchitected/latest/framework/sec-bp.html"
+    },
+    {
+      "title": "Reliability pillar: design principles",
+      "url": "https://docs.aws.amazon.com/wellarchitected/latest/framework/rel-dp.html"
+    },
+    {
+      "title": "Reliability pillar: best practice areas",
+      "url": "https://docs.aws.amazon.com/wellarchitected/latest/framework/rel-bp.html"
+    },
+    {
+      "title": "Performance efficiency pillar: design principles",
+      "url": "https://docs.aws.amazon.com/wellarchitected/latest/framework/perf-dp.html"
+    },
+    {
+      "title": "Performance efficiency pillar: best practice areas",
+      "url": "https://docs.aws.amazon.com/wellarchitected/latest/framework/perf-bp.html"
+    },
+    {
+      "title": "Cost optimization pillar: design principles",
+      "url": "https://docs.aws.amazon.com/wellarchitected/latest/framework/cost-dp.html"
+    },
+    {
+      "title": "Cost optimization pillar: best practice areas",
+      "url": "https://docs.aws.amazon.com/wellarchitected/latest/framework/cost-bp.html"
+    },
+    {
+      "title": "Sustainability pillar: design principles",
+      "url": "https://docs.aws.amazon.com/wellarchitected/latest/framework/sus-design-principles.html"
+    },
+    {
+      "title": "Sustainability pillar: best practice areas",
+      "url": "https://docs.aws.amazon.com/wellarchitected/latest/framework/sus-bp.html"
+    },
+    {
+      "title": "Sustainability pillar: the shared responsibility model",
+      "url": "https://docs.aws.amazon.com/wellarchitected/latest/sustainability-pillar/the-shared-responsibility-model.html"
+    },
+    {
+      "title": "What is AWS Well-Architected? (Tool vs Agent comparison)",
+      "url": "https://docs.aws.amazon.com/wellarchitected/latest/userguide/well-architected.html"
+    },
+    {
+      "title": "What is AWS Well-Architected Tool?",
+      "url": "https://docs.aws.amazon.com/wellarchitected/latest/userguide/tool.html"
+    },
+    {
+      "title": "AWS Well-Architected glossary (HRI, MRI, profile, milestone)",
+      "url": "https://docs.aws.amazon.com/wellarchitected/latest/userguide/definitions.html"
+    },
+    {
+      "title": "Defining a workload in AWS WA Tool",
+      "url": "https://docs.aws.amazon.com/wellarchitected/latest/userguide/define-workload.html"
+    },
+    {
+      "title": "Documenting a workload in AWS WA Tool",
+      "url": "https://docs.aws.amazon.com/wellarchitected/latest/userguide/start-workflow-review.html"
+    },
+    {
+      "title": "Reviewing a workload with AWS Well-Architected Framework",
+      "url": "https://docs.aws.amazon.com/wellarchitected/latest/userguide/continue-workflow-review.html"
+    },
+    {
+      "title": "The AWS Well-Architected Tool Overview tab",
+      "url": "https://docs.aws.amazon.com/wellarchitected/latest/userguide/details-review.html"
+    },
+    {
+      "title": "Milestones in AWS WA Tool",
+      "url": "https://docs.aws.amazon.com/wellarchitected/latest/userguide/milestones.html"
+    },
+    {
+      "title": "Saving a milestone for a workload in AWS WA Tool",
+      "url": "https://docs.aws.amazon.com/wellarchitected/latest/userguide/save-milestone.html"
+    },
+    {
+      "title": "Generate a workload report in AWS Well-Architected Tool",
+      "url": "https://docs.aws.amazon.com/wellarchitected/latest/userguide/workloads-report.html"
+    },
+    {
+      "title": "Delete a workload in AWS Well-Architected Tool",
+      "url": "https://docs.aws.amazon.com/wellarchitected/latest/userguide/workloads-delete.html"
+    },
+    {
+      "title": "Using lenses in AWS WA Tool",
+      "url": "https://docs.aws.amazon.com/wellarchitected/latest/userguide/lenses.html"
+    },
+    {
+      "title": "Lens Catalog for AWS WA Tool",
+      "url": "https://docs.aws.amazon.com/wellarchitected/latest/userguide/lens-catalog.html"
+    },
+    {
+      "title": "What is AWS Well-Architected Agent (preview)?",
+      "url": "https://docs.aws.amazon.com/wellarchitected/latest/userguide/agent.html"
+    },
+    {
+      "title": "AWS Well-Architected Tool FAQs (no additional charge)",
+      "url": "https://aws.amazon.com/well-architected-tool/faqs/"
+    },
+    {
+      "title": "AWS CLI reference: wellarchitected create-workload",
+      "url": "https://docs.aws.amazon.com/cli/latest/reference/wellarchitected/create-workload.html"
+    },
+    {
+      "title": "AWS CLI reference: wellarchitected list-answers",
+      "url": "https://docs.aws.amazon.com/cli/latest/reference/wellarchitected/list-answers.html"
+    },
+    {
+      "title": "AWS CLI reference: wellarchitected get-answer",
+      "url": "https://docs.aws.amazon.com/cli/latest/reference/wellarchitected/get-answer.html"
+    },
+    {
+      "title": "AWS CLI reference: wellarchitected update-answer",
+      "url": "https://docs.aws.amazon.com/cli/latest/reference/wellarchitected/update-answer.html"
+    },
+    {
+      "title": "AWS CLI reference: wellarchitected get-lens-review",
+      "url": "https://docs.aws.amazon.com/cli/latest/reference/wellarchitected/get-lens-review.html"
+    },
+    {
+      "title": "AWS CLI reference: wellarchitected create-milestone",
+      "url": "https://docs.aws.amazon.com/cli/latest/reference/wellarchitected/create-milestone.html"
+    },
+    {
+      "title": "AWS CLI reference: wellarchitected get-lens-review-report",
+      "url": "https://docs.aws.amazon.com/cli/latest/reference/wellarchitected/get-lens-review-report.html"
+    },
+    {
+      "title": "AWS CLI reference: wellarchitected delete-workload",
+      "url": "https://docs.aws.amazon.com/cli/latest/reference/wellarchitected/delete-workload.html"
+    },
+    {
+      "title": "AWS CLI reference: wellarchitected list-workloads",
+      "url": "https://docs.aws.amazon.com/cli/latest/reference/wellarchitected/list-workloads.html"
+    },
+    {
+      "title": "AWS Trusted Advisor (plan availability, Basic Support checks)",
+      "url": "https://docs.aws.amazon.com/awssupport/latest/user/trusted-advisor.html"
+    },
+    {
+      "title": "Get started with Trusted Advisor Recommendations (console, categories, refresh, notifications)",
+      "url": "https://docs.aws.amazon.com/awssupport/latest/user/get-started-with-aws-trusted-advisor.html"
+    },
+    {
+      "title": "Get started with the Trusted Advisor API",
+      "url": "https://docs.aws.amazon.com/awssupport/latest/user/get-started-with-aws-trusted-advisor-api.html"
+    },
+    {
+      "title": "AWS Trusted Advisor check reference (checks available with Basic Support)",
+      "url": "https://docs.aws.amazon.com/awssupport/latest/user/trusted-advisor-check-reference.html"
+    },
+    {
+      "title": "Trusted Advisor security checks (Security Groups - Specific Ports Unrestricted)",
+      "url": "https://docs.aws.amazon.com/awssupport/latest/user/security-checks.html"
+    },
+    {
+      "title": "Monitoring Trusted Advisor check results with Amazon EventBridge",
+      "url": "https://docs.aws.amazon.com/awssupport/latest/user/cloudwatch-events-ta.html"
+    },
+    {
+      "title": "Get started with AWS Trusted Advisor Priority",
+      "url": "https://docs.aws.amazon.com/awssupport/latest/user/trusted-advisor-priority.html"
+    },
+    {
+      "title": "Organizational view for AWS Trusted Advisor",
+      "url": "https://docs.aws.amazon.com/awssupport/latest/user/organizational-view.html"
+    },
+    {
+      "title": "About the AWS Support API (plan requirement, us-east-1 endpoint for Trusted Advisor operations)",
+      "url": "https://docs.aws.amazon.com/awssupport/latest/user/about-support-api.html"
+    },
+    {
+      "title": "AWS Support Plans (features of Basic, Business Support+, Enterprise, Unified Operations)",
+      "url": "https://docs.aws.amazon.com/awssupport/latest/user/aws-support-plans.html"
+    },
+    {
+      "title": "Developer, Business, and Enterprise On-Ramp end of support",
+      "url": "https://docs.aws.amazon.com/awssupport/latest/user/support-plans-eos.html"
+    },
+    {
+      "title": "AWS Support pricing",
+      "url": "https://aws.amazon.com/premiumsupport/pricing/"
+    },
+    {
+      "title": "AWS CLI reference: trustedadvisor list-checks",
+      "url": "https://docs.aws.amazon.com/cli/latest/reference/trustedadvisor/list-checks.html"
+    },
+    {
+      "title": "AWS Certified Solutions Architect - Associate (SAA-C03) exam guide",
+      "url": "https://docs.aws.amazon.com/aws-certification/latest/solutions-architect-associate-03/solutions-architect-associate-03.html"
+    },
+    {
+      "title": "AWS Certified Solutions Architect - Associate exam page",
+      "url": "https://aws.amazon.com/certification/certified-solutions-architect-associate/"
+    },
+    {
+      "title": "AWS Certification policies: before testing (registration, ID, ESL +30)",
+      "url": "https://aws.amazon.com/certification/policies/before-testing/"
+    },
+    {
+      "title": "AWS Certification policies: during testing (ID, flagging, breaks)",
+      "url": "https://aws.amazon.com/certification/policies/during-testing/"
+    },
+    {
+      "title": "AWS Certification FAQs (retake wait, results, recertification)",
+      "url": "https://aws.amazon.com/certification/faqs/"
+    },
+    {
+      "title": "AWS Certification benefits (50% discount voucher)",
+      "url": "https://aws.amazon.com/certification/benefits/"
+    },
+    {
+      "title": "AWS Certification exams list",
+      "url": "https://aws.amazon.com/certification/exams/"
+    },
+    {
+      "title": "AWS Certification: coming soon (SysOps Administrator renamed CloudOps Engineer)",
+      "url": "https://aws.amazon.com/certification/coming-soon/"
+    },
+    {
+      "title": "AWS Certified Machine Learning - Specialty (retirement)",
+      "url": "https://aws.amazon.com/certification/certified-machine-learning-specialty/"
+    },
+    {
+      "title": "AWS Certified Advanced Networking - Specialty (retirement)",
+      "url": "https://aws.amazon.com/certification/certified-advanced-networking-specialty/"
+    },
+    {
+      "title": "AWS Certified Generative AI Developer - Professional",
+      "url": "https://aws.amazon.com/certification/certified-generative-ai-developer-professional/"
+    },
+    {
+      "title": "AWS Certified AI Business Strategist (beta)",
+      "url": "https://aws.amazon.com/certification/certified-ai-business-strategist/"
+    },
+    {
+      "title": "Disaster Recovery of Workloads on AWS: Recovery in the Cloud (whitepaper)",
+      "url": "https://docs.aws.amazon.com/whitepapers/latest/disaster-recovery-workloads-on-aws/disaster-recovery-workloads-on-aws.html"
+    },
+    {
+      "title": "Disaster recovery options in the cloud (whitepaper section)",
+      "url": "https://docs.aws.amazon.com/whitepapers/latest/disaster-recovery-workloads-on-aws/disaster-recovery-options-in-the-cloud.html"
+    },
+    {
+      "title": "Architecting for the Cloud: AWS Best Practices (archived whitepaper PDF)",
+      "url": "https://d1.awsstatic.com/whitepapers/AWS_Cloud_Best_Practices.pdf"
+    },
+    {
+      "title": "AWS Architecture Center",
+      "url": "https://aws.amazon.com/architecture/"
+    },
+    {
+      "title": "AWS Solutions Library",
+      "url": "https://aws.amazon.com/solutions/"
+    },
+    {
+      "title": "Trusted Advisor service limits checks (yellow at 80 %, red at 100 %)",
+      "url": "https://docs.aws.amazon.com/awssupport/latest/user/service-limits.html"
+    },
+    {
+      "title": "Trusted Advisor cost optimization checks",
+      "url": "https://docs.aws.amazon.com/awssupport/latest/user/cost-optimization-checks.html"
+    },
+    {
+      "title": "Trusted Advisor performance checks",
+      "url": "https://docs.aws.amazon.com/awssupport/latest/user/performance-checks.html"
+    },
+    {
+      "title": "Trusted Advisor fault tolerance checks (STS global endpoint usage)",
+      "url": "https://docs.aws.amazon.com/awssupport/latest/user/fault-tolerance-checks.html"
+    },
+    {
+      "title": "Trusted Advisor operational excellence checks",
+      "url": "https://docs.aws.amazon.com/awssupport/latest/user/operational-excellence-checks.html"
+    },
+    {
+      "title": "Manage access to AWS Trusted Advisor (IAM actions such as RefreshCheck)",
+      "url": "https://docs.aws.amazon.com/awssupport/latest/user/security-trusted-advisor.html"
+    },
+    {
+      "title": "AWS managed policies for AWS Trusted Advisor",
+      "url": "https://docs.aws.amazon.com/awssupport/latest/user/aws-managed-policies-for-trusted-advisor.html"
+    },
+    {
+      "title": "AWS managed policies for AWS Well-Architected (WellArchitectedConsoleFullAccess)",
+      "url": "https://docs.aws.amazon.com/wellarchitected/latest/userguide/security-iam-awsmanpol.html"
+    },
+    {
+      "title": "Viewing lens details for a workload (Overview and Improvement plan tabs)",
+      "url": "https://docs.aws.amazon.com/wellarchitected/latest/userguide/lenses-details.html"
+    },
+    {
+      "title": "View workload details in AWS Well-Architected Tool",
+      "url": "https://docs.aws.amazon.com/wellarchitected/latest/userguide/workload-details.html"
+    },
+    {
+      "title": "Viewing milestones",
+      "url": "https://docs.aws.amazon.com/wellarchitected/latest/userguide/milestones-view.html"
+    },
+    {
+      "title": "AWS CLI reference: wellarchitected list-milestones",
+      "url": "https://docs.aws.amazon.com/cli/latest/reference/wellarchitected/list-milestones.html"
+    },
+    {
+      "title": "Service Quotas: requesting a quota increase",
+      "url": "https://docs.aws.amazon.com/servicequotas/latest/userguide/request-quota-increase.html"
+    },
+    {
+      "title": "Sharing your AWS WA Tool resources (accounts, organizations, OUs)",
+      "url": "https://docs.aws.amazon.com/wellarchitected/latest/userguide/sharing.html"
+    },
+    {
+      "title": "AWS Trusted Advisor API Reference",
+      "url": "https://docs.aws.amazon.com/trustedadvisor/latest/APIReference/Welcome.html"
+    },
+    {
+      "title": "AWS CLI reference: support describe-trusted-advisor-checks",
+      "url": "https://docs.aws.amazon.com/cli/latest/reference/support/describe-trusted-advisor-checks.html"
+    },
+    {
+      "title": "AWS Well-Architected Agent quotas and limits (support tiers, hosting Regions)",
+      "url": "https://docs.aws.amazon.com/wellarchitected/latest/userguide/agent-quotas.html"
+    },
+    {
+      "title": "AWS Certification exam preparation (free vs subscription Skill Builder resources)",
+      "url": "https://aws.amazon.com/certification/certification-prep/"
+    },
+    {
+      "title": "AWS Skill Builder (free resources and subscription plans)",
+      "url": "https://aws.amazon.com/training/digital/"
+    }
+  ],
+  "newServices": []
+}

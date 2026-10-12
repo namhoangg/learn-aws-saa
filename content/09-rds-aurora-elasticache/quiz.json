@@ -1,0 +1,235 @@
+{
+  "section": "09-rds-aurora-elasticache",
+  "questions": [
+    {
+      "id": "09-rds-aurora-elasticache-q01",
+      "type": "single",
+      "domain": "performant",
+      "difficulty": "easy",
+      "question": "An e-commerce company runs its order system on an Amazon RDS for MySQL DB instance. Every morning the finance team runs large reporting queries against the same database, and checkout latency spikes during that time. The reports can tolerate data that is a few seconds old. Which solution resolves the latency problem with the LEAST operational effort?",
+      "options": [
+        { "id": "A", "text": "Convert the DB instance to a Multi-AZ DB instance deployment and run the reports against the standby.", "correct": false, "explanation": "The standby of a Multi-AZ DB instance deployment cannot accept connections for reads; it exists only for failover." },
+        { "id": "B", "text": "Scale the DB instance up to a larger instance class every morning and back down after the reports finish.", "correct": false, "explanation": "Resizing causes a brief outage each time and needs scheduling work; it treats the symptom instead of isolating the reporting workload." },
+        { "id": "C", "text": "Create an RDS read replica and point the reporting tool at the replica's endpoint.", "correct": true, "explanation": "A read replica receives changes asynchronously, so reports run on a separate instance with seconds-old data and the primary keeps serving checkout traffic." },
+        { "id": "D", "text": "Export a nightly snapshot to Amazon S3 and run the reports there with a custom script.", "correct": false, "explanation": "This adds pipeline work and gives day-old data; it is far more effort than a replica for a requirement that tolerates only seconds of staleness." }
+      ],
+      "explanation": "Read-heavy or reporting workloads that slow down production are solved with read replicas; Multi-AZ standbys don't serve reads.",
+      "tags": ["rds", "read-replicas"]
+    },
+    {
+      "id": "09-rds-aurora-elasticache-q02",
+      "type": "single",
+      "domain": "resilient",
+      "difficulty": "easy",
+      "question": "A company's application uses a single-AZ Amazon RDS for PostgreSQL DB instance. The business now requires that the database keep running if an Availability Zone fails, with automatic failover and no changes to the application's connection string. What should a solutions architect do?",
+      "options": [
+        { "id": "A", "text": "Modify the DB instance to a Multi-AZ DB instance deployment.", "correct": true, "explanation": "Multi-AZ keeps a synchronous standby in another AZ and flips the same DNS endpoint to it automatically, so the connection string doesn't change. The conversion itself causes no downtime." },
+        { "id": "B", "text": "Create a read replica in another AZ and configure the application to switch to it on failure.", "correct": false, "explanation": "RDS read replicas are not promoted automatically, replication is asynchronous, and the application would need a different endpoint." },
+        { "id": "C", "text": "Take hourly snapshots and copy them to another AZ.", "correct": false, "explanation": "Snapshots are already stored regionally in S3; restoring one creates a new instance with a new endpoint and takes far longer than automatic failover." },
+        { "id": "D", "text": "Enable storage autoscaling on the DB instance.", "correct": false, "explanation": "Storage autoscaling prevents running out of disk space; it does nothing for AZ failures." }
+      ],
+      "explanation": "Automatic failover across AZs with an unchanged endpoint is the definition of RDS Multi-AZ.",
+      "tags": ["rds", "multi-az"]
+    },
+    {
+      "id": "09-rds-aurora-elasticache-q03",
+      "type": "single",
+      "domain": "performant",
+      "difficulty": "medium",
+      "question": "A serverless API uses AWS Lambda functions that query an Amazon Aurora MySQL cluster. During traffic spikes, thousands of concurrent invocations open new connections and the database returns 'too many connections' errors and high CPU. The team wants to fix this without rewriting the functions. Which solution meets the requirement?",
+      "options": [
+        { "id": "A", "text": "Increase the max_connections parameter to the highest allowed value.", "correct": false, "explanation": "Each connection still costs memory and CPU on the database; raising the limit just moves the failure point and can exhaust instance memory." },
+        { "id": "B", "text": "Put an Application Load Balancer in front of the Aurora cluster.", "correct": false, "explanation": "An ALB balances HTTP(S) requests; it cannot pool or reuse database connections." },
+        { "id": "C", "text": "Add an ElastiCache for Memcached cluster between Lambda and Aurora.", "correct": false, "explanation": "A cache can reduce reads but requires code changes and does nothing for writes or connection management." },
+        { "id": "D", "text": "Create an Amazon RDS Proxy for the cluster and point the functions at the proxy endpoint.", "correct": true, "explanation": "RDS Proxy pools and multiplexes connections, queuing excess requests, so many Lambda invocations share a few database connections. Only the hostname changes." }
+      ],
+      "explanation": "Connection storms from Lambda point to RDS Proxy, which pools connections and also speeds up failover.",
+      "tags": ["rds-proxy", "lambda"]
+    },
+    {
+      "id": "09-rds-aurora-elasticache-q04",
+      "type": "single",
+      "domain": "secure",
+      "difficulty": "medium",
+      "question": "An auditor finds that a production Amazon RDS for MySQL DB instance was created without encryption at rest. The company must encrypt the data with an AWS KMS key while keeping the data. Which approach works?",
+      "options": [
+        { "id": "A", "text": "Modify the DB instance and select Enable encryption, applying the change immediately.", "correct": false, "explanation": "Encryption at rest can only be chosen at creation; there is no setting to turn it on for an existing instance." },
+        { "id": "B", "text": "Take a snapshot, copy the snapshot with encryption enabled using the KMS key, and restore a new DB instance from the encrypted copy.", "correct": true, "explanation": "Copying a snapshot is the supported way to add encryption; the restored instance is encrypted, and the app is then pointed at its endpoint." },
+        { "id": "C", "text": "Create an encrypted read replica of the instance and promote it.", "correct": false, "explanation": "RDS does not allow an encrypted read replica of an unencrypted source." },
+        { "id": "D", "text": "Enable TLS on all client connections to the DB instance.", "correct": false, "explanation": "TLS protects data in transit, not the data stored on disk." }
+      ],
+      "explanation": "To encrypt an existing unencrypted RDS database: snapshot, copy with encryption, restore.",
+      "tags": ["security", "kms", "encryption"]
+    },
+    {
+      "id": "09-rds-aurora-elasticache-q05",
+      "type": "single",
+      "domain": "resilient",
+      "difficulty": "medium",
+      "question": "A travel booking company runs an Amazon Aurora PostgreSQL cluster in us-east-1. It is expanding to Europe and needs low-latency reads for European users, plus a disaster recovery plan in which another Region can take over writes within about a minute and lose no more than about a second of data. Which solution meets these requirements?",
+      "options": [
+        { "id": "A", "text": "Convert the cluster to an Aurora Global Database with a secondary cluster in eu-west-1.", "correct": true, "explanation": "Global Database replicates at the storage layer with typical lag under 1 second, serves local reads in the secondary Region, and can promote the secondary quickly." },
+        { "id": "B", "text": "Create Aurora cross-Region read replicas in eu-west-1 using binary log replication.", "correct": false, "explanation": "Binlog-based cross-Region replicas are available only for Aurora MySQL, not Aurora PostgreSQL, and have higher lag than Global Database." },
+        { "id": "C", "text": "Add Aurora Replicas in a third Availability Zone of us-east-1.", "correct": false, "explanation": "Replicas in the same Region do not protect against a Regional outage or reduce latency for European users." },
+        { "id": "D", "text": "Copy automated snapshots to eu-west-1 every hour and restore them during a disaster.", "correct": false, "explanation": "Hourly snapshots mean up to an hour of data loss and a long restore, and they provide no local reads." }
+      ],
+      "explanation": "Cross-Region DR with RPO around 1 second, fast promotion and local reads for global users is Aurora Global Database.",
+      "tags": ["aurora-global", "disaster-recovery"]
+    },
+    {
+      "id": "09-rds-aurora-elasticache-q06",
+      "type": "single",
+      "domain": "cost",
+      "difficulty": "medium",
+      "question": "A development team uses a MySQL-compatible database for testing. It is busy for short, unpredictable bursts during the workday and completely idle on nights and weekends. The team does not want to choose or resize instance classes and wants to pay as little as possible while it is idle. What should a solutions architect recommend?",
+      "options": [
+        { "id": "A", "text": "An Amazon RDS for MySQL db.r6g.large instance with a 3-year Reserved Instance.", "correct": false, "explanation": "A reservation commits to paying for a fixed-size instance around the clock, which wastes money for a mostly idle database." },
+        { "id": "B", "text": "An Amazon RDS for MySQL instance with Multi-AZ and storage autoscaling.", "correct": false, "explanation": "Multi-AZ doubles instance cost and storage autoscaling only grows disk; neither scales compute or saves money when idle." },
+        { "id": "C", "text": "An Amazon Aurora MySQL cluster using Aurora Serverless with a minimum capacity of 0 ACUs.", "correct": true, "explanation": "Aurora Serverless scales capacity with demand without instance sizing, and a 0 ACU minimum lets idle instances pause so only storage is billed." },
+        { "id": "D", "text": "A self-managed MySQL server on an EC2 Spot Instance.", "correct": false, "explanation": "Spot can be interrupted and the team would have to manage the database themselves, which conflicts with not wanting to manage capacity." }
+      ],
+      "explanation": "Intermittent, unpredictable workloads with no capacity planning fit Aurora Serverless; a minimum of 0 ACUs pauses it when idle.",
+      "tags": ["aurora-serverless", "cost"],
+      "updated": "Scaling to 0 ACUs (auto-pause) is newer than the slides."
+    },
+    {
+      "id": "09-rds-aurora-elasticache-q07",
+      "type": "single",
+      "domain": "cost",
+      "difficulty": "easy",
+      "question": "A company wants a staging copy of its 4 TB production Amazon Aurora MySQL cluster for load testing every sprint. The copy must be available quickly, must not affect production performance, and should add as little storage cost as possible. Which solution should the company use?",
+      "options": [
+        { "id": "A", "text": "Take a manual snapshot and restore it to a new cluster each sprint.", "correct": false, "explanation": "Snapshot restore works but builds a full copy of 4 TB each time, which is slower and stores all the data again." },
+        { "id": "B", "text": "Add an Aurora Replica and run the load tests on it.", "correct": false, "explanation": "A replica is read-only and shares the production cluster's volume, so write-heavy tests are impossible and heavy reads compete with production." },
+        { "id": "C", "text": "Use AWS DMS to replicate production into a new cluster continuously.", "correct": false, "explanation": "DMS adds a replication instance and ongoing cost and effort that a built-in feature avoids." },
+        { "id": "D", "text": "Create an Aurora clone of the production cluster.", "correct": true, "explanation": "Cloning uses copy-on-write, so the clone is ready quickly, initially shares pages with production, and only stores pages that change. Tests on the clone don't touch production." }
+      ],
+      "explanation": "Fast, low-cost staging copies of an Aurora cluster are what Aurora cloning is for.",
+      "tags": ["aurora", "cloning"]
+    },
+    {
+      "id": "09-rds-aurora-elasticache-q08",
+      "type": "single",
+      "domain": "resilient",
+      "difficulty": "medium",
+      "question": "A web application runs on EC2 instances in an Auto Scaling group behind an Application Load Balancer. Session data is stored in each instance's memory, so users are logged out whenever a scale-in event terminates an instance or the load balancer sends them to a different instance. The company wants the web tier to be stateless and keep users logged in. Which solution is MOST appropriate?",
+      "options": [
+        { "id": "A", "text": "Enable sticky sessions on the ALB target group.", "correct": false, "explanation": "Stickiness keeps a user on one instance but sessions are still lost when that instance is terminated, and it can unbalance load." },
+        { "id": "B", "text": "Store session data in Amazon ElastiCache for Valkey with a TTL on each session key.", "correct": true, "explanation": "A shared in-memory session store lets any instance read any user's session, so instances can be added or removed freely; the TTL expires old sessions." },
+        { "id": "C", "text": "Store session data on each instance's EBS root volume.", "correct": false, "explanation": "EBS volumes are attached to one instance, so other instances cannot read the sessions, and they disappear when the instance terminates." },
+        { "id": "D", "text": "Disable scale-in on the Auto Scaling group.", "correct": false, "explanation": "This wastes money and still loses sessions when an instance fails or the ALB routes elsewhere." }
+      ],
+      "explanation": "Externalizing session state to ElastiCache (or DynamoDB) makes web servers stateless.",
+      "tags": ["elasticache", "session-store"]
+    },
+    {
+      "id": "09-rds-aurora-elasticache-q09",
+      "type": "single",
+      "domain": "performant",
+      "difficulty": "easy",
+      "question": "A mobile game must show a global leaderboard that updates in real time as millions of players submit scores. Queries such as 'top 100 players' and 'what is my rank?' must return in milliseconds. Which solution meets these requirements?",
+      "options": [
+        { "id": "A", "text": "Store scores in an Amazon ElastiCache for Valkey sorted set and query ranks with sorted-set commands.", "correct": true, "explanation": "Sorted sets keep members unique and ordered by score in memory, so rank and top-N queries are fast and updates re-rank instantly." },
+        { "id": "B", "text": "Store scores in Amazon RDS for MySQL and run ORDER BY score DESC LIMIT 100 on every request.", "correct": false, "explanation": "Sorting millions of rows on each request is expensive and slow at this scale, even with indexes and replicas." },
+        { "id": "C", "text": "Use Amazon ElastiCache for Memcached and sort the scores in application code.", "correct": false, "explanation": "Memcached only stores simple values; the application would have to fetch and sort huge lists itself." },
+        { "id": "D", "text": "Write scores to Amazon S3 and compute rankings hourly with a batch job.", "correct": false, "explanation": "Hourly batch results are not real time." }
+      ],
+      "explanation": "Real-time leaderboards are the textbook use case for Valkey/Redis OSS sorted sets.",
+      "tags": ["elasticache", "sorted-sets"]
+    },
+    {
+      "id": "09-rds-aurora-elasticache-q10",
+      "type": "single",
+      "domain": "resilient",
+      "difficulty": "hard",
+      "question": "An engineer accidentally ran a DELETE statement without a WHERE clause on an Amazon Aurora MySQL cluster 20 minutes ago. The cluster was created with Backtrack enabled and a 24-hour target window. The company needs the data back as quickly as possible and wants applications to keep using the same endpoints. What should a solutions architect do?",
+      "options": [
+        { "id": "A", "text": "Restore the cluster to a point in time 25 minutes ago and update the application connection strings.", "correct": false, "explanation": "Point-in-time restore builds a new cluster with new endpoints, which takes longer and requires connection changes." },
+        { "id": "B", "text": "Promote an Aurora Replica to become the new writer.", "correct": false, "explanation": "Replicas share the same storage volume, so they already reflect the delete." },
+        { "id": "C", "text": "Backtrack the cluster to a time just before the DELETE statement.", "correct": true, "explanation": "Backtrack rewinds the same cluster in place within minutes, so endpoints stay the same and no restore is needed." },
+        { "id": "D", "text": "Restore the most recent manual snapshot into the existing cluster.", "correct": false, "explanation": "Snapshots can't be restored into an existing cluster; a restore always creates a new one, and the snapshot may be much older." }
+      ],
+      "explanation": "Aurora Backtrack (Aurora MySQL, enabled at creation, up to 72 hours) undoes mistakes in place; restores always create new databases.",
+      "tags": ["aurora", "backtrack", "backups"]
+    },
+    {
+      "id": "09-rds-aurora-elasticache-q11",
+      "type": "single",
+      "domain": "secure",
+      "difficulty": "medium",
+      "question": "A vendor's packaged application requires Microsoft SQL Server and needs a monitoring agent installed on the database server's operating system. The company wants AWS to keep handling automated backups and point-in-time recovery. Which option meets these requirements with the LEAST operational overhead?",
+      "options": [
+        { "id": "A", "text": "Amazon RDS for SQL Server with an option group that installs the agent.", "correct": false, "explanation": "Standard RDS gives no OS access, and option groups only offer AWS-provided features, not arbitrary agents." },
+        { "id": "B", "text": "Self-managed SQL Server on an EC2 instance with scripts for backups.", "correct": false, "explanation": "EC2 gives OS access, but the company would have to build and run backups and recovery itself, which is more overhead." },
+        { "id": "C", "text": "Babelfish for Aurora PostgreSQL.", "correct": false, "explanation": "Babelfish lets SQL Server applications talk to Aurora PostgreSQL, but it still offers no OS access for an agent and isn't SQL Server." },
+        { "id": "D", "text": "Amazon RDS Custom for SQL Server, pausing automation while installing the agent.", "correct": true, "explanation": "RDS Custom keeps automated backups and point-in-time recovery while granting administrator access to the OS and database for customizations." }
+      ],
+      "explanation": "Managed database plus OS-level customization for Oracle or SQL Server means RDS Custom.",
+      "tags": ["rds-custom"],
+      "updated": "RDS Custom for Oracle reaches end of support on 31 March 2027; RDS Custom for SQL Server continues."
+    },
+    {
+      "id": "09-rds-aurora-elasticache-q12",
+      "type": "multi",
+      "domain": "performant",
+      "difficulty": "medium",
+      "question": "An online store caches product records in Amazon ElastiCache for Valkey using lazy loading in front of an Amazon RDS database. After merchants update prices, customers sometimes see old prices for hours. The company wants to keep the cache but reduce how long stale prices are shown. Which actions should the company take? (Select TWO.)",
+      "options": [
+        { "id": "A", "text": "Enable Multi-AZ with automatic failover on the cache.", "correct": false, "explanation": "Multi-AZ improves availability of the cache; it does nothing about stale values." },
+        { "id": "B", "text": "Update the cache entry whenever the application writes a new price to the database (write-through).", "correct": true, "explanation": "Writing the new value to the cache at the same time as the database means readers get the fresh price immediately." },
+        { "id": "C", "text": "Switch the cache engine to Memcached.", "correct": false, "explanation": "The engine doesn't change cache-aside staleness; Memcached would also lose replication and failover." },
+        { "id": "D", "text": "Set a time to live (TTL) on cached product keys.", "correct": true, "explanation": "A TTL bounds how long any entry can be served before it is reloaded from the database, which caps staleness even if an update path is missed." },
+        { "id": "E", "text": "Add read replicas to the RDS database.", "correct": false, "explanation": "Replicas scale database reads but the stale data is coming from the cache, which would keep serving it." }
+      ],
+      "explanation": "Lazy loading can serve stale data; combine it with write-through on updates and TTLs on keys.",
+      "tags": ["elasticache", "caching"]
+    },
+    {
+      "id": "09-rds-aurora-elasticache-q13",
+      "type": "multi",
+      "domain": "secure",
+      "difficulty": "medium",
+      "question": "A solutions architect is designing a new Amazon Aurora PostgreSQL cluster for a healthcare application. Requirements: data at rest must be encrypted with a customer managed key, and application servers must not store long-lived database passwords. Which actions meet these requirements? (Select TWO.)",
+      "options": [
+        { "id": "A", "text": "Create the cluster unencrypted and enable encryption later through a cluster modification.", "correct": false, "explanation": "Encryption can't be turned on for an existing cluster; it would need a snapshot copy and restore." },
+        { "id": "B", "text": "Store the database password in the EC2 user data script.", "correct": false, "explanation": "User data is readable from the instance and is still a long-lived password, which violates the requirement." },
+        { "id": "C", "text": "Enable encryption with an AWS KMS customer managed key when creating the cluster.", "correct": true, "explanation": "Encryption at rest must be chosen at creation; it then covers the cluster volume, backups, snapshots and replicas." },
+        { "id": "D", "text": "Allow SSH to the Aurora hosts so that administrators can rotate passwords on the OS.", "correct": false, "explanation": "Aurora does not allow SSH to its hosts, and OS access has nothing to do with database password storage." },
+        { "id": "E", "text": "Enable IAM database authentication and have the application generate short-lived authentication tokens.", "correct": true, "explanation": "IAM database authentication replaces a stored password with a signed token that the application generates from its IAM role credentials; each token is valid for 15 minutes and the connection must use TLS." }
+      ],
+      "explanation": "Encrypt at creation with KMS and use IAM database authentication (or Secrets Manager) to avoid stored passwords.",
+      "tags": ["security", "kms", "iam-auth"]
+    },
+    {
+      "id": "09-rds-aurora-elasticache-q14",
+      "type": "multi",
+      "domain": "resilient",
+      "difficulty": "medium",
+      "question": "A team is choosing between Amazon ElastiCache for Memcached and Amazon ElastiCache for Valkey for a new node-based cache cluster. Which requirements can be met ONLY by Valkey? (Select TWO.)",
+      "options": [
+        { "id": "A", "text": "A multi-threaded engine that uses many CPU cores per node.", "correct": false, "explanation": "Multi-threading is a Memcached strength, so this does not favor Valkey." },
+        { "id": "B", "text": "Automatic failover to a replica in another Availability Zone if the primary node fails.", "correct": true, "explanation": "Valkey (like Redis OSS) supports replicas and Multi-AZ automatic failover; Memcached has no replication." },
+        { "id": "C", "text": "Spreading data across several nodes to scale out.", "correct": false, "explanation": "Both engines can partition data across nodes (Valkey with cluster mode enabled)." },
+        { "id": "D", "text": "Storing simple key-value objects in memory.", "correct": false, "explanation": "Both engines store simple key-value data." },
+        { "id": "E", "text": "Backups and restore of the node-based cluster's data.", "correct": true, "explanation": "Node-based Valkey clusters support backup and restore; Memcached supports backups only for serverless caches." }
+      ],
+      "explanation": "Replication, automatic failover, backups and rich data types point to Valkey/Redis OSS; multi-threading and simplicity point to Memcached.",
+      "tags": ["elasticache"]
+    },
+    {
+      "id": "09-rds-aurora-elasticache-q15",
+      "type": "single",
+      "domain": "cost",
+      "difficulty": "medium",
+      "question": "A team uses an Amazon RDS for PostgreSQL DB instance for a quarterly audit environment. The database is needed for about one week each quarter and is idle the rest of the time. The team stops the instance after each audit but still sees charges, and the instance keeps starting again by itself. What is the MOST cost-effective approach?",
+      "options": [
+        { "id": "A", "text": "Keep stopping the instance and create an alarm to stop it again whenever it restarts.", "correct": false, "explanation": "Stopped instances still pay for storage and backups, and RDS restarts them after 7 days, so this only saves part of the cost with ongoing effort." },
+        { "id": "B", "text": "Take a snapshot after each audit, delete the instance, and restore from the snapshot when the next audit starts.", "correct": true, "explanation": "A snapshot costs only backup storage; nothing else is billed between audits, and restoring creates a fresh instance when needed." },
+        { "id": "C", "text": "Purchase a 1-year Reserved Instance for the DB instance.", "correct": false, "explanation": "A reservation commits to paying for the instance all year, even though it is used about four weeks a year." },
+        { "id": "D", "text": "Convert the instance to Multi-AZ so that it can stay stopped longer.", "correct": false, "explanation": "Multi-AZ doubles the instance cost and doesn't change the 7-day stop limit." }
+      ],
+      "explanation": "RDS instances can be stopped for at most 7 days and still bill storage; for long idle periods, snapshot and delete.",
+      "tags": ["rds", "cost", "backups"]
+    }
+  ]
+}

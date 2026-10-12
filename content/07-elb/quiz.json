@@ -1,0 +1,234 @@
+{
+  "section": "07-elb",
+  "questions": [
+    {
+      "id": "07-elb-q01",
+      "type": "single",
+      "domain": "performant",
+      "difficulty": "easy",
+      "question": "A company is breaking a monolith into microservices that run as containers on Amazon ECS. Requests for /orders must go to the orders service and requests for /users to the users service. Several tasks of different services can run on the same EC2 host, each on a dynamically assigned port. Which load balancing solution meets these requirements with the LEAST operational overhead?",
+      "options": [
+        { "id": "A", "text": "A Network Load Balancer with one TCP listener per microservice port.", "correct": false, "explanation": "An NLB works at layer 4 and cannot read the URL path, so it cannot send /orders and /users to different services from one listener." },
+        { "id": "B", "text": "One Classic Load Balancer per microservice, each fronting the hosts that run that service.", "correct": false, "explanation": "CLBs have no target groups or path rules, so you would need and manage one per service, and they do not handle dynamic container ports well." },
+        { "id": "C", "text": "An Application Load Balancer with path-based listener rules forwarding to one target group per service, with ECS registering each task's dynamic port.", "correct": true, "explanation": "The ALB routes on the URL path to separate target groups, and ECS registers tasks with their dynamic host ports, so many services share hosts and one load balancer." },
+        { "id": "D", "text": "A Gateway Load Balancer with a target group for each microservice.", "correct": false, "explanation": "A GWLB forwards IP packets to inspection appliances over GENEVE; it does not route HTTP requests by path to application services." }
+      ],
+      "explanation": "URL path routing to containers on dynamic ports is the textbook Application Load Balancer use case.",
+      "tags": ["alb", "ecs", "path-routing"]
+    },
+    {
+      "id": "07-elb-q02",
+      "type": "single",
+      "domain": "performant",
+      "difficulty": "medium",
+      "question": "A trading platform exposes a custom TCP protocol that must handle millions of requests per second with very low latency. The company's partners will only open their firewalls to a fixed set of IP addresses, one per Availability Zone, that never change. Which solution should a solutions architect recommend?",
+      "options": [
+        { "id": "A", "text": "An internet-facing Network Load Balancer with an Elastic IP address assigned in each enabled Availability Zone.", "correct": true, "explanation": "An NLB handles TCP at layer 4 with very high throughput and low latency, and each AZ node can use an Elastic IP that partners can allow-list." },
+        { "id": "B", "text": "An internet-facing Application Load Balancer, giving partners the IP addresses it resolves to today.", "correct": false, "explanation": "ALB node IPs change as it scales, so allow-listing today's addresses breaks later; ALBs also handle HTTP rather than a custom TCP protocol." },
+        { "id": "C", "text": "A Classic Load Balancer with a TCP listener and cross-zone load balancing enabled.", "correct": false, "explanation": "A CLB is previous generation, has no static or Elastic IPs, and is not built for millions of requests per second." },
+        { "id": "D", "text": "A Gateway Load Balancer whose endpoints have Elastic IP addresses.", "correct": false, "explanation": "A GWLB is for routing traffic through security appliances, not for exposing an application to partners on fixed IPs." }
+      ],
+      "explanation": "Extreme TCP/UDP performance plus fixed IPs per AZ points to the Network Load Balancer with Elastic IPs.",
+      "tags": ["nlb", "elastic-ip"]
+    },
+    {
+      "id": "07-elb-q03",
+      "type": "single",
+      "domain": "secure",
+      "difficulty": "medium",
+      "question": "A web application runs on EC2 instances behind an internet-facing Application Load Balancer. A security review finds that the instances' security group allows inbound HTTP on port 80 from 0.0.0.0/0, so users can reach the instances directly by their public IP. The company wants the instances to accept web traffic only from the load balancer. What should the solutions architect do?",
+      "options": [
+        { "id": "A", "text": "Add a network ACL rule that denies port 80 from 0.0.0.0/0 on the instance subnets.", "correct": false, "explanation": "0.0.0.0/0 also matches the ALB nodes' private addresses, so the deny would block load balancer traffic entering the instance subnets too; NACLs are also stateless and coarser than a security group reference." },
+        { "id": "B", "text": "Move the instances to a different VPC and use VPC peering with the load balancer's VPC.", "correct": false, "explanation": "Peering adds complexity and does not by itself stop direct access; the real fix is the security group source." },
+        { "id": "C", "text": "Replace the ALB with a Network Load Balancer, because NLBs block direct access automatically.", "correct": false, "explanation": "Changing load balancer type does not change what the instance security group allows; direct access would remain open." },
+        { "id": "D", "text": "Change the instance security group rule so that port 80 is allowed only from the ALB's security group.", "correct": true, "explanation": "Referencing the load balancer security group as the source lets only traffic that came through the ALB reach the instances, blocking direct internet access." }
+      ],
+      "explanation": "Chain security groups: the instance security group should reference the load balancer's security group, not an open CIDR.",
+      "tags": ["security-groups", "alb"]
+    },
+    {
+      "id": "07-elb-q04",
+      "type": "single",
+      "domain": "secure",
+      "difficulty": "medium",
+      "question": "After moving a web application behind an Application Load Balancer, the security team notices that the web server access logs on the EC2 instances show only private 10.0.x.x addresses as the source of every request. They need each user's real IP address for fraud analysis. What is the simplest way to get it?",
+      "options": [
+        { "id": "A", "text": "Enable client IP preservation on the ALB target group.", "correct": false, "explanation": "Client IP preservation is a Network Load Balancer target group attribute; an ALB always opens its own connection to the target." },
+        { "id": "B", "text": "Configure the web server to log the X-Forwarded-For request header added by the ALB.", "correct": true, "explanation": "The ALB terminates the client connection and records the client's IP in X-Forwarded-For, so logging that header gives the real address." },
+        { "id": "C", "text": "Assign Elastic IP addresses to the ALB so the client IP is passed through.", "correct": false, "explanation": "ALBs do not support Elastic IPs, and assigning addresses would not change the source IP that targets see." },
+        { "id": "D", "text": "Enable VPC Flow Logs on the instance network interfaces.", "correct": false, "explanation": "Flow logs on the instances would show the ALB node as the source too, because the client's connection ends at the ALB." }
+      ],
+      "explanation": "Behind an ALB the client IP travels in the X-Forwarded-For header (with X-Forwarded-Proto and X-Forwarded-Port alongside).",
+      "tags": ["alb", "headers"]
+    },
+    {
+      "id": "07-elb-q05",
+      "type": "single",
+      "domain": "secure",
+      "difficulty": "medium",
+      "question": "A company must inspect all traffic entering its application VPC from the internet using a third-party firewall product that runs on EC2. The firewall fleet must scale out and in and tolerate the failure of individual appliances, without changing the source and destination IP addresses of the packets. Which solution meets these requirements?",
+      "options": [
+        { "id": "A", "text": "Deploy the firewall appliances behind a Gateway Load Balancer and route traffic through Gateway Load Balancer endpoints by updating the route tables.", "correct": true, "explanation": "A GWLB is a transparent layer 3 gateway that load balances packets to appliance targets over GENEVE port 6081, with health checks, and is reached via endpoints in route tables." },
+        { "id": "B", "text": "Place the firewall appliances behind an Application Load Balancer and point the internet gateway at the ALB.", "correct": false, "explanation": "An ALB terminates HTTP connections and only handles HTTP/HTTPS; it is not a transparent gateway for all IP traffic." },
+        { "id": "C", "text": "Place the firewall appliances behind a Network Load Balancer with a TCP listener on every port.", "correct": false, "explanation": "An NLB handles TCP/UDP flows to applications and is not designed as an inline, transparent next hop for all IP packets." },
+        { "id": "D", "text": "Run one large firewall appliance and associate an Elastic IP address with it.", "correct": false, "explanation": "A single appliance is a single point of failure and cannot scale out, so it fails the availability and scaling requirements." }
+      ],
+      "explanation": "Inline third-party virtual appliances that must scale transparently are the Gateway Load Balancer's job.",
+      "tags": ["gwlb"]
+    },
+    {
+      "id": "07-elb-q06",
+      "type": "multi",
+      "domain": "secure",
+      "difficulty": "medium",
+      "question": "A company hosts three websites, shop.example.com, blog.example.com and www.example.net, on the same fleet of EC2 instances. Each site must be served over HTTPS with its own certificate, and the company wants to use a single load balancer with the LEAST operational overhead. Which combination of actions meets these requirements? (Select TWO.)",
+      "options": [
+        { "id": "A", "text": "Create a Classic Load Balancer and attach all three certificates to its HTTPS listener.", "correct": false, "explanation": "A CLB HTTPS listener serves only one certificate and does not support SNI, so it cannot present three certificates." },
+        { "id": "B", "text": "Create an Application Load Balancer with one HTTPS listener and add the certificates to its certificate list so that SNI selects the right one.", "correct": true, "explanation": "The ALB uses SNI to choose the certificate matching each requested hostname, so one listener serves all three sites." },
+        { "id": "C", "text": "Request public certificates for the three domains from AWS Certificate Manager and use them on the listener.", "correct": true, "explanation": "ACM issues public certificates at no charge for use with ELB and renews them automatically, which minimises operational work." },
+        { "id": "D", "text": "Use a Network Load Balancer with TCP listeners and install the certificates on every EC2 instance.", "correct": false, "explanation": "TLS passthrough would work, but installing and renewing certificates on every instance adds the most operational overhead." },
+        { "id": "E", "text": "Create three Classic Load Balancers, one per website, each with its own certificate.", "correct": false, "explanation": "This works technically but violates the single load balancer requirement and triples cost and management." }
+      ],
+      "explanation": "Multiple HTTPS domains on one load balancer means ALB (or NLB) with SNI, with certificates managed by ACM.",
+      "tags": ["sni", "acm", "alb"]
+    },
+    {
+      "id": "07-elb-q07",
+      "type": "single",
+      "domain": "resilient",
+      "difficulty": "medium",
+      "question": "An e-commerce application stores each user's shopping cart in the memory of the EC2 instance that handled the user's first request. Since the company added an Application Load Balancer and a second instance, customers complain that items randomly disappear from their carts. The company needs a fix this week with no changes to application code. What should the solutions architect do?",
+      "options": [
+        { "id": "A", "text": "Turn off cross-zone load balancing on the target group.", "correct": false, "explanation": "Turning off cross-zone keeps requests inside an AZ but still spreads a user's requests across instances there; ALB stickiness is not even supported with cross-zone off." },
+        { "id": "B", "text": "Store the carts in Amazon ElastiCache and make the instances stateless.", "correct": false, "explanation": "This is the best long-term design, but it requires application code changes, which the scenario rules out for now." },
+        { "id": "C", "text": "Enable duration-based sticky sessions on the ALB target group.", "correct": true, "explanation": "The ALB sets an AWSALB cookie and keeps sending each user to the same instance, so the in-memory cart is found again without code changes." },
+        { "id": "D", "text": "Increase the deregistration delay on the target group to 3,600 seconds.", "correct": false, "explanation": "Deregistration delay only affects targets that are leaving the group; it does not keep a user on the same healthy instance." }
+      ],
+      "explanation": "Sticky sessions are the no-code fix for in-memory session state; external session storage is the scalable fix.",
+      "tags": ["stickiness", "alb"]
+    },
+    {
+      "id": "07-elb-q08",
+      "type": "single",
+      "domain": "performant",
+      "difficulty": "hard",
+      "question": "A Network Load Balancer is enabled in two Availability Zones. AZ a has 2 registered instances and AZ b has 6. Monitoring shows the two instances in AZ a running at very high CPU while the AZ b instances are mostly idle. The instance counts cannot be changed this quarter. Which change spreads the load evenly across all instances?",
+      "options": [
+        { "id": "A", "text": "Enable sticky sessions on the NLB target group.", "correct": false, "explanation": "Source IP stickiness pins clients to targets and tends to make the imbalance worse, not better." },
+        { "id": "B", "text": "Change the target group's health check from TCP to HTTP.", "correct": false, "explanation": "The health check protocol decides which targets are healthy; it does not change how each node distributes traffic between AZs." },
+        { "id": "C", "text": "Increase the deregistration delay so connections drain more slowly.", "correct": false, "explanation": "Deregistration delay only applies when targets leave the target group and has no effect on steady-state distribution." },
+        { "id": "D", "text": "Enable cross-zone load balancing on the NLB, accepting the inter-AZ data transfer charges.", "correct": true, "explanation": "With cross-zone on, each NLB node spreads its half of the traffic across all eight instances instead of only those in its own AZ; NLB bills the inter-AZ data." }
+      ],
+      "explanation": "NLB cross-zone is off by default, so each AZ's node only uses its own AZ's targets; enabling it evens out unbalanced AZs at the cost of inter-AZ data charges.",
+      "tags": ["cross-zone", "nlb"]
+    },
+    {
+      "id": "07-elb-q09",
+      "type": "single",
+      "domain": "resilient",
+      "difficulty": "medium",
+      "question": "Users of a document service upload files that can take up to 10 minutes to transfer through an Application Load Balancer. During rolling deployments, instances are deregistered from the target group and some users see failed uploads. The target group uses default settings. What should the solutions architect change?",
+      "options": [
+        { "id": "A", "text": "Reduce the health check interval to 5 seconds.", "correct": false, "explanation": "Faster health checks detect failures sooner but do nothing for uploads that are cut off when a healthy target is deregistered." },
+        { "id": "B", "text": "Increase the target group's deregistration delay to a value longer than the longest upload, for example 900 seconds.", "correct": true, "explanation": "The default 300-second delay ends before a 10-minute upload finishes; a longer delay lets in-flight uploads complete before the target is removed." },
+        { "id": "C", "text": "Set the deregistration delay to 0 so deregistration completes immediately.", "correct": false, "explanation": "A delay of 0 disables draining, so every in-flight upload on a deregistering instance would fail." },
+        { "id": "D", "text": "Enable slow start mode on the target group.", "correct": false, "explanation": "Slow start ramps up traffic to new targets; it does not protect requests on targets that are being removed." }
+      ],
+      "explanation": "Deregistration delay (connection draining on CLB) defaults to 300 seconds; raise it for long requests and lower it for short ones.",
+      "tags": ["deregistration", "alb"]
+    },
+    {
+      "id": "07-elb-q10",
+      "type": "single",
+      "domain": "cost",
+      "difficulty": "medium",
+      "question": "A company runs five HTTP microservices, each behind its own Classic Load Balancer. Each service has its own hostname under example.com. Management wants to reduce load balancer costs and operational effort without changing how clients address the services. What should the solutions architect recommend?",
+      "options": [
+        { "id": "A", "text": "Replace the five CLBs with one Application Load Balancer that uses host-based rules to forward each hostname to its own target group.", "correct": true, "explanation": "One ALB with host-header rules serves all five hostnames, so you pay one hourly charge and manage one load balancer instead of five." },
+        { "id": "B", "text": "Replace each CLB with its own Network Load Balancer.", "correct": false, "explanation": "Five NLBs still means five hourly charges, and NLBs cannot route by hostname." },
+        { "id": "C", "text": "Keep the CLBs and enable cross-zone load balancing on each.", "correct": false, "explanation": "Cross-zone changes traffic spread, not the number of load balancers, so costs and effort stay the same." },
+        { "id": "D", "text": "Remove the load balancers and give clients the instances' public IP addresses.", "correct": false, "explanation": "This removes health checks, high availability and scaling, and instance IPs change when instances are replaced." }
+      ],
+      "explanation": "ALB listener rules (host or path based) consolidate many applications behind one load balancer, which the CLB cannot do.",
+      "tags": ["alb", "clb", "cost"]
+    },
+    {
+      "id": "07-elb-q11",
+      "type": "multi",
+      "domain": "secure",
+      "difficulty": "hard",
+      "question": "A company is building a web application. Requests to /api/* must be handled by an AWS Lambda function, while all other requests go to EC2 instances. Users must sign in through an Amazon Cognito user pool before any request reaches the application. Which combination of actions meets these requirements? (Select TWO.)",
+      "options": [
+        { "id": "A", "text": "Create an Application Load Balancer with a target group of type lambda and a listener rule that forwards path /api/* to it, with the default rule forwarding to an instance target group.", "correct": true, "explanation": "ALBs can invoke a Lambda function as a target and route by path, so /api/* goes to Lambda and everything else to the instances." },
+        { "id": "B", "text": "Add an authenticate-cognito action before the forward actions on the ALB's HTTPS listener rules.", "correct": true, "explanation": "ALB HTTPS listeners can authenticate users against a Cognito user pool before routing, with no login code in the app." },
+        { "id": "C", "text": "Create a Network Load Balancer with a Lambda target group for /api/*.", "correct": false, "explanation": "NLBs do not support Lambda targets and cannot route by URL path." },
+        { "id": "D", "text": "Use a Gateway Load Balancer to send requests to Cognito for authentication.", "correct": false, "explanation": "A GWLB forwards packets to network appliances; it has no user authentication features." },
+        { "id": "E", "text": "Use a Classic Load Balancer with an HTTP listener and enable sticky sessions to keep users signed in.", "correct": false, "explanation": "A CLB cannot route by path, invoke Lambda, or authenticate users; stickiness does not provide sign-in." }
+      ],
+      "explanation": "Lambda targets, path routing and built-in Cognito/OIDC authentication are all Application Load Balancer features.",
+      "tags": ["alb", "lambda", "cognito"]
+    },
+    {
+      "id": "07-elb-q12",
+      "type": "single",
+      "domain": "resilient",
+      "difficulty": "easy",
+      "question": "A company's website runs on a single m5.xlarge EC2 instance in one Availability Zone. Last month the site was down for hours when that AZ had a problem. The company wants the website to stay available if an entire AZ fails. Which solution meets this requirement?",
+      "options": [
+        { "id": "A", "text": "Resize the instance to m5.4xlarge so it has more spare capacity.", "correct": false, "explanation": "A bigger instance is vertical scaling; it still lives in one AZ and fails with it." },
+        { "id": "B", "text": "Take hourly EBS snapshots so the instance can be rebuilt after a failure.", "correct": false, "explanation": "Snapshots help recovery but the site would still be down while a new instance is built, so it is not highly available." },
+        { "id": "C", "text": "Run the website on instances in an Auto Scaling group that spans at least two Availability Zones, behind an Application Load Balancer enabled in those AZs.", "correct": true, "explanation": "Instances in two AZs behind a multi-AZ load balancer keep serving when one AZ fails; the ALB stops sending traffic to unhealthy targets." },
+        { "id": "D", "text": "Move the instance to a Dedicated Host in the same Availability Zone.", "correct": false, "explanation": "A Dedicated Host changes tenancy and licensing, not availability; it is still a single AZ." }
+      ],
+      "explanation": "High availability means running across multiple AZs, typically a multi-AZ Auto Scaling group behind a load balancer.",
+      "tags": ["high-availability", "scalability"]
+    },
+    {
+      "id": "07-elb-q13",
+      "type": "single",
+      "domain": "resilient",
+      "difficulty": "medium",
+      "question": "An Application Load Balancer marks every target in a target group as unhealthy with the reason Target.ResponseCodeMismatch, yet the application works when tested directly. The health check uses path / and default settings. The application redirects anonymous users from / to /login with an HTTP 302 response. What is the BEST fix?",
+      "options": [
+        { "id": "A", "text": "Switch the health check protocol to TCP so the response code is ignored.", "correct": false, "explanation": "ALB health checks support only HTTP and HTTPS, and a TCP check would not prove the application is working anyway." },
+        { "id": "B", "text": "Point the health check at a lightweight unauthenticated path such as /health that returns 200, or add 302 to the success codes.", "correct": true, "explanation": "The default success code is 200, so a 302 counts as a failure; a dedicated health path returning 200 (or accepting 302) fixes the mismatch." },
+        { "id": "C", "text": "Increase the unhealthy threshold to 10 consecutive failures.", "correct": false, "explanation": "Every check fails with a 302, so a higher threshold only delays the unhealthy status; it never fixes it." },
+        { "id": "D", "text": "Enable sticky sessions so health checks reach the same target each time.", "correct": false, "explanation": "Stickiness affects client requests, not health checks, and has nothing to do with the response code mismatch." }
+      ],
+      "explanation": "ALB health checks succeed only on the configured success codes (default 200); use a dedicated health endpoint or adjust the matcher.",
+      "tags": ["health-checks", "alb"]
+    },
+    {
+      "id": "07-elb-q14",
+      "type": "multi",
+      "domain": "performant",
+      "difficulty": "hard",
+      "question": "A company is launching a VoIP service that uses UDP. The backend servers must see each caller's original source IP address, and customers' corporate firewalls must allow-list a fixed IP address for each Availability Zone. Which combination of choices meets these requirements? (Select TWO.)",
+      "options": [
+        { "id": "A", "text": "Use a Network Load Balancer with a UDP listener and an instance target group.", "correct": true, "explanation": "NLBs support UDP, and client IP preservation is always on for UDP target groups (it cannot be disabled), so the servers see each caller's address." },
+        { "id": "B", "text": "Use an Application Load Balancer with a WebSocket listener.", "correct": false, "explanation": "ALBs handle HTTP/HTTPS (including WebSocket over HTTP), not raw UDP traffic." },
+        { "id": "C", "text": "Assign an Elastic IP address to each Availability Zone when creating the load balancer.", "correct": true, "explanation": "An internet-facing NLB can take one Elastic IP per enabled AZ, giving customers fixed addresses to allow-list." },
+        { "id": "D", "text": "Use a Classic Load Balancer with a TCP listener on the VoIP port.", "correct": false, "explanation": "CLBs do not support UDP and cannot provide static or Elastic IP addresses." },
+        { "id": "E", "text": "Use a Gateway Load Balancer in front of the VoIP servers.", "correct": false, "explanation": "A GWLB sends traffic to inspection appliances over GENEVE; it is not used to publish an application to clients." }
+      ],
+      "explanation": "UDP, client IP preservation and fixed per-AZ IPs are all Network Load Balancer features.",
+      "tags": ["nlb", "udp", "elastic-ip"]
+    },
+    {
+      "id": "07-elb-q15",
+      "type": "single",
+      "domain": "secure",
+      "difficulty": "medium",
+      "question": "A company moved its website to a new Application Load Balancer whose HTTPS listener uses a security policy that allows only TLS 1.3. Customers using older handheld scanners that support only TLS 1.2 can no longer connect. The company must keep supporting those devices for another year without changing their firmware. What should the solutions architect do?",
+      "options": [
+        { "id": "A", "text": "Replace the ACM certificate with a certificate uploaded to IAM.", "correct": false, "explanation": "Where the certificate is stored does not change which TLS versions the listener negotiates." },
+        { "id": "B", "text": "Add a second certificate to the listener's certificate list for the old devices.", "correct": false, "explanation": "Extra certificates are selected by hostname through SNI; they do not enable older TLS protocol versions." },
+        { "id": "C", "text": "Replace the ALB with a Classic Load Balancer, which supports older clients.", "correct": false, "explanation": "Moving to a previous-generation load balancer loses features; the ALB can support TLS 1.2 by policy choice." },
+        { "id": "D", "text": "Change the HTTPS listener's security policy to one that also allows TLS 1.2, such as ELBSecurityPolicy-TLS13-1-2-Res-PQ-2025-09.", "correct": true, "explanation": "The security policy controls the TLS versions and ciphers the listener accepts; a policy that includes TLS 1.2 lets the old scanners connect." }
+      ],
+      "explanation": "Legacy client compatibility on an HTTPS or TLS listener is controlled by the listener's security policy.",
+      "tags": ["tls", "alb", "security-policy"],
+      "updated": "The console default security policy is now ELBSecurityPolicy-TLS13-1-2-Res-PQ-2025-09, which supports TLS 1.2 and 1.3."
+    }
+  ]
+}

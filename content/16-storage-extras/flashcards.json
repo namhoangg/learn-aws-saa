@@ -1,0 +1,191 @@
+{
+  "section": "16-storage-extras",
+  "cards": [
+    {
+      "id": "16-storage-extras-fc-01",
+      "front": "What two jobs was AWS Snowball Edge built for?",
+      "back": "1) **Offline data transfer**: copy data onto a shipped, encrypted device and AWS loads it into S3 (or exports from S3). 2) **Edge computing**: run EC2-compatible instances, EKS Anywhere or Lambda at sites with little or no connectivity.",
+      "tags": ["snow-family"]
+    },
+    {
+      "id": "16-storage-extras-fc-02",
+      "front": "Can new AWS customers still order Snowball Edge devices?",
+      "back": "No. Since **7 November 2025** Snowball Edge is only for existing customers, and no Snow Family device is sold to new accounts. AWS suggests **DataSync** (online), **Data Transfer Terminal** (physical upload) and **Outposts** (edge compute).",
+      "tags": ["snow-family"],
+      "updated": "Availability change after the slides were made."
+    },
+    {
+      "id": "16-storage-extras-fc-03",
+      "front": "What is the rule of thumb for choosing an offline transfer over the network?",
+      "back": "If moving the data over your available network would take **more than about a week**, consider an offline device or a dedicated link. Estimate: about **8.6 TB per day per 1 Gbps** at 80% utilization.",
+      "tags": ["snow-family", "migration"]
+    },
+    {
+      "id": "16-storage-extras-fc-04",
+      "front": "Compare the two current Snowball Edge options.",
+      "back": "**Storage Optimized**: 104 vCPUs, 416 GB RAM, **210 TB** NVMe, for bulk migration. **Compute Optimized**: 104 vCPUs, 416 GB RAM, **28 TB** NVMe, for edge computing (ML inference, transcoding, pre-processing).",
+      "tags": ["snow-family"]
+    },
+    {
+      "id": "16-storage-extras-fc-05",
+      "front": "You import data with Snowball Edge and want it in Glacier Deep Archive. How?",
+      "back": "Snowball imports only into an **S3 bucket**. Add an **S3 Lifecycle rule** that transitions the objects to **S3 Glacier Deep Archive** (or Flexible Retrieval).",
+      "tags": ["snow-family", "s3-glacier"]
+    },
+    {
+      "id": "16-storage-extras-fc-06",
+      "front": "What does Amazon FSx provide, and what are its four file systems?",
+      "back": "Fully managed third-party file systems: **FSx for Windows File Server**, **FSx for Lustre**, **FSx for NetApp ONTAP** and **FSx for OpenZFS**. AWS runs the servers, patches, replaces hardware and backs up.",
+      "tags": ["fsx"]
+    },
+    {
+      "id": "16-storage-extras-fc-07",
+      "front": "Key features of FSx for Windows File Server?",
+      "back": "Native **SMB** shares with NTFS and Windows ACLs, joined to **Active Directory**, with **DFS Namespaces**, **Single-AZ or Multi-AZ** deployment and automatic daily backups. Linux clients and on-premises servers (VPN / Direct Connect) can mount it too.",
+      "tags": ["fsx-windows"]
+    },
+    {
+      "id": "16-storage-extras-fc-08",
+      "front": "FSx for Windows: when do you choose SSD vs HDD storage?",
+      "back": "**SSD** for latency-sensitive work such as databases, media processing and analytics. **HDD** for cheaper, broad workloads such as home directories, departmental shares and content management.",
+      "tags": ["fsx-windows"]
+    },
+    {
+      "id": "16-storage-extras-fc-09",
+      "front": "What is FSx for Lustre used for, and how does it work with S3?",
+      "back": "A parallel file system for **HPC, ML training, video processing, financial modeling**. Link it to an **S3 bucket**: objects show up as files, data loads on first read, and results can be **exported back to S3**. Linux clients only.",
+      "tags": ["fsx-lustre", "s3"]
+    },
+    {
+      "id": "16-storage-extras-fc-10",
+      "front": "FSx for Lustre: Scratch vs Persistent?",
+      "back": "**Scratch**: temporary, **not replicated**, failed servers not replaced, 200 MBps/TiB with 6x burst, cheapest; for short jobs. **Persistent**: replicated (within the AZ for SSD/HDD), failed servers replaced in minutes; for long-term or sensitive data.",
+      "tags": ["fsx-lustre"]
+    },
+    {
+      "id": "16-storage-extras-fc-11",
+      "front": "Which FSx type supports NFS, SMB, iSCSI and NVMe from one file system?",
+      "back": "**FSx for NetApp ONTAP**. It also offers snapshots, SnapMirror replication, FlexClone instant clones, compression, deduplication and automatic tiering to an elastic capacity pool.",
+      "tags": ["fsx-ontap"],
+      "updated": "NVMe block access is newer than the slides."
+    },
+    {
+      "id": "16-storage-extras-fc-12",
+      "front": "When would you pick FSx for OpenZFS?",
+      "back": "To move **ZFS or Linux NFS** file servers to AWS unchanged when you need very high IOPS (up to about **2 million**, hundreds of microseconds latency), snapshots and instant clones. Protocol: **NFS v3, v4.0, v4.1, v4.2**.",
+      "tags": ["fsx-openzfs"],
+      "updated": "The slides quoted 1 million IOPS; AWS now documents up to 2 million."
+    },
+    {
+      "id": "16-storage-extras-fc-13",
+      "front": "What problem does AWS Storage Gateway solve?",
+      "back": "It **bridges on-premises apps and AWS storage**: on-premises servers keep using file (NFS/SMB), block (iSCSI) or tape interfaces while data lives in S3, EBS snapshots or Glacier. Uses: DR, backup, tiered storage, low-latency cached access.",
+      "tags": ["storage-gateway"]
+    },
+    {
+      "id": "16-storage-extras-fc-14",
+      "front": "What are the Storage Gateway types you need for the exam?",
+      "back": "**S3 File Gateway** (NFS/SMB to S3), **Volume Gateway** (iSCSI volumes, cached or stored, backed up as EBS snapshots) and **Tape Gateway** (virtual tape library in S3, archive in Glacier). FSx File Gateway is closed to new customers.",
+      "tags": ["storage-gateway"],
+      "updated": "FSx File Gateway no longer available to new customers."
+    },
+    {
+      "id": "16-storage-extras-fc-15",
+      "front": "Which S3 storage classes can an S3 File Gateway write new objects to, and how do you archive?",
+      "back": "**S3 Standard, Standard-IA, One Zone-IA, Intelligent-Tiering**. Archive with an **S3 Lifecycle rule** to Glacier Flexible Retrieval or Deep Archive. Glacier Instant Retrieval is not supported behind a file share.",
+      "tags": ["storage-gateway", "s3"]
+    },
+    {
+      "id": "16-storage-extras-fc-16",
+      "front": "How does an S3 File Gateway get permission to the bucket, and how are SMB users authenticated?",
+      "back": "Each **file share** uses an **IAM role** that Storage Gateway assumes to access the bucket. SMB shares can authenticate users against **Microsoft Active Directory**.",
+      "tags": ["storage-gateway", "iam-roles"]
+    },
+    {
+      "id": "16-storage-extras-fc-17",
+      "front": "Volume Gateway: cached volumes vs stored volumes?",
+      "back": "**Cached**: full data in AWS, only hot data cached locally (up to 32 TiB per volume). **Stored**: full data on-premises, asynchronous snapshots to AWS (up to 16 TiB per volume). Both back up as **EBS snapshots**.",
+      "tags": ["storage-gateway", "ebs-snapshots"]
+    },
+    {
+      "id": "16-storage-extras-fc-18",
+      "front": "How does Tape Gateway store tapes?",
+      "back": "It presents a **virtual tape library** (media changer and tape drives over **iSCSI**) to existing backup software. Active tapes live in **S3**; tapes ejected by the backup app move to the archive in **Glacier Flexible Retrieval or Deep Archive**.",
+      "tags": ["storage-gateway", "s3-glacier"]
+    },
+    {
+      "id": "16-storage-extras-fc-19",
+      "front": "Where can the Storage Gateway software run?",
+      "back": "As a **VM on-premises** (VMware ESXi, Microsoft Hyper-V, Linux KVM, Nutanix AHV) or as an **EC2 instance**. The hardware appliance is no longer sold (since May 2025).",
+      "tags": ["storage-gateway"],
+      "updated": "Nutanix AHV added; hardware appliance end of availability 12 May 2025."
+    },
+    {
+      "id": "16-storage-extras-fc-20",
+      "front": "What is AWS Transfer Family?",
+      "back": "A managed file transfer service: **SFTP, FTPS, FTP** (plus AS2 and browser web apps) endpoints that store files in **Amazon S3 or Amazon EFS**. Highly available, scales automatically, no servers to manage.",
+      "tags": ["transfer-family"]
+    },
+    {
+      "id": "16-storage-extras-fc-21",
+      "front": "Transfer Family: where can a plain FTP endpoint be reached?",
+      "back": "Only on a **VPC-hosted endpoint with internal access**. FTP is unencrypted, so for internet-facing transfers use **SFTP or FTPS**.",
+      "tags": ["transfer-family"]
+    },
+    {
+      "id": "16-storage-extras-fc-22",
+      "front": "How can Transfer Family authenticate users?",
+      "back": "**Service-managed** users with SSH keys (SFTP), **AWS Directory Service for Microsoft AD**, or a **custom identity provider** via Lambda or API Gateway (LDAP, Okta, Cognito...). Each user maps to an **IAM role** for S3/EFS access.",
+      "tags": ["transfer-family", "directory-service"]
+    },
+    {
+      "id": "16-storage-extras-fc-23",
+      "front": "How is Transfer Family billed, and does stopping a server stop the bill?",
+      "back": "**Per protocol enabled per hour** (USD 0.30 in us-east-1) **plus per GB** transferred (USD 0.04). A **stopped server still accrues** the hourly charge; delete it to stop paying.",
+      "tags": ["transfer-family", "cost"]
+    },
+    {
+      "id": "16-storage-extras-fc-24",
+      "front": "When does AWS DataSync need an agent?",
+      "back": "For **on-premises or self-managed** storage (NFS, SMB, HDFS, object storage): deploy an agent VM near the source. **No agent** between AWS services (S3, EFS, FSx), and Enhanced mode can copy other clouds' object storage to S3 without one.",
+      "tags": ["datasync"],
+      "updated": "Agentless cross-cloud copies in Enhanced mode are newer than the slides."
+    },
+    {
+      "id": "16-storage-extras-fc-25",
+      "front": "Which AWS destinations can DataSync write to?",
+      "back": "**Amazon S3** (any storage class, including Glacier Flexible Retrieval and Deep Archive), **Amazon EFS**, and **Amazon FSx** for Windows File Server, Lustre, NetApp ONTAP and OpenZFS.",
+      "tags": ["datasync"]
+    },
+    {
+      "id": "16-storage-extras-fc-26",
+      "front": "Which file metadata does DataSync preserve when it copies data?",
+      "back": "**POSIX permissions, ownership and timestamps** (NFS), **Windows ACLs** (SMB, FSx for Windows, ONTAP) and object tags, which is why it is the answer for migrations that must keep permissions.",
+      "tags": ["datasync"]
+    },
+    {
+      "id": "16-storage-extras-fc-27",
+      "front": "Storage Gateway vs DataSync vs Transfer Family in one line each?",
+      "back": "**Storage Gateway**: ongoing on-premises access to AWS storage through a local cache. **DataSync**: move or replicate data between storage systems, keeping metadata. **Transfer Family**: managed SFTP/FTPS/FTP endpoint for outside users.",
+      "tags": ["storage-gateway", "datasync", "transfer-family"]
+    },
+    {
+      "id": "16-storage-extras-fc-28",
+      "front": "Block, file or object? Classify EBS, instance store, EFS, FSx, S3 and Glacier.",
+      "back": "**Block**: EBS, EC2 instance store. **File**: EFS, FSx. **Object**: S3, S3 Glacier storage classes.",
+      "tags": ["storage-comparison"]
+    },
+    {
+      "id": "16-storage-extras-fc-29",
+      "front": "How often can a scheduled DataSync task run at most?",
+      "back": "Once per **hour**. Schedules use hourly, daily, weekly or custom **cron / rate** expressions, with a minimum interval of 1 hour.",
+      "tags": ["datasync"]
+    },
+    {
+      "id": "16-storage-extras-fc-30",
+      "front": "How much bandwidth can one DataSync task use, and how do you protect other traffic?",
+      "back": "One task can fully use about **10 Gbps**. Set a **bandwidth limit** on the task (or adjust it while it runs) so business traffic on the same link is not starved.",
+      "tags": ["datasync"]
+    }
+  ]
+}

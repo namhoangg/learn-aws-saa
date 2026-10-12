@@ -1,0 +1,189 @@
+{
+  "section": "10-route53",
+  "cards": [
+    {
+      "id": "10-route53-fc-01",
+      "front": "In `api.shop.example.com.`, which part is the TLD, which is the second-level domain, and what is the whole thing called?",
+      "back": "TLD = `.com`; second-level domain = `example.com`; `api.shop` are subdomain labels; the complete name ending in the root dot is the **FQDN** (fully qualified domain name).",
+      "tags": ["dns-basics"]
+    },
+    {
+      "id": "10-route53-fc-02",
+      "front": "On a cold cache, in what order does a recursive resolver ask name servers for `shop.example.com`?",
+      "back": "**Root** name server (refers to `.com`) → **TLD** name server (refers to the domain's name servers) → the **authoritative** name server (for example Route 53), which returns the record. The resolver caches each answer for its TTL.",
+      "tags": ["dns-basics"]
+    },
+    {
+      "id": "10-route53-fc-03",
+      "front": "What does \"authoritative DNS\" mean for Route 53?",
+      "back": "Route 53's name servers hold the **real records** for your hosted zones and you can create and change them. A recursive resolver only looks answers up and caches them.",
+      "tags": ["route53"]
+    },
+    {
+      "id": "10-route53-fc-04",
+      "front": "Which AWS service is known for a 100% availability SLA?",
+      "back": "**Amazon Route 53**: AWS commits to 100% availability for hosted zones and gives service credits for any month that falls short.",
+      "tags": ["route53", "sla"]
+    },
+    {
+      "id": "10-route53-fc-05",
+      "front": "What do the A, AAAA, CNAME and NS record types do?",
+      "back": "**A**: name → IPv4. **AAAA**: name → IPv6. **CNAME**: name → another name (which must resolve to A/AAAA). **NS**: lists the name servers authoritative for the zone or a delegated subdomain.",
+      "tags": ["records"]
+    },
+    {
+      "id": "10-route53-fc-06",
+      "front": "Can you create a CNAME for `example.com` in the `example.com` hosted zone?",
+      "back": "**No.** A CNAME is not allowed at the **zone apex**. Use an **alias** record instead (or a CNAME only on subdomains like `www.example.com`).",
+      "tags": ["records", "alias"]
+    },
+    {
+      "id": "10-route53-fc-07",
+      "front": "High TTL versus low TTL: what is the trade-off?",
+      "back": "**High TTL** (e.g. 24 h): fewer queries and a lower bill, but changes linger in caches. **Low TTL** (e.g. 60 s): more queries (more cost), changes spread fast. Use 60 s or less on health-checked records.",
+      "tags": ["ttl"]
+    },
+    {
+      "id": "10-route53-fc-08",
+      "front": "Which Route 53 records do not let you set a TTL?",
+      "back": "**Alias records.** Route 53 uses the TTL of the target (60 seconds for an ELB load balancer, or the TTL of the referenced record).",
+      "tags": ["ttl", "alias"]
+    },
+    {
+      "id": "10-route53-fc-09",
+      "front": "Public versus private hosted zone?",
+      "back": "**Public**: answers anyone on the internet for a domain you control. **Private**: answers only inside the VPCs you associate (needs `enableDnsHostnames` and `enableDnsSupport` = true). Both cost USD 0.50/month for the first 25 zones.",
+      "tags": ["hosted-zones"]
+    },
+    {
+      "id": "10-route53-fc-10",
+      "front": "What is split-view (split-horizon) DNS in Route 53?",
+      "back": "A **public and a private hosted zone with the same name**. Queries from associated VPCs use the private zone; everyone else gets the public zone. If the private zone lacks a record, the VPC gets NXDOMAIN rather than the public answer.",
+      "tags": ["hosted-zones"]
+    },
+    {
+      "id": "10-route53-fc-11",
+      "front": "Give four differences between a CNAME and a Route 53 alias record.",
+      "back": "Alias: works at the **zone apex**, queries to AWS resources are **free**, **no TTL** to set, can **evaluate target health**, and only targets selected AWS resources or records in the same zone. CNAME: any hostname, never at the apex, queries charged.",
+      "tags": ["alias"]
+    },
+    {
+      "id": "10-route53-fc-12",
+      "front": "Name six valid alias targets, and one target that is NOT allowed.",
+      "back": "Valid: ELB load balancers, CloudFront, API Gateway, Elastic Beanstalk, S3 website endpoints, VPC interface endpoints, Global Accelerator, a record in the same zone (plus App Runner, OpenSearch, AppSync). **Not allowed: an EC2 instance's public DNS name.**",
+      "updated": "App Runner, OpenSearch Service and AppSync domains are newer alias targets than the slides list.",
+      "tags": ["alias"]
+    },
+    {
+      "id": "10-route53-fc-13",
+      "front": "Does a Route 53 routing policy route network traffic?",
+      "back": "**No.** It only chooses which DNS answer to return. The client then connects directly to that IP; Route 53 never sees the requests (unlike a load balancer).",
+      "tags": ["routing-policies"]
+    },
+    {
+      "id": "10-route53-fc-14",
+      "front": "Simple routing with three IP addresses in one record: what happens, and can it use health checks?",
+      "back": "Route 53 returns **all three** in random order and the client picks one. **No health checks** are possible with simple routing.",
+      "tags": ["routing-policies", "simple"]
+    },
+    {
+      "id": "10-route53-fc-15",
+      "front": "Weighted routing: weight range, traffic formula, and what weight 0 does.",
+      "back": "Weights **0 to 255**; share = record weight / sum of weights (no need to total 100). Weight **0** stops traffic to that record; if **all** are 0, records are returned equally.",
+      "tags": ["routing-policies", "weighted"]
+    },
+    {
+      "id": "10-route53-fc-16",
+      "front": "What does latency-based routing measure, and could a user in Germany be sent to the US?",
+      "back": "AWS's measured latency between user networks and **AWS Regions**, collected over time. Yes, a German user goes to `us-east-1` if that Region shows the lowest latency for them.",
+      "tags": ["routing-policies", "latency"]
+    },
+    {
+      "id": "10-route53-fc-17",
+      "front": "Geolocation routing: what granularity is available, which match wins, and why add a Default record?",
+      "back": "**Continent, country or US state**; the **most specific** match wins. A **Default** record answers unmapped IPs and unmatched locations, otherwise those users get no answer.",
+      "tags": ["routing-policies", "geolocation"]
+    },
+    {
+      "id": "10-route53-fc-18",
+      "front": "Geoproximity routing: what does the bias do and what is its range?",
+      "back": "Bias **+1 to +99** expands a resource's area (more traffic); **-1 to -99** shrinks it (less traffic). Route 53 compares biased distance = actual distance × (1 − bias/100).",
+      "updated": "No longer requires Traffic Flow: since January 2024 geoproximity is a normal routing policy in the console, CLI and API.",
+      "tags": ["routing-policies", "geoproximity"]
+    },
+    {
+      "id": "10-route53-fc-19",
+      "front": "What is IP-based routing built from, and where is it NOT supported?",
+      "back": "**CIDR blocks** grouped into named **locations** inside a **CIDR collection**; each record maps a location to an endpoint (plus a default `*`). Use it to route specific ISPs or networks. Not supported in **private hosted zones**.",
+      "tags": ["routing-policies", "ip-based"]
+    },
+    {
+      "id": "10-route53-fc-20",
+      "front": "Multivalue answer routing: how many values per answer, and is it a load balancer?",
+      "back": "Up to **8 healthy** records, chosen at random (up to 8 unhealthy if none are healthy). It is **not a substitute for ELB**: no request balancing, TLS termination or stickiness.",
+      "tags": ["routing-policies", "multivalue"]
+    },
+    {
+      "id": "10-route53-fc-21",
+      "front": "What are the three types of Route 53 health checks?",
+      "back": "1) **Endpoint** (HTTP, HTTPS or TCP to an IP or domain name). 2) **Calculated** (combines child checks with AND, OR or at least N). 3) **CloudWatch alarm** (watches an alarm's data stream; the way to cover private resources).",
+      "tags": ["health-checks"]
+    },
+    {
+      "id": "10-route53-fc-22",
+      "front": "Endpoint health check defaults: interval, failure threshold, healthy rule, passing status codes.",
+      "back": "Interval **30 s** (the 10 s fast option costs extra), failure threshold **3** (1-10), healthy when **more than 18%** of checkers agree, and HTTP/HTTPS checks must get a **2xx or 3xx** response.",
+      "tags": ["health-checks"]
+    },
+    {
+      "id": "10-route53-fc-23",
+      "front": "How do you health-check an EC2 instance in a private subnet with Route 53?",
+      "back": "Health checkers are on the internet and refuse private IPs, so publish a **CloudWatch metric**, create a **CloudWatch alarm** on it, and create a Route 53 health check that monitors the **alarm**.",
+      "tags": ["health-checks", "private"]
+    },
+    {
+      "id": "10-route53-fc-24",
+      "front": "How do you let Route 53 health checkers reach a web server protected by a security group?",
+      "back": "Allow inbound traffic from the AWS-managed prefix list **`com.amazonaws.<region>.route53-healthchecks`**, or from the ROUTE53_HEALTHCHECKS ranges in `ip-ranges.json`.",
+      "updated": "The managed prefix list is newer than the slides, which only mention ip-ranges.json.",
+      "tags": ["health-checks", "security-groups"]
+    },
+    {
+      "id": "10-route53-fc-25",
+      "front": "What is the difference between active-passive and active-active DNS failover in Route 53?",
+      "back": "**Active-passive**: the **failover** policy, secondary answered only when the primary's health check fails. **Active-active**: any other policy (weighted, latency, multivalue...) with health checks, all healthy records answered.",
+      "tags": ["health-checks", "failover"]
+    },
+    {
+      "id": "10-route53-fc-26",
+      "front": "Your domain is registered at GoDaddy. How do you make Route 53 its DNS service?",
+      "back": "Create a **public hosted zone** for the domain in Route 53, then at GoDaddy replace the domain's **name servers (NS)** with the zone's four Route 53 name servers. No registration transfer is needed.",
+      "tags": ["registrar"]
+    },
+    {
+      "id": "10-route53-fc-27",
+      "front": "Which Resolver endpoint lets on-premises DNS servers resolve records in a private hosted zone?",
+      "back": "An **inbound endpoint** (ENIs in your VPC that on-premises resolvers forward queries to over VPN or Direct Connect).",
+      "updated": "Route 53 Resolver is now called Route 53 VPC Resolver.",
+      "tags": ["resolver", "hybrid-dns"]
+    },
+    {
+      "id": "10-route53-fc-28",
+      "front": "How do EC2 instances in a VPC resolve names hosted only on corporate DNS servers on-premises?",
+      "back": "Create an **outbound endpoint** plus a **forwarding rule** for the corporate domain (target = on-premises DNS IPs) and associate the rule with the VPC. Rules can be shared with **AWS RAM**.",
+      "tags": ["resolver", "hybrid-dns"]
+    },
+    {
+      "id": "10-route53-fc-29",
+      "front": "At which addresses can instances reach Route 53 VPC Resolver?",
+      "back": "The VPC's primary CIDR base **+2** (for `10.0.0.0/16`, `10.0.0.2`) and the link-local address **169.254.169.253** (IPv6: `fd00:ec2::253`).",
+      "tags": ["resolver"]
+    },
+    {
+      "id": "10-route53-fc-30",
+      "front": "What does Route 53 answer when every record in a health-checked group is unhealthy?",
+      "back": "It **fails open**: it treats all records as healthy and answers by the routing policy anyway. For failover records with both sides unhealthy, it returns the **primary**. Records with no health check always count as healthy.",
+      "tags": ["health-checks"]
+    }
+  ]
+}

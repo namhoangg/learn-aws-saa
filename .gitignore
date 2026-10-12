@@ -1,0 +1,9 @@
+node_modules
+dist
+_extract
+*.tsbuildinfo
+PROGRESS.md.lock
+
+# Course slides are personal study material: never commit them.
+*.pdf
+.vercel

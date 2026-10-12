@@ -1,0 +1,192 @@
+{
+  "section": "17-sqs-sns",
+  "cards": [
+    {
+      "id": "17-sqs-sns-fc-01",
+      "front": "What is the difference between synchronous and asynchronous communication between two services?",
+      "back": "**Synchronous**: the caller invokes the other service directly and waits, so a slow or failed callee slows or breaks the caller. **Asynchronous**: the caller writes to a queue or topic and moves on; each side scales and fails independently.",
+      "tags": ["decoupling"]
+    },
+    {
+      "id": "17-sqs-sns-fc-02",
+      "front": "Name the three AWS decoupling models covered in this part of the course and their services.",
+      "back": "**Queue** = Amazon SQS (consumers pull). **Publish/subscribe** = Amazon SNS (pushed to every subscriber). **Real-time stream** = Amazon Kinesis Data Streams (ordered, replayable stream).",
+      "tags": ["decoupling", "sqs", "sns"]
+    },
+    {
+      "id": "17-sqs-sns-fc-03",
+      "front": "What delivery and ordering guarantees does an SQS **standard** queue give?",
+      "back": "**At-least-once** delivery (a message can occasionally arrive twice) and **best-effort ordering** (messages can arrive out of order), in exchange for nearly unlimited throughput.",
+      "tags": ["sqs", "standard"]
+    },
+    {
+      "id": "17-sqs-sns-fc-04",
+      "front": "SQS message retention: default, minimum and maximum?",
+      "back": "Default **4 days**, minimum **60 seconds**, maximum **14 days**. After that, unprocessed messages are deleted automatically.",
+      "tags": ["sqs", "limits"]
+    },
+    {
+      "id": "17-sqs-sns-fc-05",
+      "front": "What is the maximum size of an SQS message, and how do you send something bigger?",
+      "back": "**1 MiB** (raised from 256 KB in August 2025). For larger payloads, the **Extended Client Library** stores the body in S3 (up to 2 GB) and sends a pointer through the queue.",
+      "tags": ["sqs", "limits"],
+      "updated": "Older material says 256 KB; the limit has been 1 MiB since August 2025."
+    },
+    {
+      "id": "17-sqs-sns-fc-06",
+      "front": "Which three API calls make up the basic SQS consumer loop, and how many messages can one receive return?",
+      "back": "`ReceiveMessage` (up to **10** messages per call), process the message, then `DeleteMessage` with its receipt handle. Messages are never deleted automatically on receive.",
+      "tags": ["sqs", "api"]
+    },
+    {
+      "id": "17-sqs-sns-fc-07",
+      "front": "What is the SQS visibility timeout, and what are its default and maximum values?",
+      "back": "How long a received message stays hidden from other consumers so one consumer can process it. Default **30 seconds**, range 0 seconds to **12 hours**. If it is not deleted in time, it becomes visible again.",
+      "tags": ["sqs", "visibility-timeout"]
+    },
+    {
+      "id": "17-sqs-sns-fc-08",
+      "front": "Messages in a standard queue are sometimes processed twice by different consumers. What is the most likely cause and fix?",
+      "back": "The **visibility timeout is shorter than the processing time**, so the message reappears mid-processing. Raise the timeout, or have the consumer call **ChangeMessageVisibility** to extend it for slow messages. Keep consumers idempotent.",
+      "tags": ["sqs", "visibility-timeout"]
+    },
+    {
+      "id": "17-sqs-sns-fc-09",
+      "front": "What is the downside of a very long visibility timeout (hours)?",
+      "back": "If a consumer crashes, its message stays hidden until the timeout ends, so the **retry is delayed** for hours.",
+      "tags": ["sqs", "visibility-timeout"]
+    },
+    {
+      "id": "17-sqs-sns-fc-10",
+      "front": "What is SQS long polling and how do you enable it?",
+      "back": "A receive call that waits up to **20 seconds** for messages instead of returning empty at once. Fewer empty responses, fewer billed calls, lower latency. Enable with the queue's **Receive message wait time** (`ReceiveMessageWaitTimeSeconds`) or `WaitTimeSeconds` on each call (1-20 s).",
+      "tags": ["sqs", "long-polling"]
+    },
+    {
+      "id": "17-sqs-sns-fc-11",
+      "front": "What does a dead-letter queue do, and which setting controls it?",
+      "back": "It receives messages that failed processing too many times so they stop cycling in the source queue. The source queue's redrive policy sets **maxReceiveCount** (console: Maximum receives, 1-1,000). DLQ must be the same type, account and Region.",
+      "tags": ["sqs", "dlq"]
+    },
+    {
+      "id": "17-sqs-sns-fc-12",
+      "front": "Why should a standard queue's DLQ have a longer retention period than the source queue?",
+      "back": "A message keeps its **original enqueue timestamp** when moved to a standard DLQ, so with equal retention it could expire soon after arriving. FIFO DLQs reset the timestamp.",
+      "tags": ["sqs", "dlq"]
+    },
+    {
+      "id": "17-sqs-sns-fc-13",
+      "front": "What is the difference between an SQS delay queue and the visibility timeout?",
+      "back": "**Delivery delay** (0-15 minutes) hides a new message **before** its first delivery. **Visibility timeout** hides a message **after** a consumer has received it.",
+      "tags": ["sqs", "delay-queue"]
+    },
+    {
+      "id": "17-sqs-sns-fc-14",
+      "front": "What does the **message group ID** do in an SQS FIFO queue?",
+      "back": "It is **mandatory** and defines the ordering scope: messages with the same group ID are delivered strictly in order, one in flight at a time, while different groups are processed in parallel (e.g. one group per customer).",
+      "tags": ["sqs", "fifo"]
+    },
+    {
+      "id": "17-sqs-sns-fc-15",
+      "front": "How does SQS FIFO remove duplicates?",
+      "back": "Within a **5-minute deduplication interval**, a message with the same **MessageDeduplicationId** is accepted but not added again. With **content-based deduplication**, SQS uses a SHA-256 hash of the body (not attributes) as the ID.",
+      "tags": ["sqs", "fifo", "deduplication"]
+    },
+    {
+      "id": "17-sqs-sns-fc-16",
+      "front": "What is the default throughput of an SQS FIFO queue?",
+      "back": "**300** API calls per second per action (send, receive, delete), or **3,000 messages per second** with batches of 10. **High throughput mode** raises this per Region, up to 70,000 calls per second in the largest Regions.",
+      "tags": ["sqs", "fifo", "limits"],
+      "updated": "High throughput FIFO limits are Region dependent: 70,000 TPS in us-east-1, us-west-2 and eu-west-1, lower in other Regions, with a 2,400 TPS default in the remaining Regions."
+    },
+    {
+      "id": "17-sqs-sns-fc-17",
+      "front": "Can you convert an existing standard queue to FIFO?",
+      "back": "No. The type is chosen at creation. Create a new queue whose name ends in **`.fifo`** and move producers and consumers to it.",
+      "tags": ["sqs", "fifo"]
+    },
+    {
+      "id": "17-sqs-sns-fc-18",
+      "front": "How should an Auto Scaling group of SQS workers scale?",
+      "back": "On queue depth: a CloudWatch alarm on **ApproximateNumberOfMessagesVisible**, or better, target tracking on **backlog per instance** = visible messages ÷ in-service instances, with target = acceptable latency ÷ processing time per message.",
+      "tags": ["sqs", "asg", "cloudwatch"],
+      "updated": "AWS now recommends building backlog per instance with CloudWatch metric math instead of publishing a custom metric."
+    },
+    {
+      "id": "17-sqs-sns-fc-19",
+      "front": "A database cannot keep up with write bursts and transactions are lost. What is the classic decoupling fix?",
+      "back": "Put an **SQS queue** in front of it: the app enqueues writes, workers dequeue, insert into the database and **delete the message only after the insert succeeds**. Bursts wait in the queue instead of failing.",
+      "tags": ["sqs", "patterns"]
+    },
+    {
+      "id": "17-sqs-sns-fc-20",
+      "front": "How is data in a new SQS queue protected at rest by default?",
+      "back": "With **SSE-SQS** (SQS-managed keys, no extra cost), applied by default to new queues since 2022. Choose **SSE-KMS** (AWS managed `alias/aws/sqs` or a customer managed key) when you need your own key control.",
+      "tags": ["sqs", "security", "kms"],
+      "updated": "The slides list KMS at-rest encryption as an option; SSE-SQS became the default for newly created queues in 2022 (developer guide: 17 August 2022; announcement: 4 October 2022)."
+    },
+    {
+      "id": "17-sqs-sns-fc-21",
+      "front": "When do you need an SQS **access policy** rather than only IAM policies?",
+      "back": "When the caller is outside your account's IAM principals: **cross-account** access, or an **AWS service** (SNS topic, S3 event notifications, EventBridge) that must send to the queue. Restrict it with `aws:SourceArn`.",
+      "tags": ["sqs", "security"]
+    },
+    {
+      "id": "17-sqs-sns-fc-22",
+      "front": "How many subscriptions can a standard SNS topic have, and how many standard topics can an account have?",
+      "back": "Up to **12,500,000 subscriptions per topic** and **100,000 topics per account** (default quotas).",
+      "tags": ["sns", "limits"]
+    },
+    {
+      "id": "17-sqs-sns-fc-23",
+      "front": "List the SNS subscription protocols.",
+      "back": "**SQS**, **Lambda**, **Amazon Data Firehose**, **HTTP/HTTPS**, **email / email-JSON**, **SMS** and **application** (mobile push via APNs, FCM, ADM and others).",
+      "tags": ["sns", "subscribers"]
+    },
+    {
+      "id": "17-sqs-sns-fc-24",
+      "front": "What is the SNS + SQS fan-out pattern and why use it?",
+      "back": "Publish once to an **SNS topic** with several **SQS queues** subscribed. Each consumer gets its own durable copy, processes at its own pace with its own retries and DLQ, and new queues can be added without changing the producer.",
+      "tags": ["sns", "sqs", "fan-out"]
+    },
+    {
+      "id": "17-sqs-sns-fc-25",
+      "front": "You need the same S3 `ObjectCreated` event for `images/` delivered to three SQS queues. Why can't you add three S3 notification rules, and what do you do?",
+      "back": "S3 rejects rules with the **same event type and overlapping prefix/suffix**. Send the single rule to an **SNS topic** and subscribe the three queues (fan-out). EventBridge is the other option.",
+      "tags": ["sns", "s3", "fan-out"]
+    },
+    {
+      "id": "17-sqs-sns-fc-26",
+      "front": "Which endpoints can subscribe to an **SNS FIFO** topic?",
+      "back": "Only **SQS queues**, FIFO or standard. Email, SMS, HTTP/S and mobile endpoints are not allowed; reach Lambda through a subscribed queue. Use SNS FIFO + SQS FIFO for fan-out with ordering and deduplication.",
+      "tags": ["sns", "fifo"]
+    },
+    {
+      "id": "17-sqs-sns-fc-27",
+      "front": "What is an SNS subscription filter policy, and what happens if a subscription has none?",
+      "back": "A JSON policy on a **subscription** that delivers only messages whose attributes (or JSON body, with scope `MessageBody`) match. Keys are ANDed, values in an array are ORed. **No filter policy = every message**.",
+      "tags": ["sns", "filtering"],
+      "updated": "Filtering on the message body (FilterPolicyScope = MessageBody) is newer than the slides, which describe attribute filtering."
+    },
+    {
+      "id": "17-sqs-sns-fc-28",
+      "front": "How do you archive every message published to an SNS topic into S3 with no consumer code?",
+      "back": "Subscribe an **Amazon Data Firehose** stream (formerly Kinesis Data Firehose) to the topic with an S3 destination; Firehose batches and writes the messages.",
+      "tags": ["sns", "data-firehose", "s3"],
+      "updated": "Kinesis Data Firehose was renamed Amazon Data Firehose on 9 February 2024."
+    },
+    {
+      "id": "17-sqs-sns-fc-29",
+      "front": "What is the maximum size of an SNS message?",
+      "back": "**256 KiB** by default. Set the topic's `MaximumMessageSize` to allow up to **1 MiB** (then only SQS, Lambda and Data Firehose subscribers, at most 100). Beyond that, the SNS Extended Client Library stores the payload in S3.",
+      "tags": ["sns", "limits"],
+      "updated": "SNS added the MaximumMessageSize topic attribute (up to 1 MiB) on 18 September 2026."
+    },
+    {
+      "id": "17-sqs-sns-fc-30",
+      "front": "Can an SQS FIFO queue subscribe to a standard SNS topic?",
+      "back": "No. SQS FIFO queues subscribe only to **SNS FIFO topics**. The other direction works: a FIFO topic can deliver to standard queues.",
+      "tags": ["sns", "sqs", "fifo"]
+    }
+  ]
+}

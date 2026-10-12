@@ -1,0 +1,191 @@
+{
+  "section": "26-cloudwatch-eventbridge",
+  "cards": [
+    {
+      "id": "26-cloudwatch-eventbridge-fc-01",
+      "front": "What three things identify a CloudWatch metric, and how many dimensions can it have?",
+      "back": "A **namespace** (for example `AWS/EC2`), a **metric name** (`CPUUtilization`) and zero or more **dimensions** (name/value pairs such as `InstanceId`). A metric can have **up to 30 dimensions**; each distinct combination is a separate metric.",
+      "tags": ["cloudwatch", "metrics"]
+    },
+    {
+      "id": "26-cloudwatch-eventbridge-fc-02",
+      "front": "How often does EC2 send metrics with basic monitoring versus detailed monitoring?",
+      "back": "**Basic monitoring**: every **5 minutes**, free. **Detailed monitoring**: every **1 minute**, charged like metrics. Neither adds memory or disk-space metrics.",
+      "tags": ["cloudwatch", "ec2"]
+    },
+    {
+      "id": "26-cloudwatch-eventbridge-fc-03",
+      "front": "You need EC2 memory (RAM) and file-system usage in CloudWatch. What do you do?",
+      "back": "Install the **unified CloudWatch agent** on the instance with an IAM role that has `CloudWatchAgentServerPolicy`. It publishes metrics such as `mem_used_percent` and `disk_used_percent` as **custom metrics** in the `CWAgent` namespace.",
+      "tags": ["cloudwatch-agent", "ec2"]
+    },
+    {
+      "id": "26-cloudwatch-eventbridge-fc-04",
+      "front": "Standard versus high-resolution custom metrics: what is the granularity of each?",
+      "back": "**Standard resolution**: 1-minute data. **High resolution**: **1-second** data (readable at 1, 5, 10, 30 s or multiples of 60). Data under 60 s is kept only 3 hours before being rolled up.",
+      "tags": ["cloudwatch", "metrics"]
+    },
+    {
+      "id": "26-cloudwatch-eventbridge-fc-05",
+      "front": "How long does CloudWatch keep metric data?",
+      "back": "Up to **15 months**, rolled up over time: sub-minute data 3 hours, 1-minute data 15 days, 5-minute data 63 days, 1-hour data 455 days.",
+      "tags": ["cloudwatch", "metrics"]
+    },
+    {
+      "id": "26-cloudwatch-eventbridge-fc-06",
+      "front": "What is a CloudWatch metric stream used for, and where can it send data?",
+      "back": "To push metric updates continuously (within minutes) instead of polling. Destinations: an **Amazon Data Firehose** stream (then S3, Redshift, OpenSearch, HTTP), a quick **S3** setup, or partners such as **Datadog, Dynatrace, Elastic, New Relic, Splunk, Sumo Logic**. Filters can include or exclude namespaces.",
+      "tags": ["metric-streams", "data-firehose"],
+      "updated": "Kinesis Data Firehose is now Amazon Data Firehose; quick S3 and partner setups were added."
+    },
+    {
+      "id": "26-cloudwatch-eventbridge-fc-07",
+      "front": "Log group versus log stream in CloudWatch Logs?",
+      "back": "A **log stream** is the sequence of events from one source (an instance, container or file). A **log group** collects streams that share **retention, permissions, encryption and filters**, usually one per application.",
+      "tags": ["cloudwatch-logs"]
+    },
+    {
+      "id": "26-cloudwatch-eventbridge-fc-08",
+      "front": "What is the default retention of a new log group, and what range can you set?",
+      "back": "Default: **never expire**. You can set **1 day up to 10 years** (3,653 days) per log group. Setting retention is the first fix for growing log storage costs.",
+      "tags": ["cloudwatch-logs", "cost"]
+    },
+    {
+      "id": "26-cloudwatch-eventbridge-fc-09",
+      "front": "How is CloudWatch Logs data encrypted at rest?",
+      "back": "**Always encrypted** by default. For your own key, associate a **customer managed KMS key** with the log group (at creation or later via CLI/API); the key policy must allow the CloudWatch Logs service principal.",
+      "tags": ["cloudwatch-logs", "kms"]
+    },
+    {
+      "id": "26-cloudwatch-eventbridge-fc-10",
+      "front": "Exporting CloudWatch Logs to S3: which API, and what is the delay?",
+      "back": "`CreateExportTask`, a **batch** export. Recently written events may wait as long as **12 hours** before an export task can include them, so it is never real time; use subscription filters for continuous delivery.",
+      "tags": ["cloudwatch-logs", "s3"]
+    },
+    {
+      "id": "26-cloudwatch-eventbridge-fc-11",
+      "front": "Which destinations can a CloudWatch Logs subscription filter deliver to?",
+      "back": "**Kinesis Data Streams**, **Amazon Data Firehose**, **AWS Lambda** and **Amazon OpenSearch Service**. Events arrive base64-encoded and gzip-compressed, at least once.",
+      "tags": ["cloudwatch-logs", "subscriptions"]
+    },
+    {
+      "id": "26-cloudwatch-eventbridge-fc-12",
+      "front": "How many subscription filters can one log group have?",
+      "back": "**Up to five** per log group, plus one **account-level** subscription filter per Region that covers all log groups.",
+      "tags": ["cloudwatch-logs", "subscriptions"],
+      "updated": "Older material says two per log group."
+    },
+    {
+      "id": "26-cloudwatch-eventbridge-fc-13",
+      "front": "Classic architecture to centralize logs from many accounts and Regions into S3?",
+      "back": "Subscription filter in each sender account → a CloudWatch Logs **destination** (one per Region) in the central account with an access policy → **Kinesis Data Streams** → **Data Firehose** → **S3**.",
+      "tags": ["cloudwatch-logs", "cross-account"]
+    },
+    {
+      "id": "26-cloudwatch-eventbridge-fc-14",
+      "front": "What is CloudWatch Logs Insights, and what is it not?",
+      "back": "An interactive **query engine** over stored logs with automatic field discovery, filters, stats, saved queries and dashboard widgets, even across accounts. It is **not a real-time** alerting engine; it is billed per GB scanned.",
+      "tags": ["logs-insights"]
+    },
+    {
+      "id": "26-cloudwatch-eventbridge-fc-15",
+      "front": "How do you raise an alarm when the word ERROR appears in application logs?",
+      "back": "Create a **metric filter** on the log group (pattern such as `ERROR` or `{ $.level = \"ERROR\" }`), which publishes a custom metric, then a **CloudWatch alarm** on that metric with an SNS action. Filters only count new events.",
+      "tags": ["metric-filters", "cloudwatch-alarms"]
+    },
+    {
+      "id": "26-cloudwatch-eventbridge-fc-16",
+      "front": "Old CloudWatch Logs agent versus unified CloudWatch agent?",
+      "back": "The **old Logs agent** sent only logs and is now **deprecated and unsupported**. The **unified agent** sends logs **and** in-guest metrics (RAM, disk, processes, swap, netstat), supports StatsD/collectd, and can load its config from **SSM Parameter Store**.",
+      "tags": ["cloudwatch-agent"],
+      "updated": "The old logs-only agent is now documented as deprecated and no longer supported."
+    },
+    {
+      "id": "26-cloudwatch-eventbridge-fc-17",
+      "front": "What are the three CloudWatch alarm states?",
+      "back": "**OK** (within threshold), **ALARM** (breaching), **INSUFFICIENT_DATA** (just created, metric missing, or not enough data).",
+      "tags": ["cloudwatch-alarms"]
+    },
+    {
+      "id": "26-cloudwatch-eventbridge-fc-18",
+      "front": "List the action types a CloudWatch metric alarm can take.",
+      "back": "Notify an **SNS** topic, invoke a **Lambda** function, **EC2** stop/terminate/reboot/recover, an **Auto Scaling** policy, create a Systems Manager **OpsItem** or **incident**, start an investigation. State changes also go to EventBridge.",
+      "tags": ["cloudwatch-alarms"],
+      "updated": "Direct Lambda, Systems Manager and investigation actions were added after the original EC2/ASG/SNS list."
+    },
+    {
+      "id": "26-cloudwatch-eventbridge-fc-19",
+      "front": "What period can an alarm on a 1-second (high-resolution) metric use?",
+      "back": "**10, 20 or 30 seconds** (a high-resolution alarm, charged more) or any multiple of 60 seconds.",
+      "tags": ["cloudwatch-alarms"],
+      "updated": "The 20-second option is newer than the slides, which list 10 or 30 seconds."
+    },
+    {
+      "id": "26-cloudwatch-eventbridge-fc-20",
+      "front": "What is a composite alarm and why use one?",
+      "back": "An alarm whose rule combines the **states of other alarms** with **AND, OR, NOT**. It reduces **alarm noise** by notifying only when a meaningful combination occurs. It can notify SNS, invoke Lambda or create OpsItems, but **cannot do EC2 or Auto Scaling actions**.",
+      "tags": ["cloudwatch-alarms", "composite-alarms"]
+    },
+    {
+      "id": "26-cloudwatch-eventbridge-fc-21",
+      "front": "Which metric and action make an EC2 instance recover onto new hardware, and what does it keep?",
+      "back": "An alarm on **StatusCheckFailed_System** with the **recover** action. The instance keeps its **instance ID, private/public/Elastic IPs, metadata, placement group, EBS volumes and AZ**; RAM (and instance store) data is lost.",
+      "tags": ["ec2", "recovery"]
+    },
+    {
+      "id": "26-cloudwatch-eventbridge-fc-22",
+      "front": "How do you test an alarm's notification path without a real incident?",
+      "back": "`aws cloudwatch set-alarm-state --alarm-name <name> --state-value ALARM --state-reason \"test\"`. The alarm runs its actions, then returns to its real state at the next evaluation.",
+      "tags": ["cloudwatch-alarms"]
+    },
+    {
+      "id": "26-cloudwatch-eventbridge-fc-23",
+      "front": "What does CloudWatch Network Synthetic Monitor measure, and does it need agents?",
+      "back": "**Round-trip latency and packet loss** (plus a network health indicator) from a VPC subnet to on-premises IPs over **Direct Connect or Site-to-Site VPN**, using ICMP or TCP probes. **No agents**; results are CloudWatch metrics.",
+      "tags": ["network-synthetic-monitor", "hybrid"]
+    },
+    {
+      "id": "26-cloudwatch-eventbridge-fc-24",
+      "front": "What are the two kinds of EventBridge rule, and how many targets can a rule have?",
+      "back": "A rule with an **event pattern** (react when matching events arrive) or a **schedule** (cron or rate). Each rule can send to **up to 5 targets**. For new schedules AWS recommends **EventBridge Scheduler**.",
+      "tags": ["eventbridge"],
+      "updated": "Scheduled rules are now labelled legacy in favour of EventBridge Scheduler."
+    },
+    {
+      "id": "26-cloudwatch-eventbridge-fc-25",
+      "front": "Default, partner and custom event buses: what does each receive?",
+      "back": "**Default**: events from AWS services in your account. **Partner**: events from SaaS partners. **Custom**: events your own applications publish with `PutEvents`.",
+      "tags": ["eventbridge"]
+    },
+    {
+      "id": "26-cloudwatch-eventbridge-fc-26",
+      "front": "What do EventBridge archive and replay give you?",
+      "back": "An **archive** stores all or pattern-filtered events from a bus for N days or indefinitely. A **replay** re-sends a time window of archived events to the **same source bus** (marked with `replay-name`), for example after fixing a consumer bug.",
+      "tags": ["eventbridge", "archive-replay"]
+    },
+    {
+      "id": "26-cloudwatch-eventbridge-fc-27",
+      "front": "What is the EventBridge schema registry for?",
+      "back": "It holds schemas for AWS events, can **infer schemas** from events on a bus (schema discovery) with **versioning**, and generates **code bindings** so applications know the event structure in advance.",
+      "tags": ["eventbridge", "schemas"]
+    },
+    {
+      "id": "26-cloudwatch-eventbridge-fc-28",
+      "front": "How do you collect events from every account of an organization into one event bus?",
+      "back": "Put a **resource-based policy** on a central bus allowing `events:PutEvents` from the accounts or organization (`aws:PrincipalOrgID`), and in each account create a rule whose target is that bus (with an IAM role).",
+      "tags": ["eventbridge", "cross-account"]
+    },
+    {
+      "id": "26-cloudwatch-eventbridge-fc-29",
+      "front": "Container Insights versus Lambda Insights?",
+      "back": "**Container Insights**: metrics and logs for **ECS, EKS, Kubernetes on EC2 and Fargate** (containerized agent on Kubernetes). **Lambda Insights**: per-function CPU time, memory, disk, network and **cold starts**, delivered as a **Lambda layer**.",
+      "tags": ["container-insights", "lambda-insights"]
+    },
+    {
+      "id": "26-cloudwatch-eventbridge-fc-30",
+      "front": "Contributor Insights versus Application Insights?",
+      "back": "**Contributor Insights** finds **top-N contributors** in log data (top IPs, hosts, error URLs). **Application Insights** builds **automated problem dashboards** for EC2-based apps (.NET, IIS, SQL Server, Java…) and related AWS resources, sending findings to EventBridge and OpsCenter.",
+      "tags": ["contributor-insights", "application-insights"]
+    }
+  ]
+}

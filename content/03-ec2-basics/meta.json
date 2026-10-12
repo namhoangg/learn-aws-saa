@@ -1,0 +1,306 @@
+{
+  "id": "03-ec2-basics",
+  "order": 3,
+  "title": "EC2 Fundamentals",
+  "courseSection": "Amazon EC2 – Basics",
+  "slides": [
+    41,
+    63
+  ],
+  "estimatedMinutes": 45,
+  "summary": "What Amazon EC2 is and the choices you make when you launch an instance: operating system, instance type, storage, security groups and a user data bootstrap script. Learn to read instance type names, pick the right family, write security group rules (including references to other groups), and connect with SSH, PuTTY or EC2 Instance Connect.",
+  "services": [
+    "ec2",
+    "ami",
+    "security-groups",
+    "ec2-instance-connect",
+    "ebs",
+    "efs",
+    "instance-store",
+    "eni",
+    "vpc",
+    "elb",
+    "asg",
+    "systems-manager",
+    "cloudshell"
+  ],
+  "relations": [
+    {
+      "from": "ami",
+      "to": "ec2",
+      "label": "is the template that boots"
+    },
+    {
+      "from": "security-groups",
+      "to": "ec2",
+      "label": "filter inbound and outbound traffic for"
+    },
+    {
+      "from": "security-groups",
+      "to": "eni",
+      "label": "are attached to"
+    },
+    {
+      "from": "security-groups",
+      "to": "vpc",
+      "label": "are created inside"
+    },
+    {
+      "from": "ebs",
+      "to": "ec2",
+      "label": "provides network-attached volumes to"
+    },
+    {
+      "from": "efs",
+      "to": "ec2",
+      "label": "provides a shared network file system to"
+    },
+    {
+      "from": "instance-store",
+      "to": "ec2",
+      "label": "provides host-attached temporary disks to"
+    },
+    {
+      "from": "elb",
+      "to": "ec2",
+      "label": "spreads requests across"
+    },
+    {
+      "from": "asg",
+      "to": "ec2",
+      "label": "adds and removes"
+    },
+    {
+      "from": "ec2-instance-connect",
+      "to": "ec2",
+      "label": "opens browser or CLI SSH sessions to"
+    },
+    {
+      "from": "systems-manager",
+      "to": "ec2",
+      "label": "opens Session Manager shells to (no inbound port)"
+    },
+    {
+      "from": "cloudshell",
+      "to": "ec2",
+      "label": "runs AWS CLI commands that launch and manage"
+    }
+  ],
+  "examDomains": [
+    "secure",
+    "performant",
+    "cost"
+  ],
+  "lastVerified": "2026-10-04",
+  "sources": [
+    {
+      "title": "Amazon EC2 instance type naming conventions",
+      "url": "https://docs.aws.amazon.com/ec2/latest/instancetypes/instance-type-names.html"
+    },
+    {
+      "title": "Amazon EC2 instance types (current and previous generation families, burstable and flex instances)",
+      "url": "https://docs.aws.amazon.com/ec2/latest/instancetypes/instance-types.html"
+    },
+    {
+      "title": "Specifications for general purpose instances (t2, t3, t4g, m5, m7i, m7i-flex, m8g)",
+      "url": "https://docs.aws.amazon.com/ec2/latest/instancetypes/gp.html"
+    },
+    {
+      "title": "Specifications for compute optimized instances (c5d, c7i, c7i-flex, c8g)",
+      "url": "https://docs.aws.amazon.com/ec2/latest/instancetypes/co.html"
+    },
+    {
+      "title": "Specifications for memory optimized instances (r5, r7i, r8g)",
+      "url": "https://docs.aws.amazon.com/ec2/latest/instancetypes/mo.html"
+    },
+    {
+      "title": "Specifications for storage optimized instances (i4i, i8g, d3)",
+      "url": "https://docs.aws.amazon.com/ec2/latest/instancetypes/so.html"
+    },
+    {
+      "title": "Amazon EC2 Mac instances",
+      "url": "https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-mac-instances.html"
+    },
+    {
+      "title": "Track your Free Tier usage for Amazon EC2 (eligible instance types before and after 15 July 2025)",
+      "url": "https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-free-tier-usage.html"
+    },
+    {
+      "title": "Launch an EC2 instance using the launch instance wizard",
+      "url": "https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-launch-instance-wizard.html"
+    },
+    {
+      "title": "Reference for Amazon EC2 instance configuration parameters",
+      "url": "https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-instance-launch-parameters.html"
+    },
+    {
+      "title": "Get started with Amazon EC2 (tutorial)",
+      "url": "https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/EC2_GetStarted.html"
+    },
+    {
+      "title": "Amazon EC2 instance state changes",
+      "url": "https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-instance-lifecycle.html"
+    },
+    {
+      "title": "Run commands when you launch an EC2 instance with user data input",
+      "url": "https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/user-data.html"
+    },
+    {
+      "title": "Use instance metadata to manage your EC2 instance (user data is not protected)",
+      "url": "https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-instance-metadata.html"
+    },
+    {
+      "title": "Control traffic to your AWS resources using security groups",
+      "url": "https://docs.aws.amazon.com/vpc/latest/userguide/vpc-security-groups.html"
+    },
+    {
+      "title": "Security group rules",
+      "url": "https://docs.aws.amazon.com/vpc/latest/userguide/security-group-rules.html"
+    },
+    {
+      "title": "Associate security groups with multiple VPCs",
+      "url": "https://docs.aws.amazon.com/vpc/latest/userguide/security-group-assoc.html"
+    },
+    {
+      "title": "Share security groups with AWS Organizations",
+      "url": "https://docs.aws.amazon.com/vpc/latest/userguide/security-group-sharing.html"
+    },
+    {
+      "title": "Amazon VPC quotas (security groups)",
+      "url": "https://docs.aws.amazon.com/vpc/latest/userguide/amazon-vpc-limits.html"
+    },
+    {
+      "title": "Security group rules for different use cases",
+      "url": "https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/security-group-rules-reference.html"
+    },
+    {
+      "title": "Change the security groups for your Amazon EC2 instance",
+      "url": "https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/changing-security-group.html"
+    },
+    {
+      "title": "Delete an Amazon EC2 security group",
+      "url": "https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/deleting-security-group.html"
+    },
+    {
+      "title": "Create a key pair for your Amazon EC2 instance",
+      "url": "https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/create-key-pairs.html"
+    },
+    {
+      "title": "Delete your key pair",
+      "url": "https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/delete-key-pair.html"
+    },
+    {
+      "title": "General connection prerequisites (default usernames, key permissions)",
+      "url": "https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/connection-prereqs-general.html"
+    },
+    {
+      "title": "Connect to your Linux instance using an SSH client",
+      "url": "https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/connect-linux-inst-ssh.html"
+    },
+    {
+      "title": "Connect to your Linux instance using PuTTY",
+      "url": "https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/connect-linux-inst-from-windows.html"
+    },
+    {
+      "title": "Troubleshoot issues connecting to your Amazon EC2 Linux instance",
+      "url": "https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/TroubleshootingInstancesConnecting.html"
+    },
+    {
+      "title": "Connect to your Linux instance using a public IP address and EC2 Instance Connect",
+      "url": "https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/connect-linux-inst-eic.html"
+    },
+    {
+      "title": "Prerequisites for EC2 Instance Connect",
+      "url": "https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-instance-connect-prerequisites.html"
+    },
+    {
+      "title": "Install EC2 Instance Connect on your EC2 instances (preinstalled AMIs)",
+      "url": "https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-instance-connect-set-up.html"
+    },
+    {
+      "title": "Connect to a Linux instance using EC2 Instance Connect (console, CLI, own key)",
+      "url": "https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-instance-connect-methods.html"
+    },
+    {
+      "title": "Tutorial: configuration required to connect using EC2 Instance Connect",
+      "url": "https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-instance-connect-tutorial.html"
+    },
+    {
+      "title": "Connect to your instances using a private IP address and EC2 Instance Connect Endpoint",
+      "url": "https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/connect-with-ec2-instance-connect-endpoint.html"
+    },
+    {
+      "title": "AWS Systems Manager Session Manager",
+      "url": "https://docs.aws.amazon.com/systems-manager/latest/userguide/session-manager.html"
+    },
+    {
+      "title": "Amazon Linux 2 FAQs (end of support 2026-06-30)",
+      "url": "https://aws.amazon.com/amazon-linux-2/faqs/"
+    },
+    {
+      "title": "Amazon VPC pricing (public IPv4 address charge)",
+      "url": "https://aws.amazon.com/vpc/pricing/"
+    },
+    {
+      "title": "AWS Free Tier now includes 750 hours of free public IPv4 addresses (legacy Free Tier)",
+      "url": "https://aws.amazon.com/about-aws/whats-new/2024/02/aws-free-tier-750-hours-free-public-ipv4-addresses/"
+    },
+    {
+      "title": "AWS public price data used by the EC2 pricing pages (On-Demand Linux rates, us-east-1: t3.micro, t2.micro, t4g.micro)",
+      "url": "https://b0.p.awsstatic.com/pricing/2.0/meteredUnitMaps/ec2/USD/current/ec2-ondemand-without-sec-sel/US%20East%20(N.%20Virginia)/Linux/index.json"
+    },
+    {
+      "title": "AWS public price data used by the EBS pricing page (gp3 GB-month, us-east-1)",
+      "url": "https://b0.p.awsstatic.com/pricing/2.0/meteredUnitMaps/ec2/USD/current/ebs.json"
+    },
+    {
+      "title": "Microsoft Learn: Get started with OpenSSH for Windows (Windows 10 build 1809 and later)",
+      "url": "https://learn.microsoft.com/en-us/windows-server/administration/openssh/openssh_install_firstuse"
+    },
+    {
+      "title": "Burstable performance instances (T8i, T4g, T3a, T3; credit modes)",
+      "url": "https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/burstable-performance-instances.html"
+    },
+    {
+      "title": "Change the instance type for your Amazon EC2 instance",
+      "url": "https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/change-instance-type-of-ebs-backed-instance.html"
+    },
+    {
+      "title": "Free compute services on AWS (Free Tier eligible EC2 instance types)",
+      "url": "https://aws.amazon.com/free/compute/"
+    },
+    {
+      "title": "Amazon Virtual Private Cloud launches new security group sharing features (30 October 2024)",
+      "url": "https://aws.amazon.com/about-aws/whats-new/2024/10/amazon-virtual-private-cloud-security-group-sharing/"
+    },
+    {
+      "title": "Legacy AWS Free Tier FAQs (t3.micro free only in Regions without t2.micro; 750 h public IPv4)",
+      "url": "https://aws.amazon.com/free/legacy/free-tier-faqs"
+    },
+    {
+      "title": "Unlimited mode for burstable performance instances (T3, T3a, T4g, T8i launch as unlimited)",
+      "url": "https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/burstable-performance-instances-unlimited-mode.html"
+    },
+    {
+      "title": "Terminate Amazon EC2 instances (console labels)",
+      "url": "https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/terminating-instances.html"
+    },
+    {
+      "title": "Security groups for EC2 Instance Connect Endpoint (instance still needs inbound 22 from the endpoint)",
+      "url": "https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/eice-security-groups.html"
+    },
+    {
+      "title": "AWS CLI reference: aws configure get (reads only the config file)",
+      "url": "https://docs.aws.amazon.com/cli/latest/reference/configure/get.html"
+    },
+    {
+      "title": "Amazon EC2 T8i instances (t8i.micro and t8i.small under the Free Tier)",
+      "url": "https://aws.amazon.com/ec2/instance-types/t8i/"
+    },
+    {
+      "title": "AWS News Blog: New low-cost burstable Amazon EC2 T8i instances are generally available (17 September 2026)",
+      "url": "https://aws.amazon.com/blogs/aws/new-low-cost-burstable-amazon-ec2-t8i-instances-are-generally-available/"
+    }
+  ],
+  "newServices": []
+}

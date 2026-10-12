@@ -1,0 +1,399 @@
+{
+  "id": "23-databases",
+  "order": 23,
+  "title": "Databases in AWS",
+  "courseSection": "Databases in AWS",
+  "slides": [
+    513,
+    526
+  ],
+  "estimatedMinutes": 45,
+  "summary": "How to pick the right purpose-built database for a scenario: the questions to ask, the database families (relational, key-value, document, wide-column, graph, in-memory, object, warehouse, search, time series), a recap of RDS, Aurora, ElastiCache, DynamoDB and S3, and the specialists DocumentDB (MongoDB), Neptune (graphs, Neptune Streams), Keyspaces (Cassandra) and Timestream, including the 2025 availability changes for Timestream for LiveAnalytics and QLDB.",
+  "services": [
+    "rds",
+    "aurora",
+    "aurora-serverless",
+    "aurora-global",
+    "elasticache",
+    "dynamodb",
+    "dax",
+    "dynamodb-streams",
+    "dynamodb-global-tables",
+    "s3",
+    "s3-glacier",
+    "documentdb",
+    "neptune",
+    "keyspaces",
+    "timestream",
+    "redshift",
+    "athena",
+    "emr",
+    "opensearch",
+    "kinesis-data-streams",
+    "lambda",
+    "msk",
+    "managed-flink",
+    "quicksight",
+    "sagemaker",
+    "comprehend",
+    "bedrock",
+    "kms",
+    "iam",
+    "secrets-manager",
+    "cloudshell"
+  ],
+  "relations": [
+    {
+      "from": "elasticache",
+      "to": "rds",
+      "label": "caches query results and sessions in front of"
+    },
+    {
+      "from": "dax",
+      "to": "dynamodb",
+      "label": "caches reads with microsecond latency for"
+    },
+    {
+      "from": "dynamodb",
+      "to": "dynamodb-streams",
+      "label": "publishes item-level changes to"
+    },
+    {
+      "from": "dynamodb",
+      "to": "s3",
+      "label": "exports PITR data without using RCUs to"
+    },
+    {
+      "from": "aurora",
+      "to": "sagemaker",
+      "label": "calls for in-database ML inference"
+    },
+    {
+      "from": "aurora",
+      "to": "comprehend",
+      "label": "calls for sentiment analysis from SQL"
+    },
+    {
+      "from": "neptune",
+      "to": "opensearch",
+      "label": "keeps a search copy in sync via Neptune Streams with"
+    },
+    {
+      "from": "neptune",
+      "to": "s3",
+      "label": "bulk loads graph data from"
+    },
+    {
+      "from": "kms",
+      "to": "documentdb",
+      "label": "encrypts cluster storage and backups of"
+    },
+    {
+      "from": "iot-core",
+      "to": "timestream",
+      "label": "writes device telemetry into"
+    },
+    {
+      "from": "lambda",
+      "to": "timestream",
+      "label": "writes records from Kinesis Data Streams into"
+    },
+    {
+      "from": "managed-flink",
+      "to": "timestream",
+      "label": "writes aggregated metrics from Kinesis or MSK into"
+    },
+    {
+      "from": "quicksight",
+      "to": "timestream",
+      "label": "builds dashboards on"
+    },
+    {
+      "from": "sagemaker",
+      "to": "timestream",
+      "label": "trains models on time series from"
+    }
+  ],
+  "examDomains": [
+    "performant",
+    "resilient",
+    "cost",
+    "secure"
+  ],
+  "lastVerified": "2026-10-04",
+  "sources": [
+    {
+      "title": "Amazon Timestream for LiveAnalytics availability change",
+      "url": "https://docs.aws.amazon.com/timestream/latest/developerguide/AmazonTimestreamForLiveAnalytics-availability-change.html"
+    },
+    {
+      "title": "What is Amazon Timestream for LiveAnalytics?",
+      "url": "https://docs.aws.amazon.com/timestream/latest/developerguide/what-is-timestream.html"
+    },
+    {
+      "title": "What is Timestream for InfluxDB?",
+      "url": "https://docs.aws.amazon.com/timestream/latest/developerguide/timestream-for-influxdb.html"
+    },
+    {
+      "title": "Querying data from Timestream for InfluxDB 3 (SQL and InfluxQL)",
+      "url": "https://docs.aws.amazon.com/timestream/latest/developerguide/querying-data-from-influxdb-3.html"
+    },
+    {
+      "title": "Amazon Timestream now supports InfluxDB 3 (Oct 2025)",
+      "url": "https://aws.amazon.com/about-aws/whats-new/2025/10/amazon-timestream-influxdb-3"
+    },
+    {
+      "title": "Services in Full Shutdown (Amazon QLDB end of support 31 July 2025)",
+      "url": "https://docs.aws.amazon.com/general/latest/gr/full_shutdown_services.html"
+    },
+    {
+      "title": "Migrate an Amazon QLDB ledger to Amazon Aurora PostgreSQL (AWS Database Blog)",
+      "url": "https://aws.amazon.com/blogs/database/migrate-an-amazon-qldb-ledger-to-amazon-aurora-postgresql/"
+    },
+    {
+      "title": "What is Amazon DocumentDB (with MongoDB compatibility)",
+      "url": "https://docs.aws.amazon.com/documentdb/latest/developerguide/what-is.html"
+    },
+    {
+      "title": "Get started with Amazon DocumentDB",
+      "url": "https://docs.aws.amazon.com/documentdb/latest/developerguide/get-started-guide.html"
+    },
+    {
+      "title": "Using Amazon DocumentDB serverless",
+      "url": "https://docs.aws.amazon.com/documentdb/latest/developerguide/docdb-serverless.html"
+    },
+    {
+      "title": "Deleting an Amazon DocumentDB cluster",
+      "url": "https://docs.aws.amazon.com/documentdb/latest/developerguide/db-cluster-delete.html"
+    },
+    {
+      "title": "Amazon DocumentDB pricing (free trial, storage, I/O, serverless)",
+      "url": "https://aws.amazon.com/documentdb/pricing/"
+    },
+    {
+      "title": "Optimizing for cost with Amazon DocumentDB (db.t3.medium price)",
+      "url": "https://aws.amazon.com/blogs/database/optimizing-for-cost-with-amazon-documentdb-with-mongodb-compatibility/"
+    },
+    {
+      "title": "Amazon DocumentDB Quick Start: Zero Setup with AWS CloudShell",
+      "url": "https://aws.amazon.com/blogs/database/amazon-documentdb-quick-start-zero-setup-with-aws-cloudshell/"
+    },
+    {
+      "title": "Creating a CloudShell VPC environment",
+      "url": "https://docs.aws.amazon.com/cloudshell/latest/userguide/creating-vpc-environment.html"
+    },
+    {
+      "title": "Using AWS CloudShell in Amazon VPC (up to five security groups per VPC environment)",
+      "url": "https://docs.aws.amazon.com/cloudshell/latest/userguide/using-cshell-in-vpc.html"
+    },
+    {
+      "title": "Troubleshooting AWS CloudShell (VPC environment ENI tagged ManagedByCloudShell not cleaned up)",
+      "url": "https://docs.aws.amazon.com/cloudshell/latest/userguide/troubleshooting.html"
+    },
+    {
+      "title": "What Is Amazon Neptune?",
+      "url": "https://docs.aws.amazon.com/neptune/latest/userguide/intro.html"
+    },
+    {
+      "title": "Capturing graph changes in real time using Neptune streams",
+      "url": "https://docs.aws.amazon.com/neptune/latest/userguide/streams.html"
+    },
+    {
+      "title": "Amazon Neptune limits",
+      "url": "https://docs.aws.amazon.com/neptune/latest/userguide/limits.html"
+    },
+    {
+      "title": "Using Amazon Neptune with a global database",
+      "url": "https://docs.aws.amazon.com/neptune/latest/userguide/neptune-global-database.html"
+    },
+    {
+      "title": "Amazon Neptune Serverless",
+      "url": "https://docs.aws.amazon.com/neptune/latest/userguide/neptune-serverless.html"
+    },
+    {
+      "title": "What is Amazon Keyspaces (for Apache Cassandra)?",
+      "url": "https://docs.aws.amazon.com/keyspaces/latest/devguide/what-is-keyspaces.html"
+    },
+    {
+      "title": "Amazon Keyspaces: How it works",
+      "url": "https://docs.aws.amazon.com/keyspaces/latest/devguide/how-it-works.html"
+    },
+    {
+      "title": "Getting started with Amazon Keyspaces",
+      "url": "https://docs.aws.amazon.com/keyspaces/latest/devguide/getting-started.html"
+    },
+    {
+      "title": "Create a keyspace in Amazon Keyspaces",
+      "url": "https://docs.aws.amazon.com/keyspaces/latest/devguide/getting-started.keyspaces.html"
+    },
+    {
+      "title": "Create a table in Amazon Keyspaces",
+      "url": "https://docs.aws.amazon.com/keyspaces/latest/devguide/getting-started.tables.html"
+    },
+    {
+      "title": "Inserting and loading data into an Amazon Keyspaces table",
+      "url": "https://docs.aws.amazon.com/keyspaces/latest/devguide/getting-started.dml.create.html"
+    },
+    {
+      "title": "Read data from a table using the CQL SELECT statement",
+      "url": "https://docs.aws.amazon.com/keyspaces/latest/devguide/getting-started.dml.read.html"
+    },
+    {
+      "title": "Using cqlsh to connect to Amazon Keyspaces",
+      "url": "https://docs.aws.amazon.com/keyspaces/latest/devguide/programmatic.cqlsh.html"
+    },
+    {
+      "title": "Connect to Amazon Keyspaces using AWS CloudShell from the console",
+      "url": "https://docs.aws.amazon.com/keyspaces/latest/devguide/console_cloudshell_integration.html"
+    },
+    {
+      "title": "Accessing Amazon Keyspaces using the console",
+      "url": "https://docs.aws.amazon.com/keyspaces/latest/devguide/console_keyspaces.html"
+    },
+    {
+      "title": "Functional differences: Amazon Keyspaces vs. Apache Cassandra",
+      "url": "https://docs.aws.amazon.com/keyspaces/latest/devguide/functional-differences.html"
+    },
+    {
+      "title": "Supported Cassandra APIs, operations, functions and data types (no aggregates, no CREATE INDEX)",
+      "url": "https://docs.aws.amazon.com/keyspaces/latest/devguide/cassandra-apis.html"
+    },
+    {
+      "title": "Delete a table in Amazon Keyspaces",
+      "url": "https://docs.aws.amazon.com/keyspaces/latest/devguide/getting-started.clean-up.table.html"
+    },
+    {
+      "title": "Delete a keyspace in Amazon Keyspaces",
+      "url": "https://docs.aws.amazon.com/keyspaces/latest/devguide/getting-started.clean-up.keyspace.html"
+    },
+    {
+      "title": "Backup and restore data with point-in-time recovery for Amazon Keyspaces",
+      "url": "https://docs.aws.amazon.com/keyspaces/latest/devguide/PointInTimeRecovery.html"
+    },
+    {
+      "title": "Configure PITR for a table in Amazon Keyspaces",
+      "url": "https://docs.aws.amazon.com/keyspaces/latest/devguide/configure_PITR.html"
+    },
+    {
+      "title": "Restore a table to a point in time in Amazon Keyspaces",
+      "url": "https://docs.aws.amazon.com/keyspaces/latest/devguide/restoretabletopointintime.html"
+    },
+    {
+      "title": "Multi-Region replication for Amazon Keyspaces",
+      "url": "https://docs.aws.amazon.com/keyspaces/latest/devguide/multiRegion-replication.html"
+    },
+    {
+      "title": "Amazon Keyspaces reduces prices by up to 75% (Nov 2024)",
+      "url": "https://aws.amazon.com/about-aws/whats-new/2024/11/amazon-keyspaces-apache-cassandra-reduces-prices-75-percent"
+    },
+    {
+      "title": "Amazon Keyspaces pricing",
+      "url": "https://aws.amazon.com/keyspaces/pricing/"
+    },
+    {
+      "title": "Amazon Aurora storage (6 copies, 3 AZs, 128/256 TiB)",
+      "url": "https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/Aurora.Overview.StorageReliability.html"
+    },
+    {
+      "title": "Configuration requirements of an Amazon Aurora global database",
+      "url": "https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/aurora-global-database.configuration.requirements.html"
+    },
+    {
+      "title": "Aurora Global Database supports up to 10 secondary Regions (May 2025)",
+      "url": "https://aws.amazon.com/about-aws/whats-new/2025/05/amazon-aurora-global-database-support-10-secondary-region-clusters/"
+    },
+    {
+      "title": "Using Amazon Aurora machine learning",
+      "url": "https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/aurora-ml.html"
+    },
+    {
+      "title": "Using Aurora serverless",
+      "url": "https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/aurora-serverless-v2.html"
+    },
+    {
+      "title": "Working with DB instance read replicas (no replica auto scaling in RDS)",
+      "url": "https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/USER_ReadRepl.html"
+    },
+    {
+      "title": "What is Amazon RDS?",
+      "url": "https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/Welcome.html"
+    },
+    {
+      "title": "What is Amazon ElastiCache?",
+      "url": "https://docs.aws.amazon.com/AmazonElastiCache/latest/dg/WhatIs.html"
+    },
+    {
+      "title": "Point-in-time backups for DynamoDB",
+      "url": "https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/Point-in-time-recovery.html"
+    },
+    {
+      "title": "DynamoDB global tables",
+      "url": "https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/GlobalTables.html"
+    },
+    {
+      "title": "DynamoDB data export to Amazon S3: how it works",
+      "url": "https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/S3DataExport.HowItWorks.html"
+    },
+    {
+      "title": "DynamoDB data import from Amazon S3: how it works",
+      "url": "https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/S3DataImport.HowItWorks.html"
+    },
+    {
+      "title": "Amazon S3 increases the maximum object size to 50 TB (Dec 2025)",
+      "url": "https://aws.amazon.com/about-aws/whats-new/2025/12/amazon-s3-maximum-object-size-50-tb/"
+    },
+    {
+      "title": "Querying data in place with Amazon S3 Select (no longer available to new customers)",
+      "url": "https://docs.aws.amazon.com/AmazonS3/latest/userguide/selecting-content-from-objects.html"
+    },
+    {
+      "title": "Transforming objects with S3 Object Lambda (availability change)",
+      "url": "https://docs.aws.amazon.com/AmazonS3/latest/userguide/transforming-objects.html"
+    },
+    {
+      "title": "Amazon DocumentDB quotas (cluster size 256 TiB on 8.0, 15 replicas, password rules)",
+      "url": "https://docs.aws.amazon.com/documentdb/latest/developerguide/limits.html"
+    },
+    {
+      "title": "Finding a DocumentDB cluster's endpoints",
+      "url": "https://docs.aws.amazon.com/documentdb/latest/developerguide/db-cluster-endpoints-find.html"
+    },
+    {
+      "title": "Deleting an Amazon DocumentDB instance",
+      "url": "https://docs.aws.amazon.com/documentdb/latest/developerguide/db-instance-delete.html"
+    },
+    {
+      "title": "Amazon DocumentDB now offers one-click connectivity with CloudShell (Feb 2025)",
+      "url": "https://aws.amazon.com/about-aws/whats-new/2025/02/amazon-documentdb-one-click-connectivity-cloudshell"
+    },
+    {
+      "title": "Quotas and constraints for Amazon Aurora (size limits by engine version)",
+      "url": "https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/CHAP_Limits.html"
+    },
+    {
+      "title": "ElastiCache snapshot and restore",
+      "url": "https://docs.aws.amazon.com/AmazonElastiCache/latest/dg/backups.html"
+    },
+    {
+      "title": "Encrypting Amazon DocumentDB data at rest (console on by default, CLI off)",
+      "url": "https://docs.aws.amazon.com/documentdb/latest/developerguide/encryption-at-rest.html"
+    },
+    {
+      "title": "Amazon DocumentDB serverless scaling configuration (0.5 to 256 DCUs)",
+      "url": "https://docs.aws.amazon.com/documentdb/latest/developerguide/docdb-serverless-scaling-config.html"
+    },
+    {
+      "title": "AWS Price List API: Amazon DocumentDB offer file, us-east-1 (db.t3.medium USD 0.078/h)",
+      "url": "https://pricing.us-east-1.amazonaws.com/offers/v1.0/aws/AmazonDocDB/current/region_index.json"
+    },
+    {
+      "title": "What is Amazon Quick? (QuickSight continues as Amazon Quick Sight)",
+      "url": "https://docs.aws.amazon.com/quick/latest/userguide/what-is.html"
+    },
+    {
+      "title": "How to optimize querying your data in Amazon S3 (S3 Select closed to new customers 25 July 2024)",
+      "url": "https://aws.amazon.com/blogs/storage/how-to-optimize-querying-your-data-in-amazon-s3/"
+    }
+  ],
+  "newServices": []
+}

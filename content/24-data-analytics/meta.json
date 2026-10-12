@@ -1,0 +1,531 @@
+{
+  "id": "24-data-analytics",
+  "order": 24,
+  "title": "Data & Analytics",
+  "courseSection": "Data & Analytics",
+  "slides": [
+    527,
+    559
+  ],
+  "estimatedMinutes": 55,
+  "summary": "How to pick the right AWS analytics service: Athena for serverless SQL on S3 (and how Parquet, compression and partitions cut cost), Redshift and Spectrum for data warehousing, OpenSearch for search, EMR for Hadoop and Spark, Quick Sight for dashboards, Glue and the Data Catalog for ETL, Lake Formation for governed data lakes, Managed Service for Apache Flink and Amazon MSK for streams, and a serverless big data pipeline that ties them together.",
+  "services": [
+    "athena",
+    "redshift",
+    "redshift-spectrum",
+    "opensearch",
+    "emr",
+    "quicksight",
+    "glue",
+    "glue-data-catalog",
+    "lake-formation",
+    "managed-flink",
+    "msk",
+    "kinesis-data-streams",
+    "data-firehose",
+    "s3",
+    "lambda",
+    "dynamodb",
+    "dynamodb-streams",
+    "cloudwatch-logs",
+    "sqs",
+    "ec2",
+    "ec2-spot",
+    "eks",
+    "rds",
+    "aurora",
+    "iam",
+    "kms",
+    "cognito",
+    "vpc-endpoints",
+    "cloudshell",
+    "iot-core"
+  ],
+  "relations": [
+    {
+      "from": "athena",
+      "to": "s3",
+      "label": "runs serverless SQL directly on"
+    },
+    {
+      "from": "athena",
+      "to": "glue-data-catalog",
+      "label": "reads table definitions from"
+    },
+    {
+      "from": "athena",
+      "to": "lambda",
+      "label": "runs federated query connectors on"
+    },
+    {
+      "from": "quicksight",
+      "to": "athena",
+      "label": "builds dashboards on query results from"
+    },
+    {
+      "from": "glue",
+      "to": "glue-data-catalog",
+      "label": "crawlers write table metadata to"
+    },
+    {
+      "from": "glue",
+      "to": "s3",
+      "label": "converts CSV and JSON to Parquet in"
+    },
+    {
+      "from": "lake-formation",
+      "to": "glue-data-catalog",
+      "label": "adds row, column and cell permissions to"
+    },
+    {
+      "from": "redshift",
+      "to": "s3",
+      "label": "bulk loads with COPY from"
+    },
+    {
+      "from": "redshift-spectrum",
+      "to": "s3",
+      "label": "queries files in place in"
+    },
+    {
+      "from": "data-firehose",
+      "to": "redshift",
+      "label": "loads streaming data through an S3 COPY into"
+    },
+    {
+      "from": "dynamodb-streams",
+      "to": "opensearch",
+      "label": "feeds item changes (via Lambda) into"
+    },
+    {
+      "from": "kinesis-data-streams",
+      "to": "managed-flink",
+      "label": "streams real-time records into"
+    },
+    {
+      "from": "msk",
+      "to": "managed-flink",
+      "label": "provides Kafka topics as a source for"
+    },
+    {
+      "from": "emr",
+      "to": "ec2-spot",
+      "label": "runs low-cost task nodes on"
+    },
+    {
+      "from": "iot-core",
+      "to": "kinesis-data-streams",
+      "label": "routes device messages into"
+    }
+  ],
+  "examDomains": [
+    "performant",
+    "cost",
+    "secure",
+    "resilient"
+  ],
+  "lastVerified": "2026-10-04",
+  "sources": [
+    {
+      "title": "Amazon Athena pricing",
+      "url": "https://aws.amazon.com/athena/pricing/"
+    },
+    {
+      "title": "Amazon Athena FAQs",
+      "url": "https://aws.amazon.com/athena/faqs/"
+    },
+    {
+      "title": "Athena engine version 3",
+      "url": "https://docs.aws.amazon.com/athena/latest/ug/engine-versions-reference-0003.html"
+    },
+    {
+      "title": "Athena: Optimize data (partitioning, columnar formats, file sizes)",
+      "url": "https://docs.aws.amazon.com/athena/latest/ug/performance-tuning-data-optimization-techniques.html"
+    },
+    {
+      "title": "Athena: Use compression",
+      "url": "https://docs.aws.amazon.com/athena/latest/ug/compression-formats.html"
+    },
+    {
+      "title": "Athena: Choose a SerDe for your data (supported formats)",
+      "url": "https://docs.aws.amazon.com/athena/latest/ug/supported-serdes.html"
+    },
+    {
+      "title": "Athena: Use Amazon Athena Federated Query",
+      "url": "https://docs.aws.amazon.com/athena/latest/ug/federated-queries.html"
+    },
+    {
+      "title": "Athena: Managed query results",
+      "url": "https://docs.aws.amazon.com/athena/latest/ug/managed-results.html"
+    },
+    {
+      "title": "Athena getting started: Step 1 Create a database",
+      "url": "https://docs.aws.amazon.com/athena/latest/ug/step-1-create-a-database.html"
+    },
+    {
+      "title": "Athena getting started: Step 2 Create a table",
+      "url": "https://docs.aws.amazon.com/athena/latest/ug/step-2-create-a-table.html"
+    },
+    {
+      "title": "Athena getting started: Step 3 Query data",
+      "url": "https://docs.aws.amazon.com/athena/latest/ug/step-3-query-data.html"
+    },
+    {
+      "title": "Athena: Create a workgroup",
+      "url": "https://docs.aws.amazon.com/athena/latest/ug/creating-workgroups.html"
+    },
+    {
+      "title": "Amazon Redshift snapshots and backups",
+      "url": "https://docs.aws.amazon.com/redshift/latest/mgmt/working-with-snapshots.html"
+    },
+    {
+      "title": "Amazon Redshift Multi-AZ deployment",
+      "url": "https://docs.aws.amazon.com/redshift/latest/mgmt/managing-cluster-multi-az.html"
+    },
+    {
+      "title": "Amazon Redshift provisioned clusters (nodes and node types)",
+      "url": "https://docs.aws.amazon.com/redshift/latest/mgmt/working-with-clusters.html"
+    },
+    {
+      "title": "Compute capacity for Amazon Redshift Serverless",
+      "url": "https://docs.aws.amazon.com/redshift/latest/mgmt/serverless-capacity.html"
+    },
+    {
+      "title": "Amazon Redshift pricing",
+      "url": "https://aws.amazon.com/redshift/pricing/"
+    },
+    {
+      "title": "Amazon Redshift columnar storage",
+      "url": "https://docs.aws.amazon.com/redshift/latest/dg/c_columnar_storage_disk_mem_mgmnt.html"
+    },
+    {
+      "title": "Amazon Redshift sort keys",
+      "url": "https://docs.aws.amazon.com/redshift/latest/dg/t_Sorting_data.html"
+    },
+    {
+      "title": "Unsupported PostgreSQL features in Amazon Redshift (indexes)",
+      "url": "https://docs.aws.amazon.com/redshift/latest/dg/c_unsupported-postgresql-features.html"
+    },
+    {
+      "title": "Redshift enhanced VPC routing",
+      "url": "https://docs.aws.amazon.com/redshift/latest/mgmt/enhanced-vpc-routing.html"
+    },
+    {
+      "title": "Amazon Redshift Spectrum",
+      "url": "https://docs.aws.amazon.com/redshift/latest/dg/c-using-spectrum.html"
+    },
+    {
+      "title": "Amazon Redshift Spectrum overview",
+      "url": "https://docs.aws.amazon.com/redshift/latest/dg/c-spectrum-overview.html"
+    },
+    {
+      "title": "Redshift best practice: use a COPY command to load data",
+      "url": "https://docs.aws.amazon.com/redshift/latest/dg/c_best-practices-use-copy.html"
+    },
+    {
+      "title": "Amazon Redshift zero-ETL integrations",
+      "url": "https://docs.aws.amazon.com/redshift/latest/mgmt/zero-etl-using.html"
+    },
+    {
+      "title": "Redshift streaming ingestion to a materialized view",
+      "url": "https://docs.aws.amazon.com/redshift/latest/dg/materialized-view-streaming-ingestion.html"
+    },
+    {
+      "title": "Get started with Amazon Redshift Serverless data warehouses",
+      "url": "https://docs.aws.amazon.com/redshift/latest/gsg/new-user-serverless.html"
+    },
+    {
+      "title": "Redshift Serverless: Creating a workgroup with a namespace",
+      "url": "https://docs.aws.amazon.com/redshift/latest/mgmt/serverless-console-workgroups-create-workgroup-wizard.html"
+    },
+    {
+      "title": "Creating an IAM role as default for Amazon Redshift",
+      "url": "https://docs.aws.amazon.com/redshift/latest/mgmt/default-iam-role.html"
+    },
+    {
+      "title": "AWS CLI reference: redshift-serverless create-workgroup",
+      "url": "https://docs.aws.amazon.com/cli/latest/reference/redshift-serverless/create-workgroup.html"
+    },
+    {
+      "title": "AWS CLI reference: redshift-serverless create-namespace",
+      "url": "https://docs.aws.amazon.com/cli/latest/reference/redshift-serverless/create-namespace.html"
+    },
+    {
+      "title": "AWS CLI reference: redshift-data execute-statement",
+      "url": "https://docs.aws.amazon.com/cli/latest/reference/redshift-data/execute-statement.html"
+    },
+    {
+      "title": "What is Amazon OpenSearch Service?",
+      "url": "https://docs.aws.amazon.com/opensearch-service/latest/developerguide/what-is.html"
+    },
+    {
+      "title": "Querying your OpenSearch Service data with SQL",
+      "url": "https://docs.aws.amazon.com/opensearch-service/latest/developerguide/sql-support.html"
+    },
+    {
+      "title": "What is Amazon OpenSearch Serverless?",
+      "url": "https://docs.aws.amazon.com/opensearch-service/latest/developerguide/serverless-overview.html"
+    },
+    {
+      "title": "Overview of Amazon OpenSearch Ingestion",
+      "url": "https://docs.aws.amazon.com/opensearch-service/latest/developerguide/ingestion.html"
+    },
+    {
+      "title": "DynamoDB zero-ETL integration with Amazon OpenSearch Service",
+      "url": "https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/OpenSearchIngestionForDynamoDB.html"
+    },
+    {
+      "title": "Streaming CloudWatch Logs data to Amazon OpenSearch Service",
+      "url": "https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/CWL_OpenSearch_Stream.html"
+    },
+    {
+      "title": "Amazon EMR: clusters and nodes",
+      "url": "https://docs.aws.amazon.com/emr/latest/ManagementGuide/emr-overview.html"
+    },
+    {
+      "title": "What is Amazon EMR?",
+      "url": "https://docs.aws.amazon.com/emr/latest/ManagementGuide/emr-what-is-emr.html"
+    },
+    {
+      "title": "Amazon EMR FAQs (deployment options, Spot)",
+      "url": "https://aws.amazon.com/emr/faqs/"
+    },
+    {
+      "title": "What is Amazon EMR Serverless?",
+      "url": "https://docs.aws.amazon.com/emr/latest/EMR-Serverless-UserGuide/emr-serverless.html"
+    },
+    {
+      "title": "What is Amazon Quick? (Quick Sight, formerly QuickSight)",
+      "url": "https://docs.aws.amazon.com/quicksight/latest/user/welcome.html"
+    },
+    {
+      "title": "Amazon Quick pricing",
+      "url": "https://aws.amazon.com/quick/pricing/"
+    },
+    {
+      "title": "Quick Sight: Importing data into SPICE",
+      "url": "https://docs.aws.amazon.com/quicksight/latest/user/spice.html"
+    },
+    {
+      "title": "Quick Sight: Using column-level security",
+      "url": "https://docs.aws.amazon.com/quicksight/latest/user/restrict-access-to-a-data-set-using-column-level-security.html"
+    },
+    {
+      "title": "Quick Sight: Sharing dashboards",
+      "url": "https://docs.aws.amazon.com/quicksight/latest/user/sharing-a-dashboard.html"
+    },
+    {
+      "title": "Quick Sight: Supported data sources",
+      "url": "https://docs.aws.amazon.com/quicksight/latest/user/supported-data-sources.html"
+    },
+    {
+      "title": "AWS Glue pricing",
+      "url": "https://aws.amazon.com/glue/pricing/"
+    },
+    {
+      "title": "What is AWS Glue?",
+      "url": "https://docs.aws.amazon.com/glue/latest/dg/what-is-glue.html"
+    },
+    {
+      "title": "AWS Glue: Tracking processed data using job bookmarks",
+      "url": "https://docs.aws.amazon.com/glue/latest/dg/monitor-continuations.html"
+    },
+    {
+      "title": "AWS Glue versions",
+      "url": "https://docs.aws.amazon.com/glue/latest/dg/release-notes.html"
+    },
+    {
+      "title": "AWS Glue: Configuring job properties for Spark jobs",
+      "url": "https://docs.aws.amazon.com/glue/latest/dg/add-job.html"
+    },
+    {
+      "title": "AWS Glue crawler: Choose data sources and classifiers",
+      "url": "https://docs.aws.amazon.com/glue/latest/dg/define-crawler-choose-data-sources.html"
+    },
+    {
+      "title": "AWS Glue crawler: Configure security settings",
+      "url": "https://docs.aws.amazon.com/glue/latest/dg/define-crawler-configure-security-settings.html"
+    },
+    {
+      "title": "Tutorial: Adding an AWS Glue crawler",
+      "url": "https://docs.aws.amazon.com/glue/latest/dg/tutorial-add-crawler.html"
+    },
+    {
+      "title": "Starting visual ETL jobs in AWS Glue Studio",
+      "url": "https://docs.aws.amazon.com/glue/latest/dg/edit-nodes-chapter.html"
+    },
+    {
+      "title": "AWS Glue Studio: Configuring data target nodes",
+      "url": "https://docs.aws.amazon.com/glue/latest/dg/data-target-nodes.html"
+    },
+    {
+      "title": "AWS CLI reference: glue create-job",
+      "url": "https://docs.aws.amazon.com/cli/latest/reference/glue/create-job.html"
+    },
+    {
+      "title": "What is AWS Lake Formation?",
+      "url": "https://docs.aws.amazon.com/lake-formation/latest/dg/what-is-lake-formation.html"
+    },
+    {
+      "title": "Lake Formation: Blueprints and workflows",
+      "url": "https://docs.aws.amazon.com/lake-formation/latest/dg/workflows-about.html"
+    },
+    {
+      "title": "What is Amazon Managed Service for Apache Flink?",
+      "url": "https://docs.aws.amazon.com/managed-flink/latest/java/what-is.html"
+    },
+    {
+      "title": "Managed Service for Apache Flink: streaming data sources",
+      "url": "https://docs.aws.amazon.com/managed-flink/latest/java/how-sources.html"
+    },
+    {
+      "title": "Kinesis Data Analytics for SQL Applications discontinuation",
+      "url": "https://docs.aws.amazon.com/kinesisanalytics/latest/dev/discontinuation.html"
+    },
+    {
+      "title": "What is Amazon MSK?",
+      "url": "https://docs.aws.amazon.com/msk/latest/developerguide/what-is-msk.html"
+    },
+    {
+      "title": "Amazon MSK metadata management (ZooKeeper and KRaft)",
+      "url": "https://docs.aws.amazon.com/msk/latest/developerguide/metadata-management.html"
+    },
+    {
+      "title": "Amazon MSK Express brokers",
+      "url": "https://docs.aws.amazon.com/msk/latest/developerguide/msk-broker-types-express.html"
+    },
+    {
+      "title": "Default Amazon MSK configuration",
+      "url": "https://docs.aws.amazon.com/msk/latest/developerguide/msk-default-configuration.html"
+    },
+    {
+      "title": "Custom Amazon MSK configurations (message.max.bytes)",
+      "url": "https://docs.aws.amazon.com/msk/latest/developerguide/msk-configuration-properties.html"
+    },
+    {
+      "title": "What is MSK Serverless?",
+      "url": "https://docs.aws.amazon.com/msk/latest/developerguide/serverless.html"
+    },
+    {
+      "title": "Amazon MSK quotas (MSK Serverless message size)",
+      "url": "https://docs.aws.amazon.com/msk/latest/developerguide/limits.html"
+    },
+    {
+      "title": "Amazon Data Firehose: Configure buffering hints",
+      "url": "https://docs.aws.amazon.com/firehose/latest/dev/create-configure-backup.html"
+    },
+    {
+      "title": "Kinesis Data Streams quotas and limits",
+      "url": "https://docs.aws.amazon.com/streams/latest/dev/service-sizes-and-limits.html"
+    },
+    {
+      "title": "Athena: Configure per-query and per-workgroup data usage controls",
+      "url": "https://docs.aws.amazon.com/athena/latest/ug/workgroups-setting-control-limits-cloudwatch.html"
+    },
+    {
+      "title": "Athena: Delete a workgroup",
+      "url": "https://docs.aws.amazon.com/athena/latest/ug/deleting-workgroups.html"
+    },
+    {
+      "title": "Athena: MSCK REPAIR TABLE",
+      "url": "https://docs.aws.amazon.com/athena/latest/ug/msck-repair-table.html"
+    },
+    {
+      "title": "Athena: Examples of CTAS queries",
+      "url": "https://docs.aws.amazon.com/athena/latest/ug/ctas-examples.html"
+    },
+    {
+      "title": "AWS CLI reference: athena create-work-group",
+      "url": "https://docs.aws.amazon.com/cli/latest/reference/athena/create-work-group.html"
+    },
+    {
+      "title": "AWS Glue: Updating the schema and adding new partitions in the Data Catalog from ETL jobs",
+      "url": "https://docs.aws.amazon.com/glue/latest/dg/update-from-job.html"
+    },
+    {
+      "title": "Amazon Redshift Spectrum limitations",
+      "url": "https://docs.aws.amazon.com/redshift/latest/dg/c-spectrum-considerations.html"
+    },
+    {
+      "title": "IAM policies for Amazon Redshift Spectrum",
+      "url": "https://docs.aws.amazon.com/redshift/latest/dg/c-spectrum-iam-policies.html"
+    },
+    {
+      "title": "Amazon Redshift: CREATE EXTERNAL SCHEMA",
+      "url": "https://docs.aws.amazon.com/redshift/latest/dg/r_CREATE_EXTERNAL_SCHEMA.html"
+    },
+    {
+      "title": "Amazon Redshift: INSERT (external table)",
+      "url": "https://docs.aws.amazon.com/redshift/latest/dg/r_INSERT_external_table.html"
+    },
+    {
+      "title": "Amazon Redshift: SYS_LOAD_HISTORY",
+      "url": "https://docs.aws.amazon.com/redshift/latest/dg/SYS_LOAD_HISTORY.html"
+    },
+    {
+      "title": "Getting started with IAM credentials for Amazon Redshift Serverless",
+      "url": "https://docs.aws.amazon.com/redshift/latest/mgmt/serverless-iam-credentials.html"
+    },
+    {
+      "title": "Restricting access to IAM roles (Redshift trust policies)",
+      "url": "https://docs.aws.amazon.com/redshift/latest/mgmt/authorizing-redshift-service-database-users.html"
+    },
+    {
+      "title": "Redshift Serverless: Setting usage limits, including RPU limits",
+      "url": "https://docs.aws.amazon.com/redshift/latest/mgmt/serverless-workgroup-max-rpu.html"
+    },
+    {
+      "title": "Redshift Serverless: Deleting a workgroup",
+      "url": "https://docs.aws.amazon.com/redshift/latest/mgmt/serverless_delete-workgroup.html"
+    },
+    {
+      "title": "Redshift Serverless: Deleting a namespace",
+      "url": "https://docs.aws.amazon.com/redshift/latest/mgmt/serverless-console-namespace-delete.html"
+    },
+    {
+      "title": "AWS CLI reference: redshift-serverless create-usage-limit",
+      "url": "https://docs.aws.amazon.com/cli/latest/reference/redshift-serverless/create-usage-limit.html"
+    },
+    {
+      "title": "AWS CLI reference: redshift-data get-statement-result-v2",
+      "url": "https://docs.aws.amazon.com/cli/latest/reference/redshift-data/get-statement-result-v2.html"
+    },
+    {
+      "title": "Kinesis Data Streams: Handle large records (1 MiB default, up to 10 MiB)",
+      "url": "https://docs.aws.amazon.com/streams/latest/dev/large-records.html"
+    },
+    {
+      "title": "AWS Glue 6.0 delivers 30% price reduction and Iceberg v3 support (What's New)",
+      "url": "https://aws.amazon.com/about-aws/whats-new/2026/08/aws-glue-6-0-price-reduction-iceberg-v3/"
+    },
+    {
+      "title": "AWS Glue 6.0 now available with 30% lower price (AWS News Blog)",
+      "url": "https://aws.amazon.com/blogs/aws/aws-glue-6-0-now-available-with-30-lower-price-and-full-apache-iceberg-v3-support/"
+    },
+    {
+      "title": "AWS Glue version support policy",
+      "url": "https://docs.aws.amazon.com/glue/latest/dg/glue-version-support-policy.html"
+    },
+    {
+      "title": "Redshift Serverless API: CreateNamespace",
+      "url": "https://docs.aws.amazon.com/redshift-serverless/latest/APIReference/API_CreateNamespace.html"
+    },
+    {
+      "title": "Managing Amazon Redshift admin passwords using AWS Secrets Manager",
+      "url": "https://docs.aws.amazon.com/redshift/latest/mgmt/redshift-secrets-manager-integration.html"
+    },
+    {
+      "title": "Creating a secret for Redshift database connection credentials",
+      "url": "https://docs.aws.amazon.com/redshift/latest/mgmt/redshift-secrets-manager-integration-create.html"
+    },
+    {
+      "title": "Redshift Data API: ExecuteStatement (authorization methods)",
+      "url": "https://docs.aws.amazon.com/redshift-data/latest/APIReference/API_ExecuteStatement.html"
+    },
+    {
+      "title": "AWS Secrets Manager pricing",
+      "url": "https://aws.amazon.com/secrets-manager/pricing/"
+    }
+  ],
+  "newServices": []
+}

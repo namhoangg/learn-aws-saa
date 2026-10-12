@@ -1,0 +1,326 @@
+{
+  "id": "31-vpc-fundamentals",
+  "order": 31,
+  "title": "VPC Fundamentals",
+  "courseSection": "Amazon VPC",
+  "slides": [
+    697,
+    728
+  ],
+  "estimatedMinutes": 60,
+  "summary": "Build a VPC from the ground up: CIDR notation and private IPv4 ranges, the default VPC, VPC and subnet sizing (five reserved addresses), internet gateways and route tables that make a subnet public, bastion hosts, NAT instances versus zonal and regional NAT gateways, and the two firewalls of a VPC: stateless network ACLs with ephemeral ports and stateful security groups.",
+  "services": [
+    "vpc",
+    "subnet",
+    "internet-gateway",
+    "nat-gateway",
+    "nat-instance",
+    "security-groups",
+    "nacl",
+    "bastion-host",
+    "ec2",
+    "elastic-ip",
+    "regions-azs",
+    "route53-resolver",
+    "systems-manager",
+    "egress-only-igw",
+    "vpc-peering",
+    "vpc-endpoints",
+    "vpc-flow-logs",
+    "site-to-site-vpn",
+    "direct-connect",
+    "transit-gateway"
+  ],
+  "relations": [
+    {
+      "from": "subnet",
+      "to": "vpc",
+      "label": "carves up the address range of"
+    },
+    {
+      "from": "subnet",
+      "to": "regions-azs",
+      "label": "lives in exactly one Availability Zone of"
+    },
+    {
+      "from": "internet-gateway",
+      "to": "vpc",
+      "label": "gives two-way internet access to"
+    },
+    {
+      "from": "nat-gateway",
+      "to": "internet-gateway",
+      "label": "sends private-subnet traffic out through"
+    },
+    {
+      "from": "nat-gateway",
+      "to": "elastic-ip",
+      "label": "uses as its public source address"
+    },
+    {
+      "from": "nat-instance",
+      "to": "internet-gateway",
+      "label": "forwards translated traffic through"
+    },
+    {
+      "from": "nat-instance",
+      "to": "ec2",
+      "label": "is a self-managed"
+    },
+    {
+      "from": "bastion-host",
+      "to": "ec2",
+      "label": "relays SSH sessions to private"
+    },
+    {
+      "from": "security-groups",
+      "to": "ec2",
+      "label": "statefully filter traffic for"
+    },
+    {
+      "from": "nacl",
+      "to": "subnet",
+      "label": "statelessly filters traffic entering and leaving"
+    },
+    {
+      "from": "route53-resolver",
+      "to": "vpc",
+      "label": "answers DNS at the base-plus-two address of"
+    },
+    {
+      "from": "systems-manager",
+      "to": "bastion-host",
+      "label": "Session Manager removes the need for"
+    },
+    {
+      "from": "egress-only-igw",
+      "to": "vpc",
+      "label": "gives outbound-only IPv6 access to"
+    }
+  ],
+  "examDomains": [
+    "secure",
+    "resilient",
+    "cost"
+  ],
+  "lastVerified": "2026-10-04",
+  "sources": [
+    {
+      "title": "What is Amazon VPC?",
+      "url": "https://docs.aws.amazon.com/vpc/latest/userguide/what-is-amazon-vpc.html"
+    },
+    {
+      "title": "Amazon VPC quotas",
+      "url": "https://docs.aws.amazon.com/vpc/latest/userguide/amazon-vpc-limits.html"
+    },
+    {
+      "title": "VPC CIDR blocks",
+      "url": "https://docs.aws.amazon.com/vpc/latest/userguide/vpc-cidr-blocks.html"
+    },
+    {
+      "title": "Subnet CIDR blocks",
+      "url": "https://docs.aws.amazon.com/vpc/latest/userguide/subnet-sizing.html"
+    },
+    {
+      "title": "Default VPCs",
+      "url": "https://docs.aws.amazon.com/vpc/latest/userguide/default-vpc.html"
+    },
+    {
+      "title": "Default VPC components",
+      "url": "https://docs.aws.amazon.com/vpc/latest/userguide/default-vpc-components.html"
+    },
+    {
+      "title": "Create a VPC",
+      "url": "https://docs.aws.amazon.com/vpc/latest/userguide/create-vpc.html"
+    },
+    {
+      "title": "Create a subnet",
+      "url": "https://docs.aws.amazon.com/vpc/latest/userguide/create-subnets.html"
+    },
+    {
+      "title": "Modify the IP addressing attributes of your subnet",
+      "url": "https://docs.aws.amazon.com/vpc/latest/userguide/subnet-public-ip.html"
+    },
+    {
+      "title": "Enable internet access for a VPC using an internet gateway",
+      "url": "https://docs.aws.amazon.com/vpc/latest/userguide/VPC_Internet_Gateway.html"
+    },
+    {
+      "title": "Add internet access to a subnet",
+      "url": "https://docs.aws.amazon.com/vpc/latest/userguide/working-with-igw.html"
+    },
+    {
+      "title": "Create a route table for your VPC",
+      "url": "https://docs.aws.amazon.com/vpc/latest/userguide/create-vpc-route-table.html"
+    },
+    {
+      "title": "Understanding Amazon DNS",
+      "url": "https://docs.aws.amazon.com/vpc/latest/userguide/AmazonDNS-concepts.html"
+    },
+    {
+      "title": "View and update DNS attributes for your VPC",
+      "url": "https://docs.aws.amazon.com/vpc/latest/userguide/vpc-dns-updating.html"
+    },
+    {
+      "title": "NAT gateways",
+      "url": "https://docs.aws.amazon.com/vpc/latest/userguide/vpc-nat-gateway.html"
+    },
+    {
+      "title": "NAT gateway basics",
+      "url": "https://docs.aws.amazon.com/vpc/latest/userguide/nat-gateway-basics.html"
+    },
+    {
+      "title": "Work with NAT gateways",
+      "url": "https://docs.aws.amazon.com/vpc/latest/userguide/nat-gateway-working-with.html"
+    },
+    {
+      "title": "Regional NAT gateways for automatic multi-AZ expansion",
+      "url": "https://docs.aws.amazon.com/vpc/latest/userguide/nat-gateways-regional.html"
+    },
+    {
+      "title": "Troubleshoot NAT gateways (creation fails without an attached internet gateway)",
+      "url": "https://docs.aws.amazon.com/vpc/latest/userguide/nat-gateway-troubleshooting.html"
+    },
+    {
+      "title": "Pricing for NAT gateways",
+      "url": "https://docs.aws.amazon.com/vpc/latest/userguide/nat-gateway-pricing.html"
+    },
+    {
+      "title": "Compare NAT gateways and NAT instances",
+      "url": "https://docs.aws.amazon.com/vpc/latest/userguide/vpc-nat-comparison.html"
+    },
+    {
+      "title": "NAT instances",
+      "url": "https://docs.aws.amazon.com/vpc/latest/userguide/VPC_NAT_Instance.html"
+    },
+    {
+      "title": "Enable private resources to communicate outside the VPC (NAT instance setup)",
+      "url": "https://docs.aws.amazon.com/vpc/latest/userguide/work-with-nat-instances.html"
+    },
+    {
+      "title": "create-nat-gateway (AWS CLI Command Reference)",
+      "url": "https://docs.aws.amazon.com/cli/latest/reference/ec2/create-nat-gateway.html"
+    },
+    {
+      "title": "AWS NAT Gateway now supports regional availability (November 2025)",
+      "url": "https://aws.amazon.com/about-aws/whats-new/2025/11/aws-nat-gateway-regional-availability/"
+    },
+    {
+      "title": "Introducing Amazon VPC Regional NAT Gateway (AWS Networking blog)",
+      "url": "https://aws.amazon.com/blogs/networking-and-content-delivery/introducing-amazon-vpc-regional-nat-gateway/"
+    },
+    {
+      "title": "Control subnet traffic with network access control lists",
+      "url": "https://docs.aws.amazon.com/vpc/latest/userguide/vpc-network-acls.html"
+    },
+    {
+      "title": "Default network ACL for a VPC",
+      "url": "https://docs.aws.amazon.com/vpc/latest/userguide/default-network-acl.html"
+    },
+    {
+      "title": "Custom network ACLs for your VPC (ephemeral ports)",
+      "url": "https://docs.aws.amazon.com/vpc/latest/userguide/custom-network-acl.html"
+    },
+    {
+      "title": "Create a network ACL for your VPC",
+      "url": "https://docs.aws.amazon.com/vpc/latest/userguide/create-network-acl.html"
+    },
+    {
+      "title": "Manage network ACL associations for your VPC",
+      "url": "https://docs.aws.amazon.com/vpc/latest/userguide/network-acl-associations.html"
+    },
+    {
+      "title": "Control traffic to your AWS resources using security groups",
+      "url": "https://docs.aws.amazon.com/vpc/latest/userguide/vpc-security-groups.html"
+    },
+    {
+      "title": "Infrastructure security in Amazon VPC (security groups vs network ACLs)",
+      "url": "https://docs.aws.amazon.com/vpc/latest/userguide/infrastructure-security.html"
+    },
+    {
+      "title": "Block public access to VPCs and subnets",
+      "url": "https://docs.aws.amazon.com/vpc/latest/userguide/security-vpc-bpa.html"
+    },
+    {
+      "title": "Delete your VPC",
+      "url": "https://docs.aws.amazon.com/vpc/latest/userguide/delete-vpc.html"
+    },
+    {
+      "title": "Connect to your instances using EC2 Instance Connect Endpoint",
+      "url": "https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/connect-with-ec2-instance-connect-endpoint.html"
+    },
+    {
+      "title": "AWS Systems Manager Session Manager",
+      "url": "https://docs.aws.amazon.com/systems-manager/latest/userguide/session-manager.html"
+    },
+    {
+      "title": "Create a key pair for your Amazon EC2 instance",
+      "url": "https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/create-key-pairs.html"
+    },
+    {
+      "title": "Connect to your Linux instance using an SSH client",
+      "url": "https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/connect-linux-inst-ssh.html"
+    },
+    {
+      "title": "Launch an EC2 instance using the launch instance wizard",
+      "url": "https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-launch-instance-wizard.html"
+    },
+    {
+      "title": "Reference for Amazon EC2 instance configuration parameters",
+      "url": "https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-instance-launch-parameters.html"
+    },
+    {
+      "title": "Amazon VPC pricing (NAT gateway, public IPv4 address)",
+      "url": "https://aws.amazon.com/vpc/pricing/"
+    },
+    {
+      "title": "Amazon EC2 On-Demand pricing",
+      "url": "https://aws.amazon.com/ec2/pricing/on-demand/"
+    },
+    {
+      "title": "AWS CloudShell compute environment: specifications and software",
+      "url": "https://docs.aws.amazon.com/cloudshell/latest/userguide/vm-specs.html"
+    },
+    {
+      "title": "Getting started with AWS CloudShell (upload and download files)",
+      "url": "https://docs.aws.amazon.com/cloudshell/latest/userguide/getting-started.html"
+    },
+    {
+      "title": "Delete a network ACL for your VPC",
+      "url": "https://docs.aws.amazon.com/vpc/latest/userguide/delete-network-acl.html"
+    },
+    {
+      "title": "Delete your key pair",
+      "url": "https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/delete-key-pair.html"
+    },
+    {
+      "title": "modify-instance-attribute (AWS CLI Command Reference)",
+      "url": "https://docs.aws.amazon.com/cli/latest/reference/ec2/modify-instance-attribute.html"
+    },
+    {
+      "title": "describe-nat-gateways (AWS CLI Command Reference)",
+      "url": "https://docs.aws.amazon.com/cli/latest/reference/ec2/describe-nat-gateways.html"
+    },
+    {
+      "title": "aws ec2 wait (AWS CLI Command Reference)",
+      "url": "https://docs.aws.amazon.com/cli/latest/reference/ec2/wait/index.html"
+    },
+    {
+      "title": "AWS Free Tier now includes 750 hours of free public IPv4 addresses (February 2024)",
+      "url": "https://aws.amazon.com/about-aws/whats-new/2024/02/aws-free-tier-750-hours-free-public-ipv4-addresses/"
+    },
+    {
+      "title": "Track your Free Tier usage for Amazon EC2 (Free Tier eligible instance types before and after 15 July 2025)",
+      "url": "https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-free-tier-usage.html"
+    },
+    {
+      "title": "AmazonEC2FullAccess (AWS managed policy reference)",
+      "url": "https://docs.aws.amazon.com/aws-managed-policy/latest/reference/AmazonEC2FullAccess.html"
+    },
+    {
+      "title": "Linux kernel IP sysctl documentation (ip_local_port_range default)",
+      "url": "https://docs.kernel.org/networking/ip-sysctl.html"
+    }
+  ],
+  "newServices": []
+}

@@ -1,0 +1,391 @@
+{
+  "id": "34-more-architectures",
+  "order": 34,
+  "title": "More Solutions Architecture",
+  "courseSection": "More Solutions Architecture",
+  "slides": [
+    802,
+    823
+  ],
+  "estimatedMinutes": 60,
+  "summary": "Reusable designs that SAA-C03 scenarios test: where failed messages go when Lambda reads from SQS, SQS FIFO or SNS, SNS-to-SQS fan-out, S3 event notifications with and without EventBridge, CloudTrail API-call alerts, API Gateway writing straight into Kinesis, caching layers, blocking an IP behind an ALB, NLB or CloudFront, the HPC service stack, and keeping a single EC2 instance highly available with an Auto Scaling group of one and an Elastic IP.",
+  "services": [
+    "lambda",
+    "sqs",
+    "sns",
+    "s3",
+    "eventbridge",
+    "cloudtrail",
+    "dynamodb",
+    "api-gateway",
+    "kinesis-data-streams",
+    "data-firehose",
+    "step-functions",
+    "cloudfront",
+    "elasticache",
+    "dax",
+    "rds",
+    "alb",
+    "nlb",
+    "waf",
+    "shield",
+    "network-firewall",
+    "security-groups",
+    "nacl",
+    "ec2",
+    "placement-groups",
+    "eni",
+    "direct-connect",
+    "datasync",
+    "snow-family",
+    "data-transfer-terminal",
+    "ebs",
+    "instance-store",
+    "efs",
+    "fsx-lustre",
+    "batch",
+    "parallelcluster",
+    "pcs",
+    "asg",
+    "elastic-ip",
+    "ebs-snapshots",
+    "aws-backup",
+    "iam-roles",
+    "cloudwatch-alarms"
+  ],
+  "relations": [
+    {
+      "from": "sns",
+      "to": "sqs",
+      "label": "fans out a copy of every message to"
+    },
+    {
+      "from": "sqs",
+      "to": "lambda",
+      "label": "feeds batches through an event source mapping to"
+    },
+    {
+      "from": "sns",
+      "to": "lambda",
+      "label": "invokes asynchronously"
+    },
+    {
+      "from": "s3",
+      "to": "sns",
+      "label": "publishes object events to"
+    },
+    {
+      "from": "s3",
+      "to": "eventbridge",
+      "label": "sends every bucket event to"
+    },
+    {
+      "from": "cloudtrail",
+      "to": "eventbridge",
+      "label": "delivers API call events to"
+    },
+    {
+      "from": "api-gateway",
+      "to": "kinesis-data-streams",
+      "label": "writes records directly into"
+    },
+    {
+      "from": "kinesis-data-streams",
+      "to": "data-firehose",
+      "label": "is the source stream for"
+    },
+    {
+      "from": "data-firehose",
+      "to": "s3",
+      "label": "delivers batched files to"
+    },
+    {
+      "from": "waf",
+      "to": "cloudfront",
+      "label": "blocks IP addresses and countries at"
+    },
+    {
+      "from": "nacl",
+      "to": "ec2",
+      "label": "denies specific client IPs before they reach"
+    },
+    {
+      "from": "fsx-lustre",
+      "to": "s3",
+      "label": "links to as a data repository"
+    },
+    {
+      "from": "batch",
+      "to": "placement-groups",
+      "label": "runs multi-node parallel jobs in a cluster"
+    },
+    {
+      "from": "asg",
+      "to": "elastic-ip",
+      "label": "relaunches the single instance that re-attaches"
+    },
+    {
+      "from": "ebs-snapshots",
+      "to": "ebs",
+      "label": "recreate data volumes in a new AZ for"
+    }
+  ],
+  "examDomains": [
+    "resilient",
+    "performant",
+    "secure",
+    "cost"
+  ],
+  "lastVerified": "2026-10-04",
+  "sources": [
+    {
+      "title": "Handling errors for an SQS event source in Lambda (partial batch responses)",
+      "url": "https://docs.aws.amazon.com/lambda/latest/dg/services-sqs-errorhandling.html"
+    },
+    {
+      "title": "Creating and configuring an Amazon SQS event source mapping (visibility timeout, maxReceiveCount, batch size)",
+      "url": "https://docs.aws.amazon.com/lambda/latest/dg/services-sqs-configure.html"
+    },
+    {
+      "title": "Using Lambda with Amazon SQS (polling and batching behaviour)",
+      "url": "https://docs.aws.amazon.com/lambda/latest/dg/with-sqs.html"
+    },
+    {
+      "title": "Configuring scaling behavior for SQS event source mappings (FIFO ordering and message groups)",
+      "url": "https://docs.aws.amazon.com/lambda/latest/dg/services-sqs-scaling.html"
+    },
+    {
+      "title": "How Lambda handles errors and retries with asynchronous invocation",
+      "url": "https://docs.aws.amazon.com/lambda/latest/dg/invocation-async-error-handling.html"
+    },
+    {
+      "title": "Capturing records of Lambda asynchronous invocations (destinations and dead-letter queues)",
+      "url": "https://docs.aws.amazon.com/lambda/latest/dg/invocation-async-retain-records.html"
+    },
+    {
+      "title": "Lambda runtimes (Python 3.14 support)",
+      "url": "https://docs.aws.amazon.com/lambda/latest/dg/lambda-runtimes.html"
+    },
+    {
+      "title": "Amazon SNS message delivery retries",
+      "url": "https://docs.aws.amazon.com/sns/latest/dg/sns-message-delivery-retries.html"
+    },
+    {
+      "title": "Amazon S3 Event Notifications",
+      "url": "https://docs.aws.amazon.com/AmazonS3/latest/userguide/EventNotifications.html"
+    },
+    {
+      "title": "Event notification types and destinations (FIFO not supported, ordering and duplicates)",
+      "url": "https://docs.aws.amazon.com/AmazonS3/latest/userguide/notification-how-to-event-types-and-destinations.html"
+    },
+    {
+      "title": "Configuring event notifications using object key name filtering",
+      "url": "https://docs.aws.amazon.com/AmazonS3/latest/userguide/notification-how-to-filtering.html"
+    },
+    {
+      "title": "Using EventBridge with Amazon S3",
+      "url": "https://docs.aws.amazon.com/AmazonS3/latest/userguide/EventBridge.html"
+    },
+    {
+      "title": "Amazon S3 endpoints and quotas (100 event notifications per bucket)",
+      "url": "https://docs.aws.amazon.com/general/latest/gr/s3.html"
+    },
+    {
+      "title": "How EventBridge retries delivering events (24 hours, 185 attempts)",
+      "url": "https://docs.aws.amazon.com/eventbridge/latest/userguide/eb-rule-retry-policy.html"
+    },
+    {
+      "title": "Amazon EventBridge quotas (5 targets per rule)",
+      "url": "https://docs.aws.amazon.com/eventbridge/latest/userguide/eb-quota.html"
+    },
+    {
+      "title": "AWS service events delivered via AWS CloudTrail (EventBridge)",
+      "url": "https://docs.aws.amazon.com/eventbridge/latest/userguide/eb-service-event-cloudtrail.html"
+    },
+    {
+      "title": "Quotas for configuring and running a REST API in API Gateway (payload size, integration timeout, cache TTL)",
+      "url": "https://docs.aws.amazon.com/apigateway/latest/developerguide/api-gateway-execution-service-limits-table.html"
+    },
+    {
+      "title": "Cache settings for REST APIs in API Gateway",
+      "url": "https://docs.aws.amazon.com/apigateway/latest/developerguide/api-gateway-caching.html"
+    },
+    {
+      "title": "API Gateway CreateStage API reference (cacheClusterSize values)",
+      "url": "https://docs.aws.amazon.com/apigateway/latest/api/API_CreateStage.html"
+    },
+    {
+      "title": "Tutorial: Create a REST API as an Amazon Kinesis proxy",
+      "url": "https://docs.aws.amazon.com/apigateway/latest/developerguide/integrating-api-with-aws-services-kinesis.html"
+    },
+    {
+      "title": "Set up an API integration request using the API Gateway console (AWS service integration)",
+      "url": "https://docs.aws.amazon.com/apigateway/latest/developerguide/how-to-method-settings-console.html"
+    },
+    {
+      "title": "AWS CLI reference: apigateway test-invoke-method",
+      "url": "https://docs.aws.amazon.com/cli/latest/reference/apigateway/test-invoke-method.html"
+    },
+    {
+      "title": "What is Amazon Data Firehose? (Firehose stream terminology)",
+      "url": "https://docs.aws.amazon.com/firehose/latest/dev/what-is-this-service.html"
+    },
+    {
+      "title": "Amazon Data Firehose BufferingHints API reference",
+      "url": "https://docs.aws.amazon.com/firehose/latest/APIReference/API_BufferingHints.html"
+    },
+    {
+      "title": "Amazon Data Firehose pricing",
+      "url": "https://aws.amazon.com/firehose/pricing/"
+    },
+    {
+      "title": "Amazon Kinesis Data Streams pricing",
+      "url": "https://aws.amazon.com/kinesis/data-streams/pricing/"
+    },
+    {
+      "title": "What is Amazon ElastiCache? (Valkey, Memcached, Redis OSS, serverless)",
+      "url": "https://docs.aws.amazon.com/AmazonElastiCache/latest/dg/WhatIs.html"
+    },
+    {
+      "title": "Amazon VPC quotas (network ACL rules, security group rules)",
+      "url": "https://docs.aws.amazon.com/vpc/latest/userguide/amazon-vpc-limits.html"
+    },
+    {
+      "title": "AWS WAF quotas (IP sets, protection packs, associations)",
+      "url": "https://docs.aws.amazon.com/waf/latest/developerguide/limits.html"
+    },
+    {
+      "title": "Restrict the geographic distribution of your content (CloudFront geo restriction)",
+      "url": "https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/georestrictions.html"
+    },
+    {
+      "title": "Locations and IP address ranges of CloudFront edge servers (managed prefix list)",
+      "url": "https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/LocationsOfEdgeServers.html"
+    },
+    {
+      "title": "Restrict access with CloudFront VPC origins",
+      "url": "https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/private-content-vpc-origins.html"
+    },
+    {
+      "title": "Update the security groups for your Network Load Balancer",
+      "url": "https://docs.aws.amazon.com/elasticloadbalancing/latest/network/load-balancer-security-groups.html"
+    },
+    {
+      "title": "Edit target group attributes for your Network Load Balancer (client IP preservation)",
+      "url": "https://docs.aws.amazon.com/elasticloadbalancing/latest/network/edit-target-group-attributes.html"
+    },
+    {
+      "title": "Dedicated Direct Connect connections (port speeds)",
+      "url": "https://docs.aws.amazon.com/directconnect/latest/UserGuide/dedicated_connection.html"
+    },
+    {
+      "title": "What is AWS DataSync?",
+      "url": "https://docs.aws.amazon.com/datasync/latest/userguide/what-is-datasync.html"
+    },
+    {
+      "title": "AWS Snowball Edge availability change",
+      "url": "https://docs.aws.amazon.com/snowball/latest/developer-guide/snowball-edge-availability-change.html"
+    },
+    {
+      "title": "Placement strategies for your placement groups",
+      "url": "https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/placement-strategies.html"
+    },
+    {
+      "title": "Enhanced networking on Amazon EC2 instances (ENA, Intel 82599 VF)",
+      "url": "https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/enhanced-networking.html"
+    },
+    {
+      "title": "Elastic Fabric Adapter for AI/ML and HPC workloads on Amazon EC2",
+      "url": "https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/efa.html"
+    },
+    {
+      "title": "Amazon EBS volume types",
+      "url": "https://docs.aws.amazon.com/ebs/latest/userguide/ebs-volume-types.html"
+    },
+    {
+      "title": "Amazon EFS performance specifications (throughput and performance modes)",
+      "url": "https://docs.aws.amazon.com/efs/latest/ug/performance.html"
+    },
+    {
+      "title": "What is Amazon FSx for Lustre?",
+      "url": "https://docs.aws.amazon.com/fsx/latest/LustreGuide/what-is.html"
+    },
+    {
+      "title": "AWS Batch multi-node parallel jobs",
+      "url": "https://docs.aws.amazon.com/batch/latest/userguide/multi-node-parallel-jobs.html"
+    },
+    {
+      "title": "Compute environment considerations for MNP with AWS Batch (no Spot, cluster placement group)",
+      "url": "https://docs.aws.amazon.com/batch/latest/userguide/mnp-ce.html"
+    },
+    {
+      "title": "What is AWS ParallelCluster (AWS Batch scheduler dropped from 3.16.0)",
+      "url": "https://docs.aws.amazon.com/parallelcluster/latest/ug/what-is-aws-parallelcluster.html"
+    },
+    {
+      "title": "What is AWS Parallel Computing Service?",
+      "url": "https://docs.aws.amazon.com/pcs/latest/userguide/what-is-service.html"
+    },
+    {
+      "title": "AWS PCS pricing",
+      "url": "https://aws.amazon.com/pcs/pricing/"
+    },
+    {
+      "title": "Announcing AWS Parallel Computing Service (August 2024)",
+      "url": "https://aws.amazon.com/blogs/aws/announcing-aws-parallel-computing-service-to-run-hpc-workloads-at-virtually-any-scale/"
+    },
+    {
+      "title": "Amazon EC2 Auto Scaling lifecycle hooks (default timeout, best-effort termination hooks)",
+      "url": "https://docs.aws.amazon.com/autoscaling/ec2/userguide/lifecycle-hooks.html"
+    },
+    {
+      "title": "Auto Scaling benefits: instance distribution and rebalancing activities",
+      "url": "https://docs.aws.amazon.com/autoscaling/ec2/userguide/auto-scaling-benefits.html"
+    },
+    {
+      "title": "Auto Scaling group Availability Zone distribution",
+      "url": "https://docs.aws.amazon.com/autoscaling/ec2/userguide/ec2-auto-scaling-availability-zone-balanced.html"
+    },
+    {
+      "title": "Automatic instance recovery (Amazon EC2)",
+      "url": "https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-instance-recover.html"
+    },
+    {
+      "title": "Amazon VPC pricing (public IPv4 addresses)",
+      "url": "https://aws.amazon.com/vpc/pricing/"
+    },
+    {
+      "title": "AWS CloudShell compute environment: pre-installed software (Boto3, jq)",
+      "url": "https://docs.aws.amazon.com/cloudshell/latest/userguide/vm-specs.html"
+    },
+    {
+      "title": "Deleting an Amazon SQS queue (console confirmation)",
+      "url": "https://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/step-delete-queue.html"
+    },
+    {
+      "title": "Create your first Lambda function (console clean-up steps)",
+      "url": "https://docs.aws.amazon.com/lambda/latest/dg/getting-started.html"
+    },
+    {
+      "title": "Create an Auto Scaling group using a launch template (console labels)",
+      "url": "https://docs.aws.amazon.com/autoscaling/ec2/userguide/create-asg-launch-template.html"
+    },
+    {
+      "title": "DynamoDB DeleteTable API reference (stream disabled and deleted after 24 hours)",
+      "url": "https://docs.aws.amazon.com/amazondynamodb/latest/APIReference/API_DeleteTable.html"
+    },
+    {
+      "title": "Amazon Data Firehose Processor API reference (AppendDelimiterToRecord)",
+      "url": "https://docs.aws.amazon.com/firehose/latest/APIReference/API_Processor.html"
+    },
+    {
+      "title": "Configure destination settings for Amazon S3 in Firehose (console labels)",
+      "url": "https://docs.aws.amazon.com/firehose/latest/dev/create-destination.html"
+    },
+    {
+      "title": "Services in Full Shutdown (AWS Snowmobile, 14 March 2024)",
+      "url": "https://docs.aws.amazon.com/general/latest/gr/full_shutdown_services.html"
+    }
+  ],
+  "newServices": []
+}

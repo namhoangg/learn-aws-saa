@@ -1,0 +1,191 @@
+{
+  "section": "36-well-architected-exam",
+  "cards": [
+    {
+      "id": "36-well-architected-exam-fc-01",
+      "front": "Name the six pillars of the AWS Well-Architected Framework.",
+      "back": "**Operational excellence, security, reliability, performance efficiency, cost optimization and sustainability.** Sustainability was the sixth, added in 2021.",
+      "tags": ["well-architected", "pillars"]
+    },
+    {
+      "id": "36-well-architected-exam-fc-02",
+      "front": "List the six general design principles of the Well-Architected Framework.",
+      "back": "Stop guessing capacity needs; test at production scale; automate with experimentation in mind; consider evolutionary architectures; drive architectures using data; improve through **game days**.",
+      "tags": ["well-architected", "design-principles"],
+      "updated": "Two principles are now titled 'Automate with architectural experimentation in mind' and 'Consider evolutionary architectures'."
+    },
+    {
+      "id": "36-well-architected-exam-fc-03",
+      "front": "What is a game day in Well-Architected terms?",
+      "back": "A scheduled exercise that simulates a production event (an outage, a flash sale, a security incident) to see how the architecture and the team cope, and to find improvements before it happens for real.",
+      "tags": ["well-architected", "game-days"]
+    },
+    {
+      "id": "36-well-architected-exam-fc-04",
+      "front": "Which pillar does 'replace one large resource with several small ones to reduce the impact of a single failure' belong to?",
+      "back": "**Reliability**: the design principle *scale horizontally to increase aggregate workload availability*.",
+      "tags": ["reliability", "design-principles"]
+    },
+    {
+      "id": "36-well-architected-exam-fc-05",
+      "front": "Name four reliability design principles.",
+      "back": "Automatically recover from failure; test recovery procedures; scale horizontally to increase aggregate availability; stop guessing capacity; manage change through automation (any four).",
+      "tags": ["reliability", "design-principles"]
+    },
+    {
+      "id": "36-well-architected-exam-fc-06",
+      "front": "Which security design principle says to reduce or eliminate direct human access to data?",
+      "back": "**Keep people away from data**: use tools and automation instead of manual access, to cut mishandling, modification and human error.",
+      "tags": ["security", "design-principles"]
+    },
+    {
+      "id": "36-well-architected-exam-fc-07",
+      "front": "What does the security principle 'implement a strong identity foundation' ask for?",
+      "back": "Least privilege, separation of duties, centralised identity management and no reliance on long-term static credentials (use roles and temporary credentials).",
+      "tags": ["security", "iam"]
+    },
+    {
+      "id": "36-well-architected-exam-fc-08",
+      "front": "Operational excellence: why prefer frequent, small, reversible changes?",
+      "back": "Small automated changes have a small blast radius and can be rolled back quickly when something fails, so teams can ship often without risking big outages.",
+      "tags": ["operational-excellence"]
+    },
+    {
+      "id": "36-well-architected-exam-fc-09",
+      "front": "Name three performance efficiency design principles.",
+      "back": "Democratize advanced technologies (consume them as services); go global in minutes; use serverless architectures; experiment more often; consider mechanical sympathy (any three).",
+      "tags": ["performance", "design-principles"]
+    },
+    {
+      "id": "36-well-architected-exam-fc-10",
+      "front": "Cost optimization: what saving does AWS quote for stopping dev/test environments outside working hours?",
+      "back": "About **75 %**: running 40 hours a week (8 hours x 5 days) instead of 168. It illustrates the *adopt a consumption model* principle.",
+      "tags": ["cost", "design-principles"]
+    },
+    {
+      "id": "36-well-architected-exam-fc-11",
+      "front": "Sustainability: why is one host at 60 % utilization better than two hosts at 30 %?",
+      "back": "Every host has a baseline power draw, so consolidating work onto fewer, busier hosts uses less energy. This is the *maximize utilization* principle.",
+      "tags": ["sustainability"]
+    },
+    {
+      "id": "36-well-architected-exam-fc-12",
+      "front": "How is responsibility for sustainability split between AWS and the customer?",
+      "back": "AWS: sustainability **of** the cloud (efficient infrastructure, renewable energy, water). Customer: sustainability **in** the cloud (right-sizing, utilization, deleting idle resources, efficient storage and code).",
+      "tags": ["sustainability", "shared-responsibility"]
+    },
+    {
+      "id": "36-well-architected-exam-fc-13",
+      "front": "Do you make trade-offs between Well-Architected pillars?",
+      "back": "Yes, based on business context (for example less redundancy in dev to save cost, extra cost for mission-critical reliability). **Security and operational excellence are generally not traded off.**",
+      "tags": ["well-architected", "trade-offs"],
+      "updated": "The slides call the pillars a synergy, not trade-offs; the current framework text describes trade-offs."
+    },
+    {
+      "id": "36-well-architected-exam-fc-14",
+      "front": "What is the AWS Well-Architected Tool and what does it cost?",
+      "back": "A free console service for reviewing a **workload** against the framework: you answer questions per pillar and get high and medium risks, an improvement plan, reports and milestones. You pay only for your own resources.",
+      "tags": ["well-architected-tool"]
+    },
+    {
+      "id": "36-well-architected-exam-fc-15",
+      "front": "In the Well-Architected Tool, what are HRIs and MRIs?",
+      "back": "**High risk issues**: choices AWS has found can significantly hurt the business. **Medium risk issues**: choices that hurt it to a lesser extent. They feed the improvement plan.",
+      "tags": ["well-architected-tool"]
+    },
+    {
+      "id": "36-well-architected-exam-fc-16",
+      "front": "What is a milestone in the Well-Architected Tool?",
+      "back": "An immutable snapshot of a workload's review at a point in time. Save one after the first full review and after each round of improvements to show progress.",
+      "tags": ["well-architected-tool", "milestones"]
+    },
+    {
+      "id": "36-well-architected-exam-fc-17",
+      "front": "What is a lens in the Well-Architected Tool?",
+      "back": "An extra set of questions and best practices for a workload type or industry (Serverless, SaaS, Generative AI, Machine Learning, IoT and more). The Framework lens is applied automatically; you can add official or custom lenses (up to 20 per workload).",
+      "tags": ["well-architected-tool", "lenses"]
+    },
+    {
+      "id": "36-well-architected-exam-fc-18",
+      "front": "What are the six AWS Trusted Advisor check categories?",
+      "back": "Cost optimization, performance, security, fault tolerance, service limits (quotas) and operational excellence.",
+      "tags": ["trusted-advisor"]
+    },
+    {
+      "id": "36-well-architected-exam-fc-19",
+      "front": "Which Trusted Advisor checks do Basic Support accounts get?",
+      "back": "All **service limits** checks plus a core set: EBS public snapshots, RDS public snapshots, S3 bucket permissions, MFA on root account, security groups with specific ports unrestricted, and STS global endpoint usage. Refresh is manual.",
+      "tags": ["trusted-advisor", "support-plans"],
+      "updated": "Current core list per the Trusted Advisor check reference (2026)."
+    },
+    {
+      "id": "36-well-architected-exam-fc-20",
+      "front": "Which support plans unlock the full Trusted Advisor check set and API access?",
+      "back": "**Business Support+, Enterprise Support or Unified Operations.** Basic (and the retiring Developer plan) get only the core checks and no Trusted Advisor or Support API.",
+      "tags": ["trusted-advisor", "support-plans"],
+      "updated": "Business Support+ and Unified Operations are new plans; Developer, Business and Enterprise On-Ramp end on 1 January 2027."
+    },
+    {
+      "id": "36-well-architected-exam-fc-21",
+      "front": "You want an alert when a Trusted Advisor check turns red. What do you build, and where?",
+      "back": "An **EventBridge rule in us-east-1** (Trusted Advisor is global and emits its events there) targeting SNS or Lambda. Requires Business Support+ or higher.",
+      "tags": ["trusted-advisor", "eventbridge"]
+    },
+    {
+      "id": "36-well-architected-exam-fc-22",
+      "front": "When does a Trusted Advisor service limits check turn yellow and red?",
+      "back": "**Yellow at 80 %** of the limit, **red at 100 %**. Request increases through Service Quotas (or a support case if Service Quotas does not cover the service).",
+      "tags": ["trusted-advisor", "service-quotas"]
+    },
+    {
+      "id": "36-well-architected-exam-fc-23",
+      "front": "Trusted Advisor vs Well-Architected Tool: which one scans your account automatically?",
+      "back": "**Trusted Advisor** scans resources and configuration automatically. The Well-Architected Tool is a guided questionnaire answered by people (it can display Trusted Advisor data if you activate the integration).",
+      "tags": ["trusted-advisor", "well-architected-tool"]
+    },
+    {
+      "id": "36-well-architected-exam-fc-24",
+      "front": "SAA-C03 format: questions, time, scored items and pass mark?",
+      "back": "**65 questions** (50 scored, 15 unscored) in **130 minutes**; scaled score 100-1,000; **720** to pass; compensatory scoring (overall score only). Fee USD 150.",
+      "tags": ["exam"]
+    },
+    {
+      "id": "36-well-architected-exam-fc-25",
+      "front": "SAA-C03 domains and their weights?",
+      "back": "Design Secure Architectures **30 %**, Design Resilient Architectures **26 %**, Design High-Performing Architectures **24 %**, Design Cost-Optimized Architectures **20 %**.",
+      "tags": ["exam", "domains"]
+    },
+    {
+      "id": "36-well-architected-exam-fc-26",
+      "front": "After the exam: when do results arrive, how long to wait before a retake, how long is the certification valid?",
+      "back": "Results within **5 business days**; retake after **14 calendar days**; certification valid **3 years**.",
+      "tags": ["exam", "policies"],
+      "updated": "AWS now states 5 business days for results."
+    },
+    {
+      "id": "36-well-architected-exam-fc-27",
+      "front": "Is there a penalty for guessing on AWS certification exams?",
+      "back": "No. Unanswered questions are scored as wrong, so always pick an answer, flag it and come back if time allows.",
+      "tags": ["exam", "strategy"]
+    },
+    {
+      "id": "36-well-architected-exam-fc-28",
+      "front": "Exam strategy: two options both work. How do you choose?",
+      "back": "Re-read the qualifier (most cost-effective, least operational overhead, most secure, highly available). The option that meets **every** requirement with the simplest managed design usually wins; complex custom builds are typical distractors.",
+      "tags": ["exam", "strategy"]
+    },
+    {
+      "id": "36-well-architected-exam-fc-29",
+      "front": "Which AWS whitepapers are worth skimming before SAA-C03?",
+      "back": "The **AWS Well-Architected Framework** (and pillar papers) and **Disaster Recovery of Workloads on AWS**. The older 'Architecting for the Cloud: AWS Best Practices' paper is archived.",
+      "tags": ["exam", "whitepapers"],
+      "updated": "'Architecting for the Cloud' (October 2018) is archived and points to the Well-Architected Framework."
+    },
+    {
+      "id": "36-well-architected-exam-fc-30",
+      "front": "Where do you find vetted, deployable reference architectures beyond this course?",
+      "back": "The **AWS Architecture Center** (diagrams, decision guides, whitepapers) and the **AWS Solutions Library** (AWS Solutions with code, Guidance, partner solutions).",
+      "tags": ["architecture-center", "solutions-library"]
+    }
+  ]
+}

@@ -1,0 +1,218 @@
+{
+  "section": "04-ec2-purchasing",
+  "questions": [
+    {
+      "id": "04-ec2-purchasing-q01",
+      "type": "single",
+      "domain": "cost",
+      "difficulty": "easy",
+      "question": "A company runs its production PostgreSQL database on a single m7i.2xlarge instance in us-east-1. The database must run 24/7 for at least the next 3 years, and the team does not expect to change the instance type, Region or operating system. Which purchasing option is the MOST cost-effective?",
+      "options": [
+        { "id": "A", "text": "On-Demand Instances with per-second billing", "correct": false, "explanation": "On-Demand has no commitment but the highest hourly rate, so it is the most expensive way to run an always-on server for three years." },
+        { "id": "B", "text": "Spot Instances with a persistent request and stop interruption behaviour", "correct": false, "explanation": "A database cannot tolerate being stopped whenever EC2 reclaims capacity; Spot is unsuitable for this critical, stateful workload." },
+        { "id": "C", "text": "A 3-year Standard Reserved Instance with the All Upfront payment option", "correct": true, "explanation": "A fixed configuration running continuously for three years is the textbook case for a Standard RI; the 3-year term and All Upfront payment give the largest discount." },
+        { "id": "D", "text": "An On-Demand Capacity Reservation in the database's Availability Zone", "correct": false, "explanation": "A Capacity Reservation guarantees capacity but is billed at the On-Demand rate and gives no discount on its own." }
+      ],
+      "explanation": "Steady, unchanging, long-running workloads get the deepest savings from a 3-year Standard RI (or an EC2 Instance Savings Plan) paid All Upfront.",
+      "tags": ["reserved-instances", "steady-state"]
+    },
+    {
+      "id": "04-ec2-purchasing-q02",
+      "type": "single",
+      "domain": "cost",
+      "difficulty": "medium",
+      "question": "A company spends a steady amount on EC2 every hour across several instance families in two Regions. Over the next year it plans to move part of the workload to Amazon ECS on AWS Fargate and some event processing to AWS Lambda. It wants a commitment-based discount that keeps applying through these changes. What should a solutions architect recommend?",
+      "options": [
+        { "id": "A", "text": "Purchase a Compute Savings Plan sized to the steady hourly spend", "correct": true, "explanation": "Compute Savings Plans apply across instance families, sizes and Regions and also to Fargate and Lambda, so the discount follows the workload as it moves." },
+        { "id": "B", "text": "Purchase EC2 Instance Savings Plans for each instance family in each Region", "correct": false, "explanation": "EC2 Instance Savings Plans are locked to one family in one Region and never cover Fargate or Lambda, so the discount would be lost after the migration." },
+        { "id": "C", "text": "Purchase Standard Reserved Instances for the current instance types", "correct": false, "explanation": "Standard RIs are tied to a specific configuration and cannot be exchanged; they do not apply to Fargate or Lambda." },
+        { "id": "D", "text": "Purchase zonal Convertible Reserved Instances and exchange them as the workload changes", "correct": false, "explanation": "Convertible RIs can change family or OS but stay in one Region and only discount EC2, not Fargate or Lambda." }
+      ],
+      "explanation": "When the commitment must survive changes of family, Region or compute service (EC2, Fargate, Lambda), choose a Compute Savings Plan.",
+      "tags": ["savings-plans", "fargate", "lambda"]
+    },
+    {
+      "id": "04-ec2-purchasing-q03",
+      "type": "single",
+      "domain": "cost",
+      "difficulty": "easy",
+      "question": "A media company resizes and watermarks millions of images every night. Each image is processed independently, failed items are retried from an SQS queue, and the job only needs to finish before 8 AM. Which purchasing option minimises compute cost?",
+      "options": [
+        { "id": "A", "text": "On-Demand Instances launched by a scheduled Auto Scaling action", "correct": false, "explanation": "On-Demand works but costs far more than necessary for a workload that tolerates interruptions." },
+        { "id": "B", "text": "Dedicated Instances in a VPC with dedicated tenancy", "correct": false, "explanation": "Dedicated tenancy adds a premium and a per-Region fee; nothing in the scenario requires single-tenant hardware." },
+        { "id": "C", "text": "A 1-year No Upfront Reserved Instance for each worker", "correct": false, "explanation": "The workers run only part of each day, so a reservation billed every hour of the term would waste money, and it is still pricier than Spot." },
+        { "id": "D", "text": "Spot Instances in an Auto Scaling group that uses several instance types", "correct": true, "explanation": "Independent, retryable work with a flexible window is ideal for Spot, which offers up to 90% off; diversifying instance types reduces the chance of losing all capacity." }
+      ],
+      "explanation": "Fault-tolerant batch work whose start and finish times can move points to Spot Instances, ideally diversified across pools.",
+      "tags": ["spot", "batch"]
+    },
+    {
+      "id": "04-ec2-purchasing-q04",
+      "type": "single",
+      "domain": "secure",
+      "difficulty": "medium",
+      "question": "A company is migrating a licensed commercial database to EC2. Its existing licence is priced per physical CPU core, and the vendor requires the company to prove how many sockets and cores the software runs on. Instances must also stay on the same physical server after a restart. Which option meets these requirements?",
+      "options": [
+        { "id": "A", "text": "Dedicated Instances", "correct": false, "explanation": "Dedicated Instances isolate you from other accounts but give no visibility of sockets or cores and no host affinity, so per-core licensing cannot be proven." },
+        { "id": "B", "text": "Dedicated Hosts", "correct": true, "explanation": "A Dedicated Host exposes its sockets and physical cores, supports host affinity and targeted placement, and is designed for bring-your-own per-socket or per-core licences." },
+        { "id": "C", "text": "On-Demand Instances with default tenancy in a cluster placement group", "correct": false, "explanation": "Default tenancy shares hardware with other accounts and shows nothing about the physical server; a placement group controls proximity, not licensing." },
+        { "id": "D", "text": "A zonal Reserved Instance with dedicated tenancy", "correct": false, "explanation": "A dedicated-tenancy RI discounts Dedicated Instances (and, being zonal, reserves capacity for them), but Dedicated Instances give no socket or core visibility and no host affinity." }
+      ],
+      "explanation": "Per-socket or per-core BYOL licences and host affinity require Dedicated Hosts.",
+      "tags": ["dedicated-hosts", "licensing"]
+    },
+    {
+      "id": "04-ec2-purchasing-q05",
+      "type": "single",
+      "domain": "secure",
+      "difficulty": "easy",
+      "question": "A healthcare startup's compliance policy states that its EC2 instances must not run on physical hardware shared with any other AWS customer. The software has no special licensing requirements, and the team wants the simplest option without managing physical servers. What should they use?",
+      "options": [
+        { "id": "A", "text": "Dedicated Instances", "correct": true, "explanation": "Dedicated Instances run on hardware used only by your account, with AWS handling placement, which satisfies the isolation rule with the least management." },
+        { "id": "B", "text": "Dedicated Hosts with host affinity enabled", "correct": false, "explanation": "Dedicated Hosts also meet the isolation rule but add host allocation and management and cost more; nothing here needs core visibility or licensing control." },
+        { "id": "C", "text": "On-Demand Instances encrypted with AWS KMS", "correct": false, "explanation": "Encryption protects data but the instances would still run on shared-tenancy hardware, which violates the policy." },
+        { "id": "D", "text": "Spot Instances with a launch group", "correct": false, "explanation": "Spot with default tenancy still shares hardware with other accounts, and interruptions add risk without meeting the requirement." }
+      ],
+      "explanation": "Plain single-tenant isolation without licensing needs is best met by Dedicated Instances; choose Dedicated Hosts only when you need host-level visibility or control.",
+      "tags": ["dedicated-instances", "compliance"]
+    },
+    {
+      "id": "04-ec2-purchasing-q06",
+      "type": "single",
+      "domain": "resilient",
+      "difficulty": "medium",
+      "question": "An online retailer expects a five-day traffic surge during an annual sale that starts in three weeks. It must be certain that 40 additional c7i.xlarge instances can be launched in a specific Availability Zone during the sale. The company does not want any commitment that lasts beyond the event. Which solution meets these requirements?",
+      "options": [
+        { "id": "A", "text": "Buy 40 regional Reserved Instances with a 1-year term", "correct": false, "explanation": "Regional RIs give a discount but reserve no capacity, and the 1-year term far outlasts the event." },
+        { "id": "B", "text": "Request 40 Spot Instances with a persistent request", "correct": false, "explanation": "Spot capacity is never guaranteed and can be reclaimed during the sale, which is exactly when capacity is needed." },
+        { "id": "C", "text": "Create an On-Demand Capacity Reservation for 40 c7i.xlarge instances in that AZ shortly before the sale and cancel it afterwards", "correct": true, "explanation": "An immediate-use Capacity Reservation guarantees capacity in a chosen AZ with no term commitment; it can be cancelled as soon as the event ends. (A future-dated reservation would need at least a 14-day commitment, which outlasts the five-day event.)" },
+        { "id": "D", "text": "Purchase an EC2 Instance Savings Plan for the C7i family", "correct": false, "explanation": "Savings Plans are discounts only; they reserve no capacity and commit spend for at least a year." }
+      ],
+      "explanation": "Guaranteed capacity in one AZ for a short period without a term commitment is the purpose of On-Demand Capacity Reservations.",
+      "tags": ["capacity-reservations"]
+    },
+    {
+      "id": "04-ec2-purchasing-q07",
+      "type": "single",
+      "domain": "cost",
+      "difficulty": "hard",
+      "question": "A company keeps an On-Demand Capacity Reservation for 10 m7i.large Linux instances in us-east-1a for disaster recovery, and it will keep it for the next 3 years. Finance wants to lower the cost of this reservation without losing the guaranteed capacity. What should the solutions architect do?",
+      "options": [
+        { "id": "A", "text": "Replace the Capacity Reservation with 10 Spot Instances", "correct": false, "explanation": "Spot capacity is not guaranteed, so the disaster recovery requirement would no longer be met." },
+        { "id": "B", "text": "Purchase 10 zonal Standard Reserved Instances in us-east-1a and keep the Capacity Reservation", "correct": false, "explanation": "Zonal RI discounts do not apply to Capacity Reservations; this would pay twice for the same capacity." },
+        { "id": "C", "text": "Set a lower maximum price on the Capacity Reservation", "correct": false, "explanation": "Capacity Reservations have no maximum price; they are always billed at the On-Demand rate." },
+        { "id": "D", "text": "Purchase regional Reserved Instances or a Savings Plan that matches the reserved instances", "correct": true, "explanation": "Regional RIs and Savings Plans automatically discount matching Capacity Reservations, including unused reserved capacity, while the reservation keeps guaranteeing capacity." }
+      ],
+      "explanation": "Capacity Reservations give capacity without a discount; pair them with regional RIs or Savings Plans to get both. Zonal RI discounts do not apply to them.",
+      "tags": ["capacity-reservations", "reserved-instances", "savings-plans"]
+    },
+    {
+      "id": "04-ec2-purchasing-q08",
+      "type": "single",
+      "domain": "resilient",
+      "difficulty": "medium",
+      "question": "A developer launched Spot Instances through a persistent Spot Instance request for a test. After the test, the developer terminated the instances, but new Spot Instances keep appearing and the bill keeps growing. What should the developer do to stop this permanently?",
+      "options": [
+        { "id": "A", "text": "Enable termination protection on the new instances", "correct": false, "explanation": "Termination protection cannot be enabled for Spot Instances, and it would keep instances alive rather than remove them." },
+        { "id": "B", "text": "Cancel the Spot Instance request first, then terminate the instances it launched", "correct": true, "explanation": "A persistent request reopens and relaunches capacity after its instances are terminated; cancelling it first and then terminating the instances ends the cycle." },
+        { "id": "C", "text": "Stop the instances so that the request becomes disabled", "correct": false, "explanation": "Stopping only pauses the instances; the request still exists and EBS storage is still billed." },
+        { "id": "D", "text": "Lower the maximum price of the request below the current Spot price", "correct": false, "explanation": "The parameters of a submitted Spot request cannot be changed, and price games do not remove the request." }
+      ],
+      "explanation": "With persistent Spot requests, always cancel the request before terminating its instances; cancelling alone does not terminate running instances.",
+      "tags": ["spot", "requests"]
+    },
+    {
+      "id": "04-ec2-purchasing-q09",
+      "type": "single",
+      "domain": "resilient",
+      "difficulty": "medium",
+      "question": "A company runs a stateless web tier on Spot Instances in an Auto Scaling group that uses eight instance types across three Availability Zones. The team wants low cost but also the lowest practical chance of interruption. Which Spot allocation strategy should it use?",
+      "options": [
+        { "id": "A", "text": "price-capacity-optimized", "correct": true, "explanation": "It chooses the pools with the most spare capacity and then the cheapest among them, balancing cost and interruption risk; AWS recommends it for most workloads." },
+        { "id": "B", "text": "lowest-price", "correct": false, "explanation": "Lowest price ignores capacity and has the highest interruption risk; AWS does not recommend it." },
+        { "id": "C", "text": "diversified, to spread instances evenly across all eight instance types", "correct": false, "explanation": "Auto Scaling groups do not offer a diversified strategy (it exists only in EC2 Fleet and Spot Fleet), and even there it spreads instances evenly without looking at each pool's spare capacity, so it does not minimise interruptions." },
+        { "id": "D", "text": "A one-time Spot request with a maximum price set just above the current Spot price", "correct": false, "explanation": "A tight maximum price increases interruptions, and one-time requests do not replace lost capacity." }
+      ],
+      "explanation": "For most Spot fleets, use price-capacity-optimized across many instance types and AZs.",
+      "tags": ["spot", "allocation-strategy", "asg"]
+    },
+    {
+      "id": "04-ec2-purchasing-q10",
+      "type": "single",
+      "domain": "resilient",
+      "difficulty": "hard",
+      "question": "A team wants to run a fleet of CI build agents mostly on Spot capacity, with a small On-Demand base. It needs automatic replacement of interrupted or unhealthy instances, multiple instance types and the least ongoing maintenance. Which approach aligns with current AWS recommendations?",
+      "options": [
+        { "id": "A", "text": "A Spot Fleet request of type maintain with the lowestPrice allocation strategy", "correct": false, "explanation": "Spot Fleet is a legacy API that AWS strongly discourages, and lowestPrice has the highest interruption risk." },
+        { "id": "B", "text": "Individual run-instances calls with Spot market options and a cron job that relaunches lost agents", "correct": false, "explanation": "Single-type requests and home-made replacement logic add maintenance and cannot mix instance types or On-Demand in one request." },
+        { "id": "C", "text": "An Auto Scaling group with a mixed instances policy, an On-Demand base capacity and the price-capacity-optimized Spot strategy", "correct": true, "explanation": "AWS recommends Auto Scaling groups for Spot and On-Demand fleets: they mix instance types and purchase options, replace unhealthy or interrupted instances and support price-capacity-optimized." },
+        { "id": "D", "text": "On-Demand Instances covered by a Compute Savings Plan", "correct": false, "explanation": "This is reliable but misses the large Spot discount the team wants, and Savings Plans never apply to Spot." }
+      ],
+      "explanation": "AWS now recommends Auto Scaling groups (or EC2 Fleet when you manage the lifecycle yourself) over the legacy Spot Fleet API.",
+      "tags": ["spot-fleet", "asg", "allocation-strategy"],
+      "updated": "Spot Fleet is now a legacy API; AWS recommends Auto Scaling groups or EC2 Fleet."
+    },
+    {
+      "id": "04-ec2-purchasing-q11",
+      "type": "multi",
+      "domain": "cost",
+      "difficulty": "medium",
+      "question": "A solutions architect is explaining Amazon EC2 Reserved Instances to a finance team. Which statements are correct? (Select TWO.)",
+      "options": [
+        { "id": "A", "text": "Convertible Reserved Instances can be resold in the Reserved Instance Marketplace.", "correct": false, "explanation": "Only Standard RIs can be sold or bought in the Reserved Instance Marketplace." },
+        { "id": "B", "text": "A zonal Reserved Instance reserves capacity in its Availability Zone.", "correct": true, "explanation": "Zonal RIs combine a billing discount with a capacity reservation in the chosen AZ." },
+        { "id": "C", "text": "A regional Reserved Instance guarantees capacity in every Availability Zone of the Region.", "correct": false, "explanation": "Regional RIs give AZ flexibility for the discount but reserve no capacity at all." },
+        { "id": "D", "text": "Standard Reserved Instances can be sold in the Reserved Instance Marketplace if they are no longer needed.", "correct": true, "explanation": "Unused Standard RIs can be listed for sale to other customers in the Reserved Instance Marketplace." },
+        { "id": "E", "text": "Reserved Instances renew automatically at the end of their term.", "correct": false, "explanation": "RIs do not auto-renew; instances fall back to On-Demand rates unless you queue or buy a new reservation." }
+      ],
+      "explanation": "Zonal RIs reserve capacity; regional RIs do not. Only Standard RIs trade in the Marketplace, and RIs never renew on their own.",
+      "tags": ["reserved-instances", "marketplace"]
+    },
+    {
+      "id": "04-ec2-purchasing-q12",
+      "type": "single",
+      "domain": "resilient",
+      "difficulty": "medium",
+      "question": "A research team runs long simulations on Spot Instances. Each instance writes intermediate results to its EBS root volume. When EC2 reclaims capacity, the team wants the instance and its EBS data preserved so the run can continue when capacity returns, without manual relaunching. How should the Spot Instances be requested?",
+      "options": [
+        { "id": "A", "text": "A one-time Spot request with the default terminate behaviour", "correct": false, "explanation": "Terminate deletes the instance (and a delete-on-termination root volume), and a one-time request never relaunches." },
+        { "id": "B", "text": "A one-time Spot request with the stop interruption behaviour", "correct": false, "explanation": "Only terminate is valid for one-time requests; stop and hibernate require a persistent request." },
+        { "id": "C", "text": "On-Demand Instances in an Auto Scaling group with a scheduled scaling action", "correct": false, "explanation": "On-Demand avoids interruptions but forfeits the Spot discount the team is using, and it does not address the stated Spot behaviour." },
+        { "id": "D", "text": "A persistent Spot request with the stop (or hibernate) interruption behaviour", "correct": true, "explanation": "With a persistent request and stop or hibernate, EC2 keeps the EBS volumes while the instance is stopped and restarts it automatically when capacity is available again." }
+      ],
+      "explanation": "Stop and hibernate interruption behaviours preserve EBS data and require a persistent Spot request (or a maintain-type fleet).",
+      "tags": ["spot", "interruptions"]
+    },
+    {
+      "id": "04-ec2-purchasing-q13",
+      "type": "multi",
+      "domain": "cost",
+      "difficulty": "medium",
+      "question": "A company wants to cut EC2 costs by moving suitable workloads to Spot Instances. Which workloads are good candidates for Spot? (Select TWO.)",
+      "options": [
+        { "id": "A", "text": "A video transcoding farm that pulls jobs from a queue and retries failed jobs", "correct": true, "explanation": "Queue-driven, retryable jobs tolerate interruptions well; an interrupted job simply returns to the queue." },
+        { "id": "B", "text": "The primary instance of a self-managed MySQL database for the order system", "correct": false, "explanation": "A primary database is stateful and critical; a two-minute interruption could cause an outage or data loss." },
+        { "id": "C", "text": "Ephemeral CI test runners that can be recreated at any time", "correct": true, "explanation": "CI runners are stateless and replaceable, so losing one only means rerunning a build." },
+        { "id": "D", "text": "A single licence server that all engineering tools must reach at all times", "correct": false, "explanation": "A single always-needed server cannot tolerate being reclaimed; it needs On-Demand or committed capacity." },
+        { "id": "E", "text": "A payment API that runs on exactly one instance with no failover", "correct": false, "explanation": "With no redundancy, an interruption takes the payment service down; this is a poor fit for Spot." }
+      ],
+      "explanation": "Spot suits stateless, retryable, flexible work; avoid it for databases and single critical servers.",
+      "tags": ["spot", "use-cases"]
+    },
+    {
+      "id": "04-ec2-purchasing-q14",
+      "type": "single",
+      "domain": "cost",
+      "difficulty": "medium",
+      "question": "A company has a 1-year Compute Savings Plan with a commitment of USD 10 per hour. During one busy hour, its eligible EC2 usage would cost USD 14 at Savings Plan rates. How is that hour billed?",
+      "options": [
+        { "id": "A", "text": "USD 10 only, because the Savings Plan caps the hourly bill", "correct": false, "explanation": "A Savings Plan is a commitment, not a cap; usage beyond it is still billed." },
+        { "id": "B", "text": "USD 10 of commitment covering usage at Savings Plan rates, and the remaining usage at On-Demand rates", "correct": true, "explanation": "The commitment covers usage at discounted rates up to USD 10; anything beyond it is charged at normal On-Demand prices." },
+        { "id": "C", "text": "USD 14, with all usage billed at Savings Plan rates", "correct": false, "explanation": "Savings Plan rates only apply to usage covered by the hourly commitment, not to the excess." },
+        { "id": "D", "text": "USD 10, and the extra usage is carried forward to the next quiet hour", "correct": false, "explanation": "Commitment and usage are matched hour by hour; nothing carries over between hours." }
+      ],
+      "explanation": "Savings Plans discount usage up to the hourly commitment; excess usage is billed On-Demand, and unused commitment in a quiet hour is still paid.",
+      "tags": ["savings-plans"]
+    }
+  ]
+}

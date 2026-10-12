@@ -1,0 +1,182 @@
+{
+  "section": "15-cloudfront-global-accelerator",
+  "cards": [
+    {
+      "id": "15-cloudfront-global-accelerator-fc-01",
+      "front": "What kind of service is Amazon CloudFront, and what is its main benefit?",
+      "back": "A global **content delivery network (CDN)**. It caches copies of your content at edge locations close to viewers, which cuts latency and takes load off the origin.",
+      "tags": ["cloudfront"]
+    },
+    {
+      "id": "15-cloudfront-global-accelerator-fc-02",
+      "front": "On a CloudFront cache miss, where does the edge location look next?",
+      "back": "Usually the nearest **regional edge cache** (a larger, mid-tier cache). Only if that also misses does CloudFront fetch from the **origin**, then it stores the object in both caches. Dynamic requests and PUT/POST/DELETE skip the regional cache.",
+      "tags": ["cloudfront", "edge-locations"]
+    },
+    {
+      "id": "15-cloudfront-global-accelerator-fc-03",
+      "front": "Name the four kinds of CloudFront origins covered in this lesson.",
+      "back": "1) **S3 bucket** (REST endpoint, secured with OAC), 2) **S3 static website endpoint** (as a custom origin), 3) **custom HTTP origin** such as a public ALB or EC2 instance, 4) **VPC origin** for a private ALB, NLB or EC2 instance.",
+      "tags": ["cloudfront", "s3", "alb"]
+    },
+    {
+      "id": "15-cloudfront-global-accelerator-fc-04",
+      "front": "How do you make a private S3 bucket readable only through CloudFront?",
+      "back": "Attach an **Origin Access Control (OAC)** to the S3 origin and add a **bucket policy** that allows the principal `cloudfront.amazonaws.com` (for example `s3:GetObject`) with the condition `AWS:SourceArn` = the distribution ARN. Keep Block Public Access on.",
+      "tags": ["cloudfront", "s3"]
+    },
+    {
+      "id": "15-cloudfront-global-accelerator-fc-05",
+      "front": "Why choose OAC over the older OAI?",
+      "back": "OAC works with buckets in **all Regions** (including opt-in ones), supports **SSE-KMS** encrypted objects and supports **PUT/DELETE**, so uploads through CloudFront work. OAI is legacy and lacks these.",
+      "tags": ["cloudfront", "s3", "kms"]
+    },
+    {
+      "id": "15-cloudfront-global-accelerator-fc-06",
+      "front": "Can you use OAC with an S3 static website endpoint origin?",
+      "back": "**No.** A website endpoint is treated as a custom HTTP origin, so OAC/OAI cannot be used; the objects must be public and CloudFront talks to it over HTTP only.",
+      "tags": ["cloudfront", "s3"]
+    },
+    {
+      "id": "15-cloudfront-global-accelerator-fc-07",
+      "front": "An internet-facing ALB is a CloudFront origin. How do you stop people bypassing CloudFront?",
+      "back": "Allow only the **CloudFront managed prefix list** (`com.amazonaws.global.cloudfront.origin-facing`) in the ALB security group, and have CloudFront add a **secret custom header** that an ALB listener rule requires (default rule returns 403). Use HTTPS to the origin.",
+      "tags": ["cloudfront", "alb", "security-groups"],
+      "updated": "Slides point to a published IP list; the managed prefix list is the current method."
+    },
+    {
+      "id": "15-cloudfront-global-accelerator-fc-08",
+      "front": "What does a CloudFront VPC origin let you do?",
+      "back": "Serve an **internal ALB, internal NLB or EC2 instance in a private subnet** through CloudFront with no public IP or internet-facing load balancer. CloudFront uses a service-managed ENI in the subnet; the VPC still needs an internet gateway attached.",
+      "tags": ["cloudfront", "vpc", "alb", "nlb"],
+      "updated": "Current docs add limits: no GWLB, no NLB TLS listeners, NLB needs a security group."
+    },
+    {
+      "id": "15-cloudfront-global-accelerator-fc-09",
+      "front": "With a plain custom origin (not a VPC origin), must the ALB in front of your EC2 instances be public?",
+      "back": "**Yes**, the ALB must be internet-facing because CloudFront reaches custom origins over the internet. The EC2 instances behind it can stay private and allow only the ALB's security group.",
+      "tags": ["cloudfront", "alb", "ec2"]
+    },
+    {
+      "id": "15-cloudfront-global-accelerator-fc-10",
+      "front": "What is CloudFront's default TTL when the origin sends no caching headers (CachingOptimized policy)?",
+      "back": "**24 hours** (86,400 seconds). That policy's minimum is 1 second and its maximum 365 days (31,536,000 seconds).",
+      "tags": ["cloudfront"]
+    },
+    {
+      "id": "15-cloudfront-global-accelerator-fc-11",
+      "front": "You updated a file in the S3 origin but viewers still get the old copy. What are your two options?",
+      "back": "Create a **CloudFront invalidation** for the path (for example `/index.html` or `/images/*`), or use **versioned file names** so the new file has a new URL. AWS recommends versioning for files that change often.",
+      "tags": ["cloudfront"]
+    },
+    {
+      "id": "15-cloudfront-global-accelerator-fc-12",
+      "front": "How are CloudFront invalidations priced?",
+      "back": "The first **1,000 paths per month** per account are free, then **USD 0.005 per path**. A wildcard path such as `/images/*` counts as **one** path no matter how many files it clears.",
+      "tags": ["cloudfront"]
+    },
+    {
+      "id": "15-cloudfront-global-accelerator-fc-13",
+      "front": "Where can the `*` wildcard appear in a CloudFront invalidation path?",
+      "back": "Only as the **last character**, for example `/images/*` or `/*`. Paths are case sensitive.",
+      "tags": ["cloudfront"]
+    },
+    {
+      "id": "15-cloudfront-global-accelerator-fc-14",
+      "front": "What are the two modes of CloudFront geo restriction, and what does a blocked viewer receive?",
+      "back": "An **allow list** (only listed countries are served) or a **block list** (listed countries are refused). Blocked viewers get **HTTP 403 Forbidden**, optionally with a custom error page.",
+      "tags": ["cloudfront"]
+    },
+    {
+      "id": "15-cloudfront-global-accelerator-fc-15",
+      "front": "What are the main limits of CloudFront's built-in geo restriction?",
+      "back": "It works only at **country level** (via a third-party GeoIP database, about 99.8% accurate) and applies to the **entire distribution**. Per-path or city-level rules need WAF geo match rules, separate distributions or a third-party service.",
+      "tags": ["cloudfront", "waf"]
+    },
+    {
+      "id": "15-cloudfront-global-accelerator-fc-16",
+      "front": "CloudFront or S3 Cross-Region Replication: which fits frequently updated objects needed with low latency in two specific Regions?",
+      "back": "**S3 Cross-Region Replication.** It keeps near-real-time copies in the Regions you choose. CloudFront fits content needed everywhere that can tolerate TTL-based caching.",
+      "tags": ["cloudfront", "s3"]
+    },
+    {
+      "id": "15-cloudfront-global-accelerator-fc-17",
+      "front": "Unicast versus anycast IP: what is the difference?",
+      "back": "**Unicast**: one IP belongs to one server. **Anycast**: many servers in different places announce the same IP, and routing delivers each client to the nearest one.",
+      "tags": ["global-accelerator"]
+    },
+    {
+      "id": "15-cloudfront-global-accelerator-fc-18",
+      "front": "How many static IP addresses does a Global Accelerator standard accelerator provide?",
+      "back": "**Two static anycast IPv4 addresses** (from Amazon's pool or your own BYOIP range). A **dual-stack** accelerator gets four: two IPv4 and two IPv6.",
+      "tags": ["global-accelerator"],
+      "updated": "Dual-stack (2 IPv4 + 2 IPv6) is newer than the slides' two-IP description."
+    },
+    {
+      "id": "15-cloudfront-global-accelerator-fc-19",
+      "front": "Which endpoint types can a Global Accelerator standard accelerator route to?",
+      "back": "**Application Load Balancers, Network Load Balancers** (each internet-facing or internal), **EC2 instances** and **Elastic IP addresses**, in one or more Regions.",
+      "tags": ["global-accelerator", "alb", "nlb", "ec2", "elastic-ip"]
+    },
+    {
+      "id": "15-cloudfront-global-accelerator-fc-20",
+      "front": "Why does Global Accelerator avoid the DNS caching problem of DNS-based failover?",
+      "back": "Clients always connect to the **same static IPs**. When an endpoint fails a health check, the edge sends new connections to another healthy endpoint or Region; no DNS record changes, so cached DNS answers do not matter.",
+      "tags": ["global-accelerator", "route53"]
+    },
+    {
+      "id": "15-cloudfront-global-accelerator-fc-21",
+      "front": "Global Accelerator: what is a traffic dial versus an endpoint weight?",
+      "back": "A **traffic dial** (0–100%, per endpoint group/Region) limits how much of the traffic headed to that Region it accepts. A **weight** (0–255, default 128, per endpoint) splits traffic among endpoints inside a group.",
+      "tags": ["global-accelerator"]
+    },
+    {
+      "id": "15-cloudfront-global-accelerator-fc-22",
+      "front": "What health check settings can you tune for Global Accelerator EC2 or Elastic IP endpoints?",
+      "back": "Protocol (TCP by default, or HTTP/HTTPS with a path), port, interval of **10 or 30 seconds** (default 30) and threshold count (default **3**). ALB/NLB endpoints use the load balancer's own target health checks.",
+      "tags": ["global-accelerator"]
+    },
+    {
+      "id": "15-cloudfront-global-accelerator-fc-23",
+      "front": "Does Global Accelerator cache content at the edge?",
+      "back": "**No.** It only proxies TCP/UDP connections over the AWS backbone to your endpoints. Caching at the edge is CloudFront's job.",
+      "tags": ["global-accelerator", "cloudfront"]
+    },
+    {
+      "id": "15-cloudfront-global-accelerator-fc-24",
+      "front": "Give three workloads that point to Global Accelerator rather than CloudFront.",
+      "back": "Non-HTTP traffic such as **online gaming over UDP**, **IoT over MQTT** or **VoIP**; HTTP apps that need **static IPs** to allow-list; apps needing **deterministic, fast regional failover**.",
+      "tags": ["global-accelerator"]
+    },
+    {
+      "id": "15-cloudfront-global-accelerator-fc-25",
+      "front": "Which DDoS and firewall protections come with CloudFront and Global Accelerator?",
+      "back": "Both get **AWS Shield Standard** automatically at no extra cost (Shield Advanced is optional). CloudFront can also attach an **AWS WAF** web ACL to filter HTTP requests at the edge.",
+      "tags": ["cloudfront", "global-accelerator", "shield", "waf"]
+    },
+    {
+      "id": "15-cloudfront-global-accelerator-fc-26",
+      "front": "How is AWS Global Accelerator billed?",
+      "back": "**USD 0.025 per accelerator-hour** (partial hours count as full, enabled or disabled) plus a per-GB **DT-Premium** fee, plus **USD 0.005 per hour** for each static public IPv4 address. No free tier.",
+      "tags": ["global-accelerator"]
+    },
+    {
+      "id": "15-cloudfront-global-accelerator-fc-27",
+      "front": "In which Region must an ACM certificate live to serve HTTPS for a CloudFront alternate domain name?",
+      "back": "**us-east-1 (N. Virginia)**, regardless of where the origin runs. A certificate for an ALB origin stays in the ALB's own Region.",
+      "tags": ["cloudfront", "acm"]
+    },
+    {
+      "id": "15-cloudfront-global-accelerator-fc-28",
+      "front": "What does CloudFront's Always Free tier include each month?",
+      "back": "**1 TB** of data transfer out, **10 million** HTTP/HTTPS requests and **2 million** CloudFront Functions invocations (plus 2 million KeyValueStore reads).",
+      "tags": ["cloudfront"]
+    },
+    {
+      "id": "15-cloudfront-global-accelerator-fc-29",
+      "front": "How can you lower CloudFront delivery cost by limiting which edge locations serve your content?",
+      "back": "Pick a cheaper **price class**. **Price Class 100** uses only North America and Europe (plus Israel and Türkiye); **Price Class 200** leaves out only South America and Australia/New Zealand. Viewers outside the class are still served, from a farther edge.",
+      "tags": ["cloudfront"]
+    }
+  ]
+}

@@ -1,0 +1,184 @@
+{
+  "section": "04-ec2-purchasing",
+  "cards": [
+    {
+      "id": "04-ec2-purchasing-fc-01",
+      "front": "How are On-Demand Linux and Windows instances billed?",
+      "back": "**Per second with a 60-second minimum**, only while `running`. RHEL and Ubuntu Pro are also per second; SUSE Linux Enterprise Server is still billed per full hour.",
+      "tags": ["on-demand", "billing"],
+      "updated": "RHEL and Ubuntu Pro now also billed per second (slides mention only Linux and Windows)."
+    },
+    {
+      "id": "04-ec2-purchasing-fc-02",
+      "front": "Which purchasing option fits a short, unpredictable workload that must not be interrupted?",
+      "back": "**On-Demand**: no commitment, no upfront cost, highest hourly price.",
+      "tags": ["on-demand"]
+    },
+    {
+      "id": "04-ec2-purchasing-fc-03",
+      "front": "Which four instance attributes define a Reserved Instance's price (besides term, payment option and class)?",
+      "back": "**Instance type** (family + size), **Region**, **tenancy** (shared or dedicated) and **platform** (OS).",
+      "tags": ["reserved-instances"]
+    },
+    {
+      "id": "04-ec2-purchasing-fc-04",
+      "front": "Regional vs zonal Reserved Instance: which one reserves capacity?",
+      "back": "Only the **zonal** RI reserves capacity (in its AZ). A **regional** RI gives AZ flexibility and, for Linux/Unix default tenancy, size flexibility within the family, but no capacity.",
+      "tags": ["reserved-instances", "capacity"]
+    },
+    {
+      "id": "04-ec2-purchasing-fc-05",
+      "front": "Standard vs Convertible RI: maximum discount and flexibility?",
+      "back": "**Standard**: up to 72% off; can be modified (AZ, scope, size) but never exchanged. **Convertible**: up to 66% off; can also be exchanged for another Convertible RI with a different family, OS, tenancy or scope in the same Region.",
+      "tags": ["reserved-instances"]
+    },
+    {
+      "id": "04-ec2-purchasing-fc-06",
+      "front": "What happens when a Reserved Instance's term ends?",
+      "back": "Nothing stops: matching instances keep running at **On-Demand rates**. RIs **do not auto-renew**; queue a new regional RI purchase to keep coverage.",
+      "tags": ["reserved-instances"]
+    },
+    {
+      "id": "04-ec2-purchasing-fc-07",
+      "front": "Which RIs can be sold in the Reserved Instance Marketplace?",
+      "back": "Only **Standard** RIs. Convertible RIs cannot be bought or sold there.",
+      "tags": ["reserved-instances", "marketplace"]
+    },
+    {
+      "id": "04-ec2-purchasing-fc-08",
+      "front": "What do you commit to with a Savings Plan, and what happens to usage above it?",
+      "back": "A **USD-per-hour spend** for 1 or 3 years. Usage above the hourly commitment is billed at **On-Demand** rates; unused commitment in an hour is still paid and does not carry over.",
+      "tags": ["savings-plans"]
+    },
+    {
+      "id": "04-ec2-purchasing-fc-09",
+      "front": "EC2 Instance Savings Plan: what is it locked to, and what is flexible?",
+      "back": "Locked to **one instance family in one Region** (e.g. M7i in us-east-1). Flexible across **size, OS, tenancy and AZ**. Up to 72% off.",
+      "tags": ["savings-plans"]
+    },
+    {
+      "id": "04-ec2-purchasing-fc-10",
+      "front": "What does a Compute Savings Plan cover?",
+      "back": "Any **EC2** usage regardless of family, size, Region, OS or tenancy, plus **Fargate** and **Lambda**. Up to 66% off.",
+      "tags": ["savings-plans", "fargate", "lambda"]
+    },
+    {
+      "id": "04-ec2-purchasing-fc-11",
+      "front": "In what order are RIs and Savings Plans applied to an hour of EC2 usage?",
+      "back": "**Reserved Instances** first, then **EC2 Instance Savings Plans**, then **Compute Savings Plans**; whatever is left is billed **On-Demand**.",
+      "tags": ["savings-plans", "reserved-instances"]
+    },
+    {
+      "id": "04-ec2-purchasing-fc-12",
+      "front": "Besides Compute and EC2 Instance, which other Savings Plan types exist?",
+      "back": "**SageMaker AI Savings Plans** (up to 64%) and **Database Savings Plans** (up to 35% on Aurora, RDS, DynamoDB, ElastiCache and other database services).",
+      "tags": ["savings-plans"],
+      "updated": "Database Savings Plans are newer than the slides."
+    },
+    {
+      "id": "04-ec2-purchasing-fc-13",
+      "front": "Spot Instances: maximum discount and warning before interruption?",
+      "back": "Up to **90%** off On-Demand, with a **two-minute interruption notice** (plus an earlier, optional rebalance recommendation signal).",
+      "tags": ["spot"]
+    },
+    {
+      "id": "04-ec2-purchasing-fc-14",
+      "front": "Should you set a maximum price for Spot Instances?",
+      "back": "Usually **no**. The recommended default is **No maximum price** (capped at the On-Demand price). A custom maximum causes more interruptions, and you always pay the current Spot price anyway.",
+      "tags": ["spot", "pricing"],
+      "updated": "Slides focus on a user-defined max price; AWS now recommends not setting one."
+    },
+    {
+      "id": "04-ec2-purchasing-fc-15",
+      "front": "What interruption behaviours can a Spot Instance have?",
+      "back": "**Terminate** (default), **stop** or **hibernate**. Stop and hibernate require a **persistent** request (or a `maintain` fleet) and keep the EBS data.",
+      "tags": ["spot", "interruptions"]
+    },
+    {
+      "id": "04-ec2-purchasing-fc-16",
+      "front": "Name good and bad workloads for Spot.",
+      "back": "**Good**: batch jobs, data analysis, image/video processing, CI builds, rendering, stateless containers behind a load balancer. **Bad**: databases, single critical servers, stateful work that cannot be stopped at short notice.",
+      "tags": ["spot", "use-cases"]
+    },
+    {
+      "id": "04-ec2-purchasing-fc-17",
+      "front": "One-time vs persistent Spot Instance request?",
+      "back": "**One-time**: closes once its instance is interrupted or terminated; nothing relaunches. **Persistent**: lives until cancelled or expired. After a stop or hibernate interruption EC2 restarts the same instance; if the instance is terminated, the request reopens and launches a new one.",
+      "tags": ["spot", "requests"]
+    },
+    {
+      "id": "04-ec2-purchasing-fc-18",
+      "front": "How do you permanently get rid of instances launched by a persistent Spot request?",
+      "back": "**Cancel the request first, then terminate the instances.** Terminating first makes the request launch a replacement; cancelling alone leaves running instances running.",
+      "tags": ["spot", "requests"]
+    },
+    {
+      "id": "04-ec2-purchasing-fc-19",
+      "front": "In which states can a Spot Instance request be cancelled?",
+      "back": "**open**, **active** or **disabled** (disabled = you stopped its instance). Cancelling a disabled request also terminates the stopped instance.",
+      "tags": ["spot", "requests"]
+    },
+    {
+      "id": "04-ec2-purchasing-fc-20",
+      "front": "What is a Spot Fleet, and what does AWS recommend instead today?",
+      "back": "A set of Spot Instances plus optional On-Demand Instances that works toward a target capacity across launch pools, within an optional max cost per hour. It is a **legacy API**; AWS recommends an **Auto Scaling group** or **EC2 Fleet**.",
+      "tags": ["spot-fleet"],
+      "updated": "Spot Fleet is now described by AWS as legacy with no planned investment."
+    },
+    {
+      "id": "04-ec2-purchasing-fc-21",
+      "front": "Which Spot allocation strategy does AWS recommend for most workloads, and how does it work?",
+      "back": "**price-capacity-optimized** (`priceCapacityOptimized` in Spot Fleet): first picks the pools with the most spare capacity, then the cheapest of those.",
+      "tags": ["spot-fleet", "allocation-strategy"]
+    },
+    {
+      "id": "04-ec2-purchasing-fc-22",
+      "front": "Why is the lowest-price Spot allocation strategy risky?",
+      "back": "It ignores capacity, so it has the **highest interruption risk**. AWS marks it not recommended, even though it is still the CLI default for fleets.",
+      "tags": ["spot-fleet", "allocation-strategy"]
+    },
+    {
+      "id": "04-ec2-purchasing-fc-23",
+      "front": "When would you choose the diversified or capacity-optimized Spot strategy?",
+      "back": "**Diversified**: large, long-running fleets, so losing one pool affects only a fraction. **Capacity-optimized**: when interruptions are very costly (long CI, rendering, HPC).",
+      "tags": ["spot-fleet", "allocation-strategy"]
+    },
+    {
+      "id": "04-ec2-purchasing-fc-24",
+      "front": "Which tenancy option lets you bring per-socket or per-core software licences (BYOL)?",
+      "back": "A **Dedicated Host**: a whole physical server with visible sockets and cores, host affinity and placement control. Billed per host; reservations up to 70% off.",
+      "tags": ["dedicated-hosts", "licensing"]
+    },
+    {
+      "id": "04-ec2-purchasing-fc-25",
+      "front": "What are Dedicated Instances, and what extra fee do they carry?",
+      "back": "Instances on hardware dedicated to **your account** (may share with your own other instances), with no placement control. Billed per instance plus **USD 2/hour per Region** where any Dedicated Instance runs.",
+      "tags": ["dedicated-instances"]
+    },
+    {
+      "id": "04-ec2-purchasing-fc-26",
+      "front": "How is an On-Demand Capacity Reservation billed?",
+      "back": "At the **On-Demand rate whether or not instances use it**. No term for immediate-use reservations; cancel any time. A matching running instance is billed instead of the reservation, not on top of it.",
+      "tags": ["capacity-reservations"]
+    },
+    {
+      "id": "04-ec2-purchasing-fc-27",
+      "front": "Which discounts can apply to a Capacity Reservation?",
+      "back": "**Regional Reserved Instances** and **Savings Plans**. Zonal RI discounts do **not** apply to Capacity Reservations.",
+      "tags": ["capacity-reservations", "reserved-instances", "savings-plans"]
+    },
+    {
+      "id": "04-ec2-purchasing-fc-28",
+      "front": "Which three things actually reserve EC2 capacity?",
+      "back": "A **zonal RI**, an **On-Demand Capacity Reservation** (or Capacity Block for ML) and an allocated **Dedicated Host**. Regional RIs and Savings Plans are discounts only.",
+      "tags": ["capacity"]
+    },
+    {
+      "id": "04-ec2-purchasing-fc-29",
+      "front": "What are Capacity Blocks for ML?",
+      "back": "Reservations of **accelerated ML instances** (P-family GPUs and Trainium) for a set period starting up to **eight weeks** ahead, placed in EC2 UltraClusters. They cannot be cancelled.",
+      "tags": ["capacity-reservations", "ml"],
+      "updated": "Not in the slides; added as a newer capacity option."
+    }
+  ]
+}

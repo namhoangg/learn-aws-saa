@@ -1,0 +1,191 @@
+{
+  "section": "18-kinesis-mq",
+  "cards": [
+    {
+      "id": "18-kinesis-mq-fc-01",
+      "front": "What is Amazon Kinesis Data Streams for, in one sentence?",
+      "back": "Ingesting and holding a **real-time stream** of records (clicks, IoT telemetry, logs) so several consumers can process it within milliseconds and **replay** it later.",
+      "tags": ["kinesis-data-streams"]
+    },
+    {
+      "id": "18-kinesis-mq-fc-02",
+      "front": "What decides which shard a Kinesis record goes to?",
+      "back": "Its **partition key**: Kinesis hashes the key (MD5) and maps the result to a shard's hash key range. Same key, same shard.",
+      "tags": ["kinesis-data-streams", "partition-key"]
+    },
+    {
+      "id": "18-kinesis-mq-fc-03",
+      "front": "What ordering does Kinesis Data Streams guarantee?",
+      "back": "Order **per partition key (within a shard)**. There is no global order across shards.",
+      "tags": ["kinesis-data-streams", "ordering"]
+    },
+    {
+      "id": "18-kinesis-mq-fc-04",
+      "front": "Write and read capacity of one provisioned Kinesis shard?",
+      "back": "**In**: 1 MB/s or 1,000 records/s. **Out**: 2 MB/s (and 5 `GetRecords` calls/s), shared by all standard consumers.",
+      "tags": ["kinesis-data-streams", "limits"]
+    },
+    {
+      "id": "18-kinesis-mq-fc-05",
+      "front": "Default and maximum retention of a Kinesis data stream?",
+      "back": "**24 hours** by default, up to **365 days** (8,760 hours). Retention beyond 24 hours costs extra.",
+      "tags": ["kinesis-data-streams", "retention"]
+    },
+    {
+      "id": "18-kinesis-mq-fc-06",
+      "front": "Can you delete a specific record from a Kinesis data stream after a consumer reads it?",
+      "back": "**No.** Records are immutable and stay until the retention period expires. Reading does not remove them, which is what makes replay possible.",
+      "tags": ["kinesis-data-streams", "replay"]
+    },
+    {
+      "id": "18-kinesis-mq-fc-07",
+      "front": "Maximum record payload in Kinesis Data Streams today?",
+      "back": "**1 MiB by default**; a stream's maximum record size can be raised to **10 MiB**, intended for occasional large records. Shard throughput limits stay the same.",
+      "tags": ["kinesis-data-streams", "limits"],
+      "updated": "Configurable up to 10 MiB since October 2025; default remains 1 MiB."
+    },
+    {
+      "id": "18-kinesis-mq-fc-08",
+      "front": "Provisioned vs on-demand capacity mode: when do you pick each?",
+      "back": "**Provisioned** for steady, forecastable traffic (you set shards, pay per shard-hour). **On-demand** for spiky or unknown traffic (auto-scales to double the 30-day peak, pay per GB, plus a per-stream-hour fee in On-demand Standard).",
+      "tags": ["kinesis-data-streams", "capacity-modes"]
+    },
+    {
+      "id": "18-kinesis-mq-fc-09",
+      "front": "What is Kinesis On-demand Advantage?",
+      "back": "An **account-level** on-demand setting: no per-stream fee, at least 60% cheaper per GB, optional warm throughput, up to 50 enhanced fan-out consumers, in exchange for a minimum 25 MiB/s ingest and retrieval commitment per Region.",
+      "tags": ["kinesis-data-streams", "capacity-modes", "cost"],
+      "updated": "New mode added after the slides were written."
+    },
+    {
+      "id": "18-kinesis-mq-fc-10",
+      "front": "What does enhanced fan-out give a Kinesis consumer?",
+      "back": "Its **own 2 MB/s per shard**, delivered by **push** over HTTP/2 (`SubscribeToShard`) with about 70 ms latency, instead of sharing 2 MB/s per shard with other consumers.",
+      "tags": ["kinesis-data-streams", "enhanced-fan-out"]
+    },
+    {
+      "id": "18-kinesis-mq-fc-11",
+      "front": "How many enhanced fan-out consumers can register on one stream?",
+      "back": "**20** per stream in On-demand Standard and Provisioned modes; **50** with On-demand Advantage.",
+      "tags": ["kinesis-data-streams", "enhanced-fan-out", "limits"]
+    },
+    {
+      "id": "18-kinesis-mq-fc-12",
+      "front": "KPL vs KCL?",
+      "back": "**KPL** (Kinesis Producer Library) helps **producers** batch, aggregate and retry writes. **KCL** (Kinesis Client Library) helps **consumers** share shards across workers and checkpoint progress in DynamoDB.",
+      "tags": ["kinesis-data-streams", "kpl", "kcl"]
+    },
+    {
+      "id": "18-kinesis-mq-fc-13",
+      "front": "A producer gets `ProvisionedThroughputExceededException` on one shard while others are idle. Likely cause and fix?",
+      "back": "A **hot shard** from a low-cardinality partition key. Use a key with many distinct values (for example device ID), add retries/batching, and add shards or use on-demand if total volume is too high.",
+      "tags": ["kinesis-data-streams", "partition-key", "troubleshooting"]
+    },
+    {
+      "id": "18-kinesis-mq-fc-14",
+      "front": "How is data in a Kinesis data stream encrypted?",
+      "back": "**In transit** with HTTPS endpoints; **at rest** with server-side encryption using an AWS KMS key (AWS managed or customer managed). Client-side encryption is optional and self-managed.",
+      "tags": ["kinesis-data-streams", "kms", "security"]
+    },
+    {
+      "id": "18-kinesis-mq-fc-15",
+      "front": "What is Amazon Data Firehose?",
+      "back": "A **fully managed, serverless** service (formerly Kinesis Data Firehose) that buffers streaming data and **delivers it in batches** to S3, Redshift, OpenSearch, partner tools or HTTP endpoints, with no consumer code.",
+      "tags": ["data-firehose"]
+    },
+    {
+      "id": "18-kinesis-mq-fc-16",
+      "front": "What triggers a Firehose delivery to the destination?",
+      "back": "Whichever comes first: the **buffer size** (for S3 1–128 MiB, default 5 MiB) or the **buffer interval** (0–900 s, default 300 s).",
+      "tags": ["data-firehose", "buffering"],
+      "updated": "Interval can now go down to 0 seconds (zero buffering); it used to start at 60 seconds."
+    },
+    {
+      "id": "18-kinesis-mq-fc-17",
+      "front": "Maximum size of a record sent to Amazon Data Firehose?",
+      "back": "**1,000 KiB** (before base64 encoding).",
+      "tags": ["data-firehose", "limits"]
+    },
+    {
+      "id": "18-kinesis-mq-fc-18",
+      "front": "How do you convert CSV records to Parquet with Firehose?",
+      "back": "Add a **Lambda transformation** that turns CSV into JSON, then enable **record format conversion** (JSON to Parquet or ORC) using a schema in the **AWS Glue Data Catalog**.",
+      "tags": ["data-firehose", "lambda", "glue-data-catalog"]
+    },
+    {
+      "id": "18-kinesis-mq-fc-19",
+      "front": "How does Firehose deliver data into Amazon Redshift?",
+      "back": "It writes the batch to an **intermediate S3 bucket**, then runs a Redshift **`COPY`** command to load it.",
+      "tags": ["data-firehose", "redshift"]
+    },
+    {
+      "id": "18-kinesis-mq-fc-20",
+      "front": "Can Firehose replay data or serve several independent consumers?",
+      "back": "**No.** Firehose stores nothing and has one destination per stream. For replay or many consumers, put **Kinesis Data Streams** in front.",
+      "tags": ["data-firehose", "kinesis-data-streams"]
+    },
+    {
+      "id": "18-kinesis-mq-fc-21",
+      "front": "Kinesis Data Streams vs Firehose: latency words the exam uses?",
+      "back": "Kinesis Data Streams = **real-time** (about 70–200 ms). Firehose = **near real-time** (buffered for seconds to minutes).",
+      "tags": ["kinesis-data-streams", "data-firehose"]
+    },
+    {
+      "id": "18-kinesis-mq-fc-22",
+      "front": "SQS vs SNS vs Kinesis in one line each?",
+      "back": "**SQS**: workers pull, message deleted after processing. **SNS**: push copies to many subscribers, nothing stored. **Kinesis**: ordered stream kept for days, many consumers, replayable.",
+      "tags": ["sqs", "sns", "kinesis-data-streams"]
+    },
+    {
+      "id": "18-kinesis-mq-fc-23",
+      "front": "When is Amazon MQ the right answer?",
+      "back": "When an existing app uses **open broker protocols** (AMQP, MQTT, STOMP, OpenWire, WebSocket, JMS) with ActiveMQ or RabbitMQ and you want to move it to AWS **without rewriting** it for SQS/SNS.",
+      "tags": ["amazon-mq"]
+    },
+    {
+      "id": "18-kinesis-mq-fc-24",
+      "front": "Which engines does Amazon MQ manage?",
+      "back": "**Apache ActiveMQ Classic** and **RabbitMQ**. Both offer queues (like SQS) and topics or exchanges for pub/sub (like SNS).",
+      "tags": ["amazon-mq"]
+    },
+    {
+      "id": "18-kinesis-mq-fc-25",
+      "front": "How does Amazon MQ for ActiveMQ achieve high availability?",
+      "back": "An **active/standby** pair of brokers in **two AZs** sharing **Amazon EFS** storage; clients use a failover URL listing both endpoints and reconnect to the standby when it takes over.",
+      "tags": ["amazon-mq", "efs", "high-availability"]
+    },
+    {
+      "id": "18-kinesis-mq-fc-26",
+      "front": "How does Amazon MQ for RabbitMQ achieve high availability?",
+      "back": "A **cluster deployment** of **three broker nodes** across AZs behind a Network Load Balancer, with data replicated between nodes (quorum queues are the default on RabbitMQ 4).",
+      "tags": ["amazon-mq", "high-availability"],
+      "updated": "RabbitMQ 4.2/4.3 on mq.m7g make quorum queues the default queue type."
+    },
+    {
+      "id": "18-kinesis-mq-fc-27",
+      "front": "Why does Amazon MQ not scale like SQS or SNS?",
+      "back": "It runs on **broker instances** you size and pay for per hour, so capacity is bounded by the instance type; SQS and SNS are serverless and scale almost without limit.",
+      "tags": ["amazon-mq", "sqs", "sns"]
+    },
+    {
+      "id": "18-kinesis-mq-fc-28",
+      "front": "Since August 2026, how can an on-demand Kinesis data stream land data in S3 without Firehose?",
+      "back": "With built-in **data delivery**: directly to a general purpose S3 bucket (raw format) or to Apache Iceberg **streaming tables** on S3 Tables, with 5–15 minute freshness and no consumer code.",
+      "tags": ["kinesis-data-streams", "s3"],
+      "updated": "Feature launched in August 2026, after the slides."
+    },
+    {
+      "id": "18-kinesis-mq-fc-29",
+      "front": "Starting write capacity of a new on-demand Kinesis data stream?",
+      "back": "**4 MB/s or 4,000 records/s** of writes (8 MB/s of reads). It then scales automatically to absorb up to **double the peak** seen in the previous 30 days.",
+      "tags": ["kinesis-data-streams", "capacity-modes", "limits"]
+    },
+    {
+      "id": "18-kinesis-mq-fc-30",
+      "front": "An answer offers \"Kinesis Data Analytics for SQL\" for real-time stream analytics. What is the current service?",
+      "back": "**Amazon Managed Service for Apache Flink** (SQL, Java, Python, Scala). Kinesis Data Analytics for SQL took no new apps from 15 October 2025 and existing apps were deleted from 27 January 2026.",
+      "tags": ["managed-flink", "kinesis-data-streams"],
+      "updated": "Kinesis Data Analytics for SQL was discontinued after the slides were written."
+    }
+  ]
+}

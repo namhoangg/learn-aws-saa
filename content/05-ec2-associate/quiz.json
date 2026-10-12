@@ -1,0 +1,219 @@
+{
+  "section": "05-ec2-associate",
+  "questions": [
+    {
+      "id": "05-ec2-associate-q01",
+      "type": "single",
+      "domain": "resilient",
+      "difficulty": "easy",
+      "question": "A company runs a single EC2 instance that sends files to a supplier's SFTP server. The supplier's firewall only accepts connections from IP addresses on an allow list. After a maintenance window in which the instance was stopped and started, the transfers started failing. Which solution fixes the problem with the LEAST operational effort?",
+      "options": [
+        { "id": "A", "text": "Reboot the instance instead of stopping it during future maintenance windows.", "correct": false, "explanation": "A reboot keeps the public IP, but any future stop, hibernate or host retirement would change it again. It does not give a permanent address and the current address has already changed." },
+        { "id": "B", "text": "Place the instance in a cluster placement group so it keeps its network configuration.", "correct": false, "explanation": "Placement groups control physical placement and network performance. They have no effect on which public IPv4 address an instance receives." },
+        { "id": "C", "text": "Allocate an Elastic IP address, associate it with the instance and give that address to the supplier.", "correct": true, "explanation": "An Elastic IP is a static public IPv4 owned by the account. It stays associated through stop and start, so the supplier's allow list keeps working." },
+        { "id": "D", "text": "Create a Route 53 record for the instance and ask the supplier to allow-list the DNS name.", "correct": false, "explanation": "IP-based firewalls match source addresses, not DNS names, and outbound connections from the instance still use its changing public IP." }
+      ],
+      "explanation": "Stopping an instance releases its auto-assigned public IPv4. When an outside party must allow-list one server's address, an Elastic IP is the simplest fix.",
+      "tags": ["elastic-ip", "ip-addressing"]
+    },
+    {
+      "id": "05-ec2-associate-q02",
+      "type": "single",
+      "domain": "performant",
+      "difficulty": "medium",
+      "question": "A research team runs a tightly coupled weather simulation on 24 compute-optimized EC2 instances. The nodes exchange data constantly, and the job's run time is dominated by network latency between nodes. The job can simply be rerun if it fails. Which deployment gives the BEST performance?",
+      "options": [
+        { "id": "A", "text": "Launch all 24 instances of the same type in a single request into a cluster placement group in one Availability Zone, with enhanced networking.", "correct": true, "explanation": "A cluster placement group packs instances onto a low-latency, high-bandwidth network segment in one AZ. Launching one type in one request gives the best chance of getting capacity." },
+        { "id": "B", "text": "Launch the instances into a spread placement group across three Availability Zones.", "correct": false, "explanation": "Spread groups maximise isolation, are limited to 7 running instances per AZ, and spreading across AZs adds latency, which is the opposite of what this job needs." },
+        { "id": "C", "text": "Launch the instances into a partition placement group with seven partitions.", "correct": false, "explanation": "Partition groups isolate groups of instances on separate racks for fault tolerance. They do not provide the tight, low-latency packing of a cluster group." },
+        { "id": "D", "text": "Launch the instances without a placement group and attach a second network interface to each one to double bandwidth.", "correct": false, "explanation": "Default placement scatters instances across hardware, and extra network interfaces do not add bandwidth to an instance." }
+      ],
+      "explanation": "Lowest latency and highest node-to-node throughput point to a cluster placement group: one AZ, one instance type, launched together. Availability is traded for speed.",
+      "tags": ["placement-groups", "hpc"]
+    },
+    {
+      "id": "05-ec2-associate-q03",
+      "type": "single",
+      "domain": "resilient",
+      "difficulty": "medium",
+      "question": "A company runs six EC2 instances that act as the coordination layer for a critical trading platform. The architecture must minimise the chance that a single hardware failure takes down more than one of these instances. The Region has three Availability Zones. Which solution meets this requirement?",
+      "options": [
+        { "id": "A", "text": "Launch the six instances into a cluster placement group in one Availability Zone.", "correct": false, "explanation": "A cluster group packs instances close together in one AZ and gives no rack-level isolation, so one hardware or AZ failure could take out several of them." },
+        { "id": "B", "text": "Launch the six instances into a partition placement group with one partition.", "correct": false, "explanation": "All instances in a single partition can share racks, so one rack failure could affect several of them." },
+        { "id": "C", "text": "Launch the six instances with Dedicated Instances tenancy into a spread placement group.", "correct": false, "explanation": "Spread placement groups are not supported for Dedicated Instances, and dedicated tenancy is about account isolation, not hardware fault isolation." },
+        { "id": "D", "text": "Launch the six instances into a spread placement group, two in each Availability Zone.", "correct": true, "explanation": "A spread group puts every instance on a distinct rack with its own network and power, well within the limit of 7 per AZ, and using three AZs also protects against an AZ failure." }
+      ],
+      "explanation": "A small number of critical instances that must not fail together is the textbook case for a spread placement group (maximum 7 running instances per AZ per group).",
+      "tags": ["placement-groups", "high-availability"]
+    },
+    {
+      "id": "05-ec2-associate-q04",
+      "type": "single",
+      "domain": "resilient",
+      "difficulty": "medium",
+      "question": "A company is deploying a 120-node Apache Cassandra cluster on EC2. The database team wants Cassandra's rack-aware replication to place copies of each data range on hardware that does not share racks, and the nodes must be able to discover their own rack grouping at run time. Which placement strategy should a solutions architect recommend?",
+      "options": [
+        { "id": "A", "text": "A spread placement group across all Availability Zones in the Region.", "correct": false, "explanation": "Spread groups allow only 7 running instances per AZ, far too few for 120 nodes in a typical Region." },
+        { "id": "B", "text": "A partition placement group, with Cassandra reading each node's partition number from instance metadata.", "correct": true, "explanation": "Partition groups give each partition its own racks, scale to hundreds of instances and expose the partition number through metadata for topology-aware software such as Cassandra." },
+        { "id": "C", "text": "A cluster placement group in a single Availability Zone.", "correct": false, "explanation": "A cluster group optimises latency, not isolation; it gives no rack separation that Cassandra could use for replica placement." },
+        { "id": "D", "text": "No placement group; tag each instance with a made-up rack name.", "correct": false, "explanation": "Tags do not influence physical placement, so replicas tagged as different racks might still share the same hardware." }
+      ],
+      "explanation": "Large distributed, replicated systems (HDFS, HBase, Cassandra, Kafka) that want rack awareness map to partition placement groups: up to 7 partitions per AZ, many instances per partition.",
+      "tags": ["placement-groups"]
+    },
+    {
+      "id": "05-ec2-associate-q05",
+      "type": "single",
+      "domain": "resilient",
+      "difficulty": "hard",
+      "question": "A company is moving a legacy application to a single EC2 instance. The software licence is bound to the MAC address of a network card, and on-premises clients connect to the application on a fixed private IP address. The company will keep a stopped standby instance in the same subnet and wants a failover procedure in which neither the licence nor the clients need any change. Which design should a solutions architect recommend?",
+      "options": [
+        { "id": "A", "text": "Create AMIs of the primary instance regularly and, during failover, launch a replacement instance from the latest AMI.", "correct": false, "explanation": "A new instance gets a new primary network interface with a new MAC address and, by default, a different private IP, so the licence and the clients would break." },
+        { "id": "B", "text": "License the software against the MAC address of the instance's primary network interface and, during failover, detach that interface and attach it to the standby.", "correct": false, "explanation": "The primary network interface (eth0) can never be detached from its instance, so this procedure cannot be carried out." },
+        { "id": "C", "text": "Create a secondary network interface, license the software against its MAC address, point clients at its private IP address, and move that interface to the standby during failover.", "correct": true, "explanation": "A secondary ENI keeps its MAC address, private IPs and security groups when it is detached and attached to another instance in the same AZ (a stopped standby accepts a warm attach), so both the licence and the clients keep working." },
+        { "id": "D", "text": "Associate an Elastic IP address with the primary instance and remap it to the standby during failover.", "correct": false, "explanation": "An Elastic IP is a public address; it does not move the private IP the clients use, and it does nothing for the MAC-bound licence." }
+      ],
+      "explanation": "Attributes such as the MAC address and private IPs belong to the network interface. Moving a secondary ENI to a standby in the same AZ is the classic low-cost failover for MAC-bound licences and fixed private IPs.",
+      "tags": ["eni", "failover"]
+    },
+    {
+      "id": "05-ec2-associate-q06",
+      "type": "single",
+      "domain": "performant",
+      "difficulty": "medium",
+      "question": "An in-memory analytics application on an m7i.xlarge Linux instance takes about 20 minutes to load its working data into RAM after the operating system boots. To save money, the instance is shut down every night, and analysts complain about the slow start each morning. The instance has an encrypted 100 GiB gp3 root volume and was launched with hibernation enabled. What should the solutions architect do to make the morning start faster at the LOWEST cost?",
+      "options": [
+        { "id": "A", "text": "Hibernate the instance each night instead of stopping it, and start it each morning.", "correct": true, "explanation": "Hibernation saves the RAM to the encrypted EBS root volume and restores it on start, so processes resume with their data already loaded. While hibernated, only EBS storage is billed." },
+        { "id": "B", "text": "Keep the instance running all night.", "correct": false, "explanation": "This avoids the reload but pays for 14 hours of compute every night, which is not the lowest cost." },
+        { "id": "C", "text": "Reboot the instance each night instead of stopping it.", "correct": false, "explanation": "A reboot erases RAM and keeps billing the instance, so it neither saves money nor speeds up the morning." },
+        { "id": "D", "text": "Move the instance into a cluster placement group to speed up the boot.", "correct": false, "explanation": "Placement groups affect network latency between instances, not how long the operating system and application take to start." }
+      ],
+      "explanation": "Hibernate is the answer when an application needs to keep its in-memory state or takes a long time to initialise, and the instance must not be billed overnight.",
+      "tags": ["hibernate"]
+    },
+    {
+      "id": "05-ec2-associate-q07",
+      "type": "multi",
+      "domain": "performant",
+      "difficulty": "medium",
+      "question": "A developer wants to use EC2 Hibernate for a new Amazon Linux 2023 instance that runs a slow-starting Java service. Which requirements must be met for hibernation to work? (Select TWO.)",
+      "options": [
+        { "id": "A", "text": "The root volume must be an encrypted Amazon EBS volume that is large enough to hold the instance's RAM.", "correct": true, "explanation": "The RAM image is written to the EBS root volume, which must be encrypted and have enough free space for the memory contents." },
+        { "id": "B", "text": "The instance must use an instance store root volume for faster writes.", "correct": false, "explanation": "Instance store root volumes cannot hibernate; the root volume must be EBS." },
+        { "id": "C", "text": "Hibernation must be enabled when the instance is launched.", "correct": true, "explanation": "The Stop - Hibernate behavior setting can only be chosen at launch; it cannot be enabled or disabled on an existing instance." },
+        { "id": "D", "text": "The instance must have at least 256 GiB of RAM.", "correct": false, "explanation": "It is the reverse: Linux instances must have less than 150 GiB of RAM to hibernate." },
+        { "id": "E", "text": "The instance must be launched by an Auto Scaling group.", "correct": false, "explanation": "You cannot hibernate an instance that is in an Auto Scaling group; the group would treat the stopped instance as unhealthy and replace it." }
+      ],
+      "explanation": "Hibernation needs: enabled at launch, a supported family and AMI, an encrypted EBS root volume big enough for RAM, Linux RAM under 150 GiB (Windows 16 GiB or less), and no bare metal.",
+      "tags": ["hibernate", "ebs"]
+    },
+    {
+      "id": "05-ec2-associate-q08",
+      "type": "single",
+      "domain": "cost",
+      "difficulty": "medium",
+      "question": "A company runs 40 web server instances in public subnets behind an Application Load Balancer. Each instance has an auto-assigned public IPv4 address, which is used only for software updates from the internet. A cost review flags the public IPv4 charges. The company wants to stop paying for a public IPv4 address on every web server while keeping the application available and the instances able to download updates. Which solution meets these requirements?",
+      "options": [
+        { "id": "A", "text": "Replace each auto-assigned public IPv4 address with an Elastic IP address.", "correct": false, "explanation": "Elastic IPs are billed at the same hourly rate as other public IPv4 addresses, so this changes nothing and uses up the Elastic IP quota." },
+        { "id": "B", "text": "Move the instances into a spread placement group.", "correct": false, "explanation": "Placement groups do not affect IP addressing or IPv4 charges, and a spread group could not even hold 40 instances in a typical Region." },
+        { "id": "C", "text": "Stop the instances every night so their public IPv4 addresses are released.", "correct": false, "explanation": "Stopping the web servers would take the application offline, which breaks the availability requirement." },
+        { "id": "D", "text": "Move the instances to private subnets without public IPv4 addresses, keep the ALB in public subnets, and use NAT gateways for outbound updates.", "correct": true, "explanation": "The ALB still receives user traffic and the instances reach the internet through NAT, so only the ALB and the NAT gateways hold public addresses and the 40 per-instance charges disappear. NAT gateways add their own hourly and per-GB charges, so AWS suggests comparing the totals for your data volume." }
+      ],
+      "explanation": "Every public IPv4 address is billed hourly. Instances behind a load balancer rarely need their own public IPs; private subnets plus NAT for outbound traffic is the standard design.",
+      "tags": ["cost", "ip-addressing", "elb", "nat-gateway"],
+      "updated": "Public IPv4 charges started on 1 February 2024 (USD 0.005 per address-hour)."
+    },
+    {
+      "id": "05-ec2-associate-q09",
+      "type": "single",
+      "domain": "resilient",
+      "difficulty": "hard",
+      "question": "A solutions architect scripted a failover for a single-instance application: a secondary network interface with an Elastic IP is attached to the primary instance in us-east-1a, and on failure the script moves the interface to a running standby instance in us-east-1b. In testing, the attach step fails. Which change makes the failover work with the LEAST redesign?",
+      "options": [
+        { "id": "A", "text": "Change the script to detach the primary network interface instead of the secondary one.", "correct": false, "explanation": "The primary network interface cannot be detached from an instance, and the AZ problem would remain." },
+        { "id": "B", "text": "Change the script to disassociate the Elastic IP from the primary instance and associate it with the standby instance.", "correct": true, "explanation": "A network interface can only attach to an instance in its own AZ, but an Elastic IP can be remapped to any instance in the same Region, including one in another AZ." },
+        { "id": "C", "text": "Recreate the network interface in a subnet that spans both Availability Zones.", "correct": false, "explanation": "Subnets cannot span Availability Zones; every subnet, and therefore every network interface, lives in exactly one AZ." },
+        { "id": "D", "text": "Put both instances into a cluster placement group so they share network hardware.", "correct": false, "explanation": "A cluster placement group is limited to one AZ and does not allow an ENI to cross AZs; it would also remove the cross-AZ resilience." }
+      ],
+      "explanation": "ENIs are AZ-scoped; Elastic IPs are Region-scoped. For cross-AZ failover of a single instance, remap the EIP (or, better, use a load balancer or Route 53 failover).",
+      "tags": ["eni", "elastic-ip", "failover"]
+    },
+    {
+      "id": "05-ec2-associate-q10",
+      "type": "multi",
+      "domain": "secure",
+      "difficulty": "medium",
+      "question": "A security team requires that EC2 instances running internal services have no public IPv4 addresses and no inbound SSH open to the internet. Administrators still need interactive shell access from their laptops. Which solutions meet these requirements? (Select TWO.)",
+      "options": [
+        { "id": "A", "text": "Associate an Elastic IP with each instance and restrict SSH to the administrators' home IP addresses.", "correct": false, "explanation": "An Elastic IP is a public IPv4 address, which the requirement forbids." },
+        { "id": "B", "text": "Place the instances in a cluster placement group so they can be reached through the placement group's endpoint.", "correct": false, "explanation": "Placement groups have no endpoint and provide no remote access; they only influence physical placement." },
+        { "id": "C", "text": "Use AWS Systems Manager Session Manager to open shells on the instances.", "correct": true, "explanation": "Session Manager provides browser or CLI shells without inbound ports, bastion hosts, SSH keys or public IPs, with access controlled by IAM." },
+        { "id": "D", "text": "Allow inbound SSH from 0.0.0.0/0 and rely on the private IP addresses being unreachable from the internet.", "correct": false, "explanation": "This opens SSH to the internet in the security group, violating the requirement, and administrators could not reach private IPs from their laptops anyway." },
+        { "id": "E", "text": "Create an EC2 Instance Connect Endpoint in the VPC and connect through it.", "correct": true, "explanation": "EC2 Instance Connect Endpoint lets administrators reach instances over SSH or RDP without the instances having a public IPv4 address." }
+      ],
+      "explanation": "Instances do not need public IPs for administration: Session Manager and EC2 Instance Connect Endpoint both provide access to private-only instances.",
+      "tags": ["security", "ip-addressing", "systems-manager"]
+    },
+    {
+      "id": "05-ec2-associate-q11",
+      "type": "single",
+      "domain": "performant",
+      "difficulty": "medium",
+      "question": "A company has eight c7i.8xlarge instances running in a cluster placement group. When the team tries to launch four more instances of the same type into the group, the request fails with an insufficient capacity error. What should the team do FIRST to try to get all 12 instances running in the group?",
+      "options": [
+        { "id": "A", "text": "Stop all instances in the placement group, start them again, and then retry the launch.", "correct": true, "explanation": "AWS recommends this: starting the instances again may move the whole group to hardware that has room for all of the requested instances." },
+        { "id": "B", "text": "Convert the cluster placement group into a spread placement group.", "correct": false, "explanation": "Placement groups cannot be converted or merged, and a spread group would lose the low-latency benefit and allow only 7 instances per AZ." },
+        { "id": "C", "text": "Launch the four new instances as t3.2xlarge to use a different capacity pool.", "correct": false, "explanation": "Burstable T instances are not supported in cluster placement groups, and mixing types reduces the chance of a successful launch." },
+        { "id": "D", "text": "Request an increase to the Elastic IP address quota for the Region.", "correct": false, "explanation": "The error is about physical capacity near the existing instances, not about Elastic IP addresses." }
+      ],
+      "explanation": "Cluster placement groups work best when all instances of one type are launched in a single request; when adding later fails, stop and start the group and retry, or reserve capacity with an On-Demand Capacity Reservation in the group.",
+      "tags": ["placement-groups"]
+    },
+    {
+      "id": "05-ec2-associate-q12",
+      "type": "single",
+      "domain": "resilient",
+      "difficulty": "easy",
+      "question": "A web application runs on EC2 instances in an Auto Scaling group across three Availability Zones. A large customer's firewall lets its employees connect only to a small, fixed set of destination IP addresses, so the customer needs static addresses for the application. Instances are frequently replaced by the Auto Scaling group. Which solution meets the requirement?",
+      "options": [
+        { "id": "A", "text": "Assign an Elastic IP to each instance in the Auto Scaling group and send the customer the list.", "correct": false, "explanation": "Instances come and go, so the list would keep changing and the EIP quota (5 per Region by default) would quickly run out." },
+        { "id": "B", "text": "Put an Application Load Balancer in front of the group and give the customer the ALB's IP addresses.", "correct": false, "explanation": "An ALB's IP addresses change over time and you cannot assign Elastic IPs to an ALB; clients should use its DNS name." },
+        { "id": "C", "text": "Create a Route 53 alias record for the application and give the customer the record name.", "correct": false, "explanation": "A firewall that allow-lists IP addresses cannot use a DNS name, and the addresses behind the record can change." },
+        { "id": "D", "text": "Put a Network Load Balancer with one Elastic IP per Availability Zone in front of the group and give the customer those addresses.", "correct": true, "explanation": "A Network Load Balancer can use one static Elastic IP per AZ, giving a small fixed address set while the instances behind it change freely." }
+      ],
+      "explanation": "Pinning EIPs to individual instances does not scale. For a fixed entry address in front of a changing fleet, use an NLB with Elastic IPs (or Global Accelerator's static anycast IPs).",
+      "tags": ["elastic-ip", "nlb", "elb"]
+    },
+    {
+      "id": "05-ec2-associate-q13",
+      "type": "single",
+      "domain": "resilient",
+      "difficulty": "medium",
+      "question": "A team launched seven instances in us-west-2a into a spread placement group. Launching an eighth instance into the same group in the same Availability Zone fails. The application needs 10 instances in that AZ, each with as much hardware isolation as possible. What should the team do?",
+      "options": [
+        { "id": "A", "text": "Open a Service Quotas request to raise the spread placement group limit to 10 instances per AZ.", "correct": false, "explanation": "The seven-instances-per-AZ limit is a rule of spread placement groups, not an adjustable quota." },
+        { "id": "B", "text": "Create a second spread placement group and launch the remaining instances into it.", "correct": true, "explanation": "AWS recommends multiple spread groups when you need more than seven instances in an AZ; isolation is guaranteed within each group, which limits correlated failures." },
+        { "id": "C", "text": "Move all 10 instances into a cluster placement group.", "correct": false, "explanation": "A cluster group packs instances close together, which reduces isolation instead of increasing it." },
+        { "id": "D", "text": "Create a partition placement group with 10 partitions in us-west-2a.", "correct": false, "explanation": "A partition placement group supports at most seven partitions per Availability Zone." }
+      ],
+      "explanation": "Spread: max 7 running instances per AZ per group, not adjustable; use more groups (or multiple AZs) for more instances.",
+      "tags": ["placement-groups", "limits"]
+    },
+    {
+      "id": "05-ec2-associate-q14",
+      "type": "multi",
+      "domain": "cost",
+      "difficulty": "medium",
+      "question": "A company runs a legacy single-instance application with an Elastic IP address associated with it. The instance is stopped every weekend. Which TWO statements describe what the company should expect? (Select TWO.)",
+      "options": [
+        { "id": "A", "text": "The Elastic IP stays associated with the instance through the stop and start.", "correct": true, "explanation": "Elastic IPs remain associated across reboot, stop/start and hibernate; only termination disassociates them." },
+        { "id": "B", "text": "The Elastic IP address is billed hourly even while the instance is stopped.", "correct": true, "explanation": "All Elastic IPs are charged per hour whether the instance is running, stopped, or there is no instance at all." },
+        { "id": "C", "text": "The Elastic IP can be associated with an instance in another Region if the primary Region fails.", "correct": false, "explanation": "An Elastic IP is specific to one Region (network border group) and cannot be moved to another Region." },
+        { "id": "D", "text": "If the instance is terminated, the Elastic IP is released automatically and billing stops.", "correct": false, "explanation": "Termination only disassociates the address; it stays allocated to the account, and billed, until someone releases it." },
+        { "id": "E", "text": "The instance keeps an auto-assigned public IPv4 address in addition to the Elastic IP.", "correct": false, "explanation": "Associating an Elastic IP releases the instance's auto-assigned public IPv4; the Elastic IP replaces it." }
+      ],
+      "explanation": "Elastic IPs survive stops and starts, are Region-scoped, replace the auto-assigned public IP, and are billed until released, even after the instance is gone.",
+      "tags": ["elastic-ip", "cost"]
+    }
+  ]
+}

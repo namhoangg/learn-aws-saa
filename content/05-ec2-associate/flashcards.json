@@ -1,0 +1,189 @@
+{
+  "section": "05-ec2-associate",
+  "cards": [
+    {
+      "id": "05-ec2-associate-fc-01",
+      "front": "Which three IPv4 ranges are reserved for private networks by RFC 1918?",
+      "back": "`10.0.0.0/8`, `172.16.0.0/12` and `192.168.0.0/16`. They are never routed on the public internet, so any number of separate networks can reuse them.",
+      "tags": ["ip-addressing", "vpc"]
+    },
+    {
+      "id": "05-ec2-associate-fc-02",
+      "front": "What is the key difference between a private and a public IPv4 address in terms of uniqueness?",
+      "back": "A **public** IPv4 must be unique across the whole internet. A **private** IPv4 only has to be unique inside its own network, so two companies can use the same private address without conflict.",
+      "tags": ["ip-addressing"]
+    },
+    {
+      "id": "05-ec2-associate-fc-03",
+      "front": "How does a machine that has only a private IPv4 address reach the internet?",
+      "back": "Through **NAT**: a device (in AWS, a **NAT gateway** or NAT instance) replaces the private source address with its own public address and sends the traffic out through an internet gateway.",
+      "tags": ["ip-addressing", "nat-gateway"]
+    },
+    {
+      "id": "05-ec2-associate-fc-04",
+      "front": "You stop and then start an EC2 instance. What happens to its private IPv4 and its auto-assigned public IPv4?",
+      "back": "The **private IPv4 is kept**. The **public IPv4 is released** when the instance stops and a **different** one is assigned when it starts. (A reboot keeps both.)",
+      "tags": ["ec2", "ip-addressing"]
+    },
+    {
+      "id": "05-ec2-associate-fc-05",
+      "front": "Why can't you SSH from your laptop to an EC2 instance's private IP address?",
+      "back": "Your laptop is not on the VPC's private network, so the private address is unreachable. Over the internet you must use the instance's public IP or public DNS name, unless you have a VPN, Direct Connect, EC2 Instance Connect Endpoint or Session Manager.",
+      "tags": ["ec2", "ip-addressing"]
+    },
+    {
+      "id": "05-ec2-associate-fc-06",
+      "front": "What does AWS charge for public IPv4 addresses?",
+      "back": "**USD 0.005 per hour** per public IPv4 address (about USD 3.65 per month), whether it is auto-assigned, an Elastic IP in use or an idle Elastic IP. BYOIP addresses are not charged.",
+      "tags": ["cost", "elastic-ip"],
+      "updated": "Charge introduced on 1 February 2024; not on the slides."
+    },
+    {
+      "id": "05-ec2-associate-fc-07",
+      "front": "What is an Elastic IP address?",
+      "back": "A **static public IPv4 address** allocated to your account in one Region. It stays yours until you release it and can be associated with one instance or network interface at a time.",
+      "tags": ["elastic-ip"]
+    },
+    {
+      "id": "05-ec2-associate-fc-08",
+      "front": "What is the default Elastic IP quota?",
+      "back": "**5 Elastic IP addresses per Region** per account. You can request an increase in Service Quotas.",
+      "tags": ["elastic-ip", "limits"],
+      "updated": "The slides say 5 per account; the documented default is 5 per Region."
+    },
+    {
+      "id": "05-ec2-associate-fc-09",
+      "front": "What happens to an instance's auto-assigned public IPv4 when you associate an Elastic IP with it?",
+      "back": "The auto-assigned address is **released back to Amazon's pool** for good and replaced by the Elastic IP. You cannot recover it or turn it into an Elastic IP.",
+      "tags": ["elastic-ip"]
+    },
+    {
+      "id": "05-ec2-associate-fc-10",
+      "front": "Why does the course recommend avoiding Elastic IPs, and what should you use instead?",
+      "back": "An EIP ties one billed, scarce address to one server and needs manual remapping. Prefer a **DNS name** (Route 53) or, better, a **load balancer** in front of instances that have no public IP.",
+      "tags": ["elastic-ip", "elb", "route53"]
+    },
+    {
+      "id": "05-ec2-associate-fc-11",
+      "front": "Which placement strategy gives the lowest latency and highest throughput between instances, and what is its main drawback?",
+      "back": "A **cluster** placement group: instances are packed close together in **one AZ**. Drawback: an AZ problem takes down all of them at once, and nothing keeps them on separate racks.",
+      "tags": ["placement-groups"]
+    },
+    {
+      "id": "05-ec2-associate-fc-12",
+      "front": "What single-flow bandwidth can instances in a cluster placement group reach, compared with instances outside one?",
+      "back": "With enhanced networking, up to **10 Gbps per flow** inside a cluster placement group versus **5 Gbps** outside. Aggregate bandwidth of large instances is higher.",
+      "tags": ["placement-groups", "performance"]
+    },
+    {
+      "id": "05-ec2-associate-fc-13",
+      "front": "How should you launch instances into a cluster placement group to avoid capacity errors?",
+      "back": "Launch **all the instances in a single request** and use **the same instance type**. Optionally reserve room with an On-Demand Capacity Reservation in the cluster placement group.",
+      "tags": ["placement-groups"]
+    },
+    {
+      "id": "05-ec2-associate-fc-14",
+      "front": "What is the instance limit of a spread placement group?",
+      "back": "**7 running instances per Availability Zone** per group. A spread group can span AZs, so three AZs allow up to 21 instances.",
+      "tags": ["placement-groups", "limits"]
+    },
+    {
+      "id": "05-ec2-associate-fc-15",
+      "front": "When would you choose a spread placement group?",
+      "back": "For a **small number of critical instances** that must not fail together, such as a primary database and its standby or a three-node coordination cluster. Each instance gets its own rack with separate network and power.",
+      "tags": ["placement-groups"]
+    },
+    {
+      "id": "05-ec2-associate-fc-16",
+      "front": "How many partitions can a partition placement group have, and how many instances?",
+      "back": "Up to **7 partitions per AZ** (across one or more AZs in the Region). The number of instances is limited only by account quotas, so it scales to hundreds.",
+      "tags": ["placement-groups", "limits"]
+    },
+    {
+      "id": "05-ec2-associate-fc-17",
+      "front": "How does a topology-aware application such as HDFS or Cassandra learn which partition an instance is in?",
+      "back": "From **instance metadata** (`placement/partition-number`). The partition is also visible in the console Details tab and in `describe-instances` output.",
+      "tags": ["placement-groups"]
+    },
+    {
+      "id": "05-ec2-associate-fc-18",
+      "front": "What must you do before moving an existing instance into a different placement group?",
+      "back": "**Stop** the instance, then change it with **Actions → Instance settings → Modify instance placement** or `aws ec2 modify-instance-placement`. An instance can be in only one group, and groups cannot be merged.",
+      "tags": ["placement-groups"]
+    },
+    {
+      "id": "05-ec2-associate-fc-19",
+      "front": "Name the attributes an elastic network interface (ENI) can carry.",
+      "back": "Primary and secondary private IPv4s, one Elastic IP per private IPv4, one public IPv4, IPv6 addresses, security groups, a MAC address, a source/destination check flag and a description.",
+      "tags": ["eni"]
+    },
+    {
+      "id": "05-ec2-associate-fc-20",
+      "front": "Can you move an ENI to an instance in another Availability Zone?",
+      "back": "**No.** A network interface is created in one subnet, so it belongs to one AZ, and it can only attach to instances in that same AZ (even a different subnet or VPC is fine, but not another AZ).",
+      "tags": ["eni"]
+    },
+    {
+      "id": "05-ec2-associate-fc-21",
+      "front": "Which network interface can never be detached from an instance?",
+      "back": "The **primary network interface** (`eth0`, device index 0). Only secondary interfaces can be detached and moved.",
+      "tags": ["eni"]
+    },
+    {
+      "id": "05-ec2-associate-fc-22",
+      "front": "What do hot, warm and cold attach mean for network interfaces?",
+      "back": "**Hot**: attach while the instance is running. **Warm**: attach while it is stopped. **Cold**: attach as part of the launch.",
+      "tags": ["eni"]
+    },
+    {
+      "id": "05-ec2-associate-fc-23",
+      "front": "What does EC2 Hibernate do, and where is the memory stored?",
+      "back": "It suspends the OS to disk: the **RAM contents are written to the EBS root volume**, the instance stops, and on start the RAM is reloaded so processes resume instead of booting from scratch.",
+      "tags": ["hibernate", "ebs"]
+    },
+    {
+      "id": "05-ec2-associate-fc-24",
+      "front": "What are the root volume requirements for EC2 Hibernate?",
+      "back": "It must be an **EBS** volume (not instance store), **encrypted**, of type gp2, gp3, io1 or io2, and **large enough** to hold the RAM plus the OS and data.",
+      "tags": ["hibernate", "ebs", "kms"]
+    },
+    {
+      "id": "05-ec2-associate-fc-25",
+      "front": "What is the maximum instance RAM for hibernation?",
+      "back": "**Linux: less than 150 GiB. Windows: 16 GiB or less.** Bare metal instances cannot hibernate.",
+      "tags": ["hibernate", "limits"],
+      "updated": "The slides give one limit (under 150 GB); the docs now give a separate Windows limit of 16 GiB."
+    },
+    {
+      "id": "05-ec2-associate-fc-26",
+      "front": "How long can an instance stay hibernated?",
+      "back": "**No more than 60 days.** To keep it longer, start the hibernated instance, do a normal stop, and start it again.",
+      "tags": ["hibernate", "limits"]
+    },
+    {
+      "id": "05-ec2-associate-fc-27",
+      "front": "Can you enable hibernation on an instance that is already running?",
+      "back": "**No.** Hibernation must be enabled at launch (**Advanced details → Stop - Hibernate behavior → Enable**) and cannot be enabled or disabled afterwards.",
+      "tags": ["hibernate"]
+    },
+    {
+      "id": "05-ec2-associate-fc-28",
+      "front": "Which placement strategy did AWS add after the three on the slides, and what is it for?",
+      "back": "**Precision time** placement groups: instances run on hardware with direct access to high-precision time sources for microsecond-accurate clock synchronisation (distributed databases, financial timestamps).",
+      "tags": ["placement-groups"],
+      "updated": "New strategy, not on the slides."
+    },
+    {
+      "id": "05-ec2-associate-fc-29",
+      "front": "When does a hibernating instance stop being billed for compute?",
+      "back": "Only when it reaches **stopped**. Unlike a normal stop, the instance is billed while it is in the **stopping** state (writing RAM to disk). EBS storage, including the saved RAM, keeps billing while hibernated.",
+      "tags": ["hibernate", "cost"]
+    },
+    {
+      "id": "05-ec2-associate-fc-30",
+      "front": "What happens to an Elastic IP when its instance is terminated?",
+      "back": "It is **disassociated but stays allocated** to your account, and keeps billing hourly until you **release** it.",
+      "tags": ["elastic-ip", "cost"]
+    }
+  ]
+}

@@ -1,0 +1,204 @@
+{
+  "section": "15-cloudfront-global-accelerator",
+  "questions": [
+    {
+      "id": "15-cloudfront-global-accelerator-q01",
+      "type": "single",
+      "domain": "secure",
+      "difficulty": "medium",
+      "question": "A company serves product images from an Amazon S3 bucket through an Amazon CloudFront distribution. A new security policy requires that the bucket can never be read directly from S3 URLs and that all objects are encrypted with SSE-KMS using a customer managed key. Which solution meets these requirements?",
+      "options": [
+        { "id": "A", "text": "Enable static website hosting on the bucket, make the objects public, and point CloudFront at the website endpoint with a Referer header check.", "correct": false, "explanation": "A website endpoint requires publicly readable objects and cannot use OAC, so the bucket would remain readable directly. A Referer header is trivial to spoof." },
+        { "id": "B", "text": "Create an origin access identity (OAI), attach it to the S3 origin, and grant the OAI s3:GetObject in the bucket policy.", "correct": false, "explanation": "OAI is the legacy mechanism and does not support SSE-KMS encrypted objects without workarounds. It fails the encryption requirement." },
+        { "id": "C", "text": "Attach an origin access control (OAC) to the S3 origin, allow the cloudfront.amazonaws.com principal in the bucket policy with an AWS:SourceArn condition for the distribution, and allow the same principal to use the KMS key in its key policy.", "correct": true, "explanation": "OAC signs CloudFront's requests, supports SSE-KMS, and the scoped bucket policy plus Block Public Access means only this distribution can read the objects." },
+        { "id": "D", "text": "Generate S3 pre-signed URLs with a Lambda function for every image request and remove CloudFront.", "correct": false, "explanation": "Pre-signed URLs grant direct S3 access and removing CloudFront loses edge caching. It adds custom code without meeting the 'only through CloudFront' intent." }
+      ],
+      "explanation": "To keep an S3 origin private behind CloudFront, use OAC with a bucket policy scoped to the distribution ARN; OAC is also required for SSE-KMS objects.",
+      "tags": ["cloudfront", "s3", "oac", "kms"]
+    },
+    {
+      "id": "15-cloudfront-global-accelerator-q02",
+      "type": "single",
+      "domain": "performant",
+      "difficulty": "easy",
+      "question": "A media company stores images and short videos in an Amazon S3 bucket in us-east-1. Users on every continent report slow page loads, and S3 request costs are rising because the same popular files are downloaded millions of times. Which solution will MOST cost-effectively improve performance for global users and cut the number of requests that reach S3?",
+      "options": [
+        { "id": "A", "text": "Create an Amazon CloudFront distribution with the S3 bucket as the origin and serve the files through the distribution.", "correct": true, "explanation": "CloudFront caches popular files at edge locations near viewers, cutting latency, and cache hits never reach S3, reducing origin requests." },
+        { "id": "B", "text": "Configure S3 Cross-Region Replication to a bucket in every AWS Region and use Route 53 latency-based routing.", "correct": false, "explanation": "Replicating to every Region multiplies storage and replication costs, and every download still becomes an S3 request against some replica bucket, so S3 request charges keep growing. It also serves from Regions, not from hundreds of edge locations." },
+        { "id": "C", "text": "Put AWS Global Accelerator in front of the S3 bucket.", "correct": false, "explanation": "Global Accelerator does not cache content and does not support S3 buckets as endpoints; every request would still reach the origin." },
+        { "id": "D", "text": "Enable S3 Transfer Acceleration on the bucket and give users the accelerated endpoint.", "correct": false, "explanation": "Transfer Acceleration speeds up long-distance transfers to and from S3 but does not cache anything, so the origin load problem remains." }
+      ],
+      "explanation": "Static, popular content for a global audience is the classic CloudFront use case: lower latency and fewer origin requests.",
+      "tags": ["cloudfront", "s3"]
+    },
+    {
+      "id": "15-cloudfront-global-accelerator-q03",
+      "type": "single",
+      "domain": "performant",
+      "difficulty": "medium",
+      "question": "A gaming company runs multiplayer game servers that communicate over UDP. The servers sit behind Network Load Balancers in us-west-2 and eu-central-1. Players worldwide need the lowest possible latency, the game client ships with fixed IP addresses that are hard to update, and traffic must move automatically to the other Region if one Region becomes unhealthy. Which solution meets these requirements?",
+      "options": [
+        { "id": "A", "text": "Create an Amazon CloudFront distribution with both NLBs as origins in an origin group.", "correct": false, "explanation": "CloudFront handles HTTP and HTTPS traffic, not raw UDP game packets, and it does not provide fixed IP addresses by default." },
+        { "id": "B", "text": "Create Route 53 latency-based records for both NLBs with health checks.", "correct": false, "explanation": "DNS routing returns changing NLB IPs and depends on clients honouring TTLs, which conflicts with hard-coded IP addresses and fast failover." },
+        { "id": "C", "text": "Enable cross-zone load balancing on both NLBs and assign Elastic IP addresses to them.", "correct": false, "explanation": "Elastic IPs give static addresses per Region, but nothing routes players to the nearest Region or fails over between Regions." },
+        { "id": "D", "text": "Create an AWS Global Accelerator standard accelerator with a UDP listener and endpoint groups in both Regions that point to the NLBs.", "correct": true, "explanation": "Global Accelerator provides two static anycast IPs, carries UDP over the AWS backbone to the nearest healthy Region, and fails over based on health checks without DNS changes." }
+      ],
+      "explanation": "UDP traffic, static IPs and health-based multi-Region failover are the signature requirements for Global Accelerator.",
+      "tags": ["global-accelerator", "nlb", "udp"]
+    },
+    {
+      "id": "15-cloudfront-global-accelerator-q04",
+      "type": "single",
+      "domain": "cost",
+      "difficulty": "medium",
+      "question": "A company deploys its single-page web application to an S3 bucket behind Amazon CloudFront several times a day. After each deploy, some users keep receiving old JavaScript and CSS files for hours. The team wants new files to be picked up immediately after every deploy at the lowest ongoing cost. What should a solutions architect recommend?",
+      "options": [
+        { "id": "A", "text": "Create an invalidation for every changed file after each deploy.", "correct": false, "explanation": "Per-file invalidations add up quickly past the 1,000 free paths a month, take time to propagate and cannot clear browser or proxy caches." },
+        { "id": "B", "text": "Give JavaScript and CSS files versioned names (for example a content hash) referenced from index.html, and invalidate only index.html after each deploy.", "correct": true, "explanation": "New names are new cache keys, so browsers and edges fetch them immediately at no invalidation cost; only the single fixed-name file needs a refresh." },
+        { "id": "C", "text": "Attach the CachingDisabled managed policy to the default cache behavior.", "correct": false, "explanation": "Disabling caching sends every request to S3, losing CloudFront's performance and cost benefits for content that is highly cacheable." },
+        { "id": "D", "text": "Move the bucket to the same Region as most users.", "correct": false, "explanation": "Bucket location does not affect how long CloudFront serves a cached object; staleness comes from the TTL, not the origin Region." }
+      ],
+      "explanation": "For frequently changing assets, versioned file names beat invalidations: instant, cache-proof and free. Keep invalidations for fixed names such as index.html.",
+      "tags": ["cloudfront", "invalidation", "ttl"]
+    },
+    {
+      "id": "15-cloudfront-global-accelerator-q05",
+      "type": "single",
+      "domain": "secure",
+      "difficulty": "easy",
+      "question": "A video streaming company distributes films through Amazon CloudFront. Its licensing agreements allow the content to be shown only to viewers in the United States and Canada. Which solution enforces this requirement with the least effort?",
+      "options": [
+        { "id": "A", "text": "Enable CloudFront geo restriction with an allow list that contains the United States and Canada.", "correct": true, "explanation": "Geo restriction blocks every country not on the allow list at the edge and returns HTTP 403, which is exactly the licensing requirement with no code." },
+        { "id": "B", "text": "Add an AWS WAF rate-based rule to the distribution.", "correct": false, "explanation": "Rate-based rules limit request volume per IP; they do not restrict access by country." },
+        { "id": "C", "text": "Add an aws:SourceIp condition with North American IP ranges to the S3 bucket policy.", "correct": false, "explanation": "With CloudFront in front, S3 sees CloudFront's requests, not viewer IPs, and maintaining country IP ranges by hand is error-prone." },
+        { "id": "D", "text": "Create Route 53 geolocation records that return the distribution only to North American users.", "correct": false, "explanation": "DNS geolocation only changes which answer is returned; users elsewhere could still reach the distribution with another resolver or the direct domain name." }
+      ],
+      "explanation": "Country-level licensing restrictions map directly to CloudFront geo restriction (allow list or block list).",
+      "tags": ["cloudfront", "geo-restriction"]
+    },
+    {
+      "id": "15-cloudfront-global-accelerator-q06",
+      "type": "multi",
+      "domain": "secure",
+      "difficulty": "medium",
+      "question": "A web application runs on EC2 instances behind an internet-facing Application Load Balancer, with an Amazon CloudFront distribution in front. A security review finds that some clients bypass CloudFront, and its AWS WAF rules, by calling the ALB's DNS name directly. Which combination of steps ensures the ALB accepts requests only from CloudFront? (Select TWO.)",
+      "options": [
+        { "id": "A", "text": "Change the ALB security group so that inbound HTTPS is allowed only from the CloudFront origin-facing managed prefix list.", "correct": true, "explanation": "The managed prefix list contains only CloudFront's origin-facing IP ranges, so direct connections from other clients are dropped at the network layer." },
+        { "id": "B", "text": "Configure CloudFront to add a secret custom header to origin requests, and add an ALB listener rule that forwards only requests carrying that header while the default rule returns 403.", "correct": true, "explanation": "The header proves the request passed through this distribution; other CloudFront distributions or spoofed clients without the secret are rejected." },
+        { "id": "C", "text": "Attach an origin access control (OAC) to the ALB origin.", "correct": false, "explanation": "OAC signs requests for origins such as S3 and Lambda function URLs; an ALB cannot verify OAC signatures." },
+        { "id": "D", "text": "Change the ALB scheme to internal while keeping it configured as a standard custom origin.", "correct": false, "explanation": "A standard custom origin is reached over the internet, so CloudFront could no longer connect; an internal ALB only works through a VPC origin." },
+        { "id": "E", "text": "Enable CloudFront geo restriction with a block list of high-risk countries.", "correct": false, "explanation": "Geo restriction applies only to requests that go through CloudFront; it does nothing for clients calling the ALB directly." }
+      ],
+      "explanation": "Lock a public ALB origin to CloudFront with the managed prefix list in its security group plus a secret custom header checked by a listener rule.",
+      "tags": ["cloudfront", "alb", "security-groups"]
+    },
+    {
+      "id": "15-cloudfront-global-accelerator-q07",
+      "type": "single",
+      "domain": "resilient",
+      "difficulty": "medium",
+      "question": "A company exposes an HTTPS API from Application Load Balancers in us-east-1 and ap-northeast-1. Its business partners must add the API's IP addresses to strict outbound firewall allow lists, and the company wants traffic to move to the healthy Region within seconds of a failure, without depending on DNS TTLs. Which solution meets these requirements?",
+      "options": [
+        { "id": "A", "text": "Create Route 53 failover records with health checks and a 30-second TTL.", "correct": false, "explanation": "Failover still depends on clients re-resolving DNS, and ALB IP addresses change over time, so partners cannot allow-list them." },
+        { "id": "B", "text": "Create a CloudFront distribution with an origin group containing both ALBs.", "correct": false, "explanation": "A standard distribution uses a large, changing set of edge IPs that partners cannot allow-list, and origin failover reacts to error responses rather than providing static entry points." },
+        { "id": "C", "text": "Create an AWS Global Accelerator standard accelerator with endpoint groups in both Regions that contain the ALBs.", "correct": true, "explanation": "Partners allow-list two static anycast IPs, and health checks shift new connections to the healthy Region with no DNS change." },
+        { "id": "D", "text": "Place a Network Load Balancer with Elastic IP addresses in each Region and use a Route 53 multivalue answer record.", "correct": false, "explanation": "This gives static IPs per Region but still relies on DNS for failover, and partners must allow-list several addresses per Region." }
+      ],
+      "explanation": "Static IPs for allow-listing plus deterministic, DNS-free regional failover is a Global Accelerator scenario.",
+      "tags": ["global-accelerator", "alb", "failover"]
+    },
+    {
+      "id": "15-cloudfront-global-accelerator-q08",
+      "type": "single",
+      "domain": "secure",
+      "difficulty": "hard",
+      "question": "A company wants to put Amazon CloudFront in front of a web application that runs on EC2 instances behind an Application Load Balancer. Company policy forbids any load balancer or instance in the VPC from being internet-facing or having a public IP address. The solution must have the least operational overhead. What should a solutions architect do?",
+      "options": [
+        { "id": "A", "text": "Make the ALB internet-facing and restrict its security group to the CloudFront managed prefix list.", "correct": false, "explanation": "The ALB would still be internet-facing with public IPs, which violates the policy even if the security group limits who can connect." },
+        { "id": "B", "text": "Put an AWS Global Accelerator in front of an internal ALB and configure the accelerator's static IPs as a custom origin in CloudFront.", "correct": false, "explanation": "It could keep the ALB internal, but it chains two edge services: a second hourly-billed service, an extra network hop and more configuration to run. A VPC origin achieves the same isolation natively with far less overhead." },
+        { "id": "C", "text": "Create a Site-to-Site VPN between CloudFront and the VPC and use the ALB's private DNS name as the origin.", "correct": false, "explanation": "CloudFront cannot terminate a Site-to-Site VPN; there is no such integration." },
+        { "id": "D", "text": "Use an internal ALB in private subnets, create a CloudFront VPC origin for it, and allow the CloudFront service-managed security group in the ALB security group.", "correct": true, "explanation": "VPC origins let CloudFront reach an internal ALB over a private connection, so nothing in the VPC is public and no custom-header logic is needed." }
+      ],
+      "explanation": "CloudFront VPC origins serve internal ALBs, NLBs and private EC2 instances with no public exposure.",
+      "tags": ["cloudfront", "vpc-origins", "alb"],
+      "updated": "VPC origins (launched late 2024) change the older answer that a CloudFront ALB origin must be public."
+    },
+    {
+      "id": "15-cloudfront-global-accelerator-q09",
+      "type": "single",
+      "domain": "performant",
+      "difficulty": "medium",
+      "question": "A retailer writes updated price files to an S3 bucket in us-east-1 every few minutes. Analytics clusters in eu-west-1 and ap-southeast-2 must read the newest versions of these files with low latency from within their own Regions. Which solution meets these requirements?",
+      "options": [
+        { "id": "A", "text": "Serve the bucket through Amazon CloudFront with the default 24-hour TTL.", "correct": false, "explanation": "With a 24-hour TTL the clusters would often read stale prices, and CloudFront is optimised for content needed everywhere rather than fresh data in two Regions." },
+        { "id": "B", "text": "Configure S3 Cross-Region Replication from the source bucket to buckets in eu-west-1 and ap-southeast-2.", "correct": true, "explanation": "CRR copies new and updated objects asynchronously, usually within minutes, into buckets in exactly the Regions where the clusters run." },
+        { "id": "C", "text": "Put AWS Global Accelerator in front of the S3 bucket.", "correct": false, "explanation": "Global Accelerator does not support S3 endpoints and does not create Regional copies of data." },
+        { "id": "D", "text": "Enable S3 Transfer Acceleration and have the clusters read through the accelerated endpoint.", "correct": false, "explanation": "Transfer Acceleration speeds up each long-distance transfer but every read still crosses to us-east-1; no local copy exists." }
+      ],
+      "explanation": "Frequently updated objects needed in a few specific Regions point to S3 Cross-Region Replication; content needed everywhere points to CloudFront.",
+      "tags": ["s3", "replication", "cloudfront"]
+    },
+    {
+      "id": "15-cloudfront-global-accelerator-q10",
+      "type": "multi",
+      "domain": "performant",
+      "difficulty": "medium",
+      "question": "A solutions architect is evaluating AWS Global Accelerator for a TCP-based trading application. Which statements about Global Accelerator are correct? (Select TWO.)",
+      "options": [
+        { "id": "A", "text": "It caches responses at edge locations to reduce load on the endpoints.", "correct": false, "explanation": "Global Accelerator never caches; every connection is proxied to an endpoint. Caching is a CloudFront feature." },
+        { "id": "B", "text": "It provides two static anycast IPv4 addresses that remain assigned for as long as the accelerator exists.", "correct": true, "explanation": "The two static IPs stay with the accelerator, even while it is disabled, and are released only when it is deleted." },
+        { "id": "C", "text": "It supports Amazon S3 buckets and CloudFront distributions as endpoints.", "correct": false, "explanation": "Standard accelerator endpoints are ALBs, NLBs, EC2 instances and Elastic IP addresses only." },
+        { "id": "D", "text": "It can route traffic to internal Application Load Balancers and EC2 instances in private subnets.", "correct": true, "explanation": "Endpoints can be private; the VPC only needs an internet gateway attached, and nothing in it has to face the internet." },
+        { "id": "E", "text": "Regional failover requires updating DNS records, so clients must wait for the TTL to expire.", "correct": false, "explanation": "Clients keep using the same static IPs; the edge sends new connections to healthy endpoints without any DNS change." }
+      ],
+      "explanation": "Global Accelerator: static anycast IPs, no caching, ALB/NLB/EC2/EIP endpoints (public or private) and DNS-free failover.",
+      "tags": ["global-accelerator"]
+    },
+    {
+      "id": "15-cloudfront-global-accelerator-q11",
+      "type": "single",
+      "domain": "cost",
+      "difficulty": "easy",
+      "question": "A team submits CloudFront invalidations after each release by listing about 30 individual files under /assets/. With 50 releases a month, the account is billed for paths beyond the free allowance. Which change still refreshes every released file under /assets/ while keeping invalidation charges to a minimum?",
+      "options": [
+        { "id": "A", "text": "Submit a single wildcard path, /assets/*, per release.", "correct": true, "explanation": "A wildcard path counts as one path however many files it clears, so 50 releases use 50 of the 1,000 free monthly paths instead of 1,500 paths (500 of them billed)." },
+        { "id": "B", "text": "Split the files across several distributions so each stays under 1,000 paths.", "correct": false, "explanation": "The 1,000 free paths are shared across all distributions in the account, so splitting does not reduce the bill." },
+        { "id": "C", "text": "Bundle all 30 paths into a single invalidation request.", "correct": false, "explanation": "Billing is per path, not per request; 30 paths in one request still count as 30." },
+        { "id": "D", "text": "Attach an origin access control to the S3 origin.", "correct": false, "explanation": "OAC controls access to the bucket and has no effect on invalidation pricing." }
+      ],
+      "explanation": "Invalidation pricing is per path after 1,000 free paths a month per account, and a wildcard path counts as one.",
+      "tags": ["cloudfront", "invalidation", "cost"]
+    },
+    {
+      "id": "15-cloudfront-global-accelerator-q12",
+      "type": "single",
+      "domain": "secure",
+      "difficulty": "medium",
+      "question": "A company runs a dynamic HTTPS API whose responses cannot be cached, behind an Application Load Balancer in us-east-1. It wants to reduce latency for users worldwide by terminating TLS close to them, filter malicious requests with AWS WAF before they reach the Region, and block requests from two sanctioned countries. Which solution meets all of these requirements?",
+      "options": [
+        { "id": "A", "text": "Create an AWS Global Accelerator with the ALB as the endpoint and associate a WAF web ACL with the ALB.", "correct": false, "explanation": "Global Accelerator does not terminate TLS or filter HTTP at the edge and has no country blocking; WAF on the ALB inspects traffic only after it reaches the Region." },
+        { "id": "B", "text": "Replicate the API to several Regions with S3 Cross-Region Replication.", "correct": false, "explanation": "CRR copies S3 objects; it cannot replicate a dynamic API running behind an ALB." },
+        { "id": "C", "text": "Use Route 53 geolocation routing to send users from the sanctioned countries to a static error page.", "correct": false, "explanation": "DNS answers can be bypassed with another resolver, and this adds no TLS termination near users or WAF filtering at the edge." },
+        { "id": "D", "text": "Create a CloudFront distribution with the ALB as origin, use the CachingDisabled policy for the API, attach a WAF web ACL and enable a geo restriction block list.", "correct": true, "explanation": "CloudFront accelerates dynamic HTTP traffic over the AWS network even without caching, terminates TLS at the edge, and applies WAF and geo restriction before requests reach the ALB." }
+      ],
+      "explanation": "CloudFront also accelerates uncacheable HTTP APIs, and it is the edge service that combines WAF and geo restriction.",
+      "tags": ["cloudfront", "waf", "geo-restriction", "alb"]
+    },
+    {
+      "id": "15-cloudfront-global-accelerator-q13",
+      "type": "multi",
+      "domain": "resilient",
+      "difficulty": "hard",
+      "question": "An application sits behind an AWS Global Accelerator standard accelerator with an endpoint group in us-east-1. The company is adding a new endpoint group in eu-west-1 that contains two ALBs: one running version 1 and one running version 2. It wants to send a controlled share of us-east-1's traffic to eu-west-1 first, and inside eu-west-1 to send 10% of the traffic to version 2. Clients must keep using the same IP addresses. Which actions meet these requirements? (Select TWO.)",
+      "options": [
+        { "id": "A", "text": "Lower the traffic dial on the us-east-1 endpoint group so part of its traffic spills over to eu-west-1.", "correct": true, "explanation": "A traffic dial limits the share of traffic an endpoint group accepts; the remainder goes to other endpoint groups, shifting load gradually without touching clients." },
+        { "id": "B", "text": "Set endpoint weights in the eu-west-1 group, for example 90 for version 1 and 10 for version 2.", "correct": true, "explanation": "Weights split traffic among endpoints inside one group in proportion to each weight's share of the total, so 90 and 10 give a 90/10 split." },
+        { "id": "C", "text": "Create Route 53 weighted records that point to each Region's ALBs.", "correct": false, "explanation": "Clients would resolve ALB names instead of the accelerator's static IPs, breaking the requirement to keep the same IP addresses." },
+        { "id": "D", "text": "Enable Source IP client affinity on the listener.", "correct": false, "explanation": "Client affinity keeps a client on the same endpoint; it does not set percentages between Regions or endpoints." },
+        { "id": "E", "text": "Create a second accelerator for eu-west-1 and move clients to its IP addresses.", "correct": false, "explanation": "A new accelerator gets new static IPs, so clients would have to change addresses." }
+      ],
+      "explanation": "Traffic dials shift traffic between Regions (endpoint groups); weights split it between endpoints inside a group. Neither changes the static IPs.",
+      "tags": ["global-accelerator", "traffic-dial", "weights"]
+    }
+  ]
+}

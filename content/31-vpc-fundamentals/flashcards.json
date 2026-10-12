@@ -1,0 +1,177 @@
+{
+  "section": "31-vpc-fundamentals",
+  "cards": [
+    {
+      "id": "31-vpc-fundamentals-fc-01",
+      "front": "How many IPv4 addresses does a `/n` CIDR block contain?",
+      "back": "**2^(32 − n)**. A `/24` holds 256, a `/20` holds 4,096, a `/16` holds 65,536, a `/32` exactly one and `/0` every IPv4 address.",
+      "tags": ["cidr"]
+    },
+    {
+      "id": "31-vpc-fundamentals-fc-02",
+      "front": "What range does `172.31.32.0/20` cover?",
+      "back": "`172.31.32.0` to `172.31.47.255`: 12 free bits, so 4,096 addresses (the third octet runs 32 to 47).",
+      "tags": ["cidr"]
+    },
+    {
+      "id": "31-vpc-fundamentals-fc-03",
+      "front": "Name the three private (RFC 1918) IPv4 ranges.",
+      "back": "`10.0.0.0/8`, `172.16.0.0/12` (172.16.0.0-172.31.255.255, where default VPCs live) and `192.168.0.0/16`.",
+      "tags": ["cidr", "vpc"]
+    },
+    {
+      "id": "31-vpc-fundamentals-fc-04",
+      "front": "What is the allowed size range for a VPC or subnet IPv4 CIDR block?",
+      "back": "From **/16** (65,536 addresses) down to **/28** (16 addresses).",
+      "tags": ["vpc", "subnet"]
+    },
+    {
+      "id": "31-vpc-fundamentals-fc-05",
+      "front": "Default quotas: VPCs per Region and IPv4 CIDR blocks per VPC?",
+      "back": "**5 VPCs per Region** and **5 IPv4 CIDR blocks per VPC**. Both are adjustable (CIDR blocks up to 50).",
+      "tags": ["vpc", "quotas"],
+      "updated": "Slides describe 5 CIDR blocks as the maximum; the quota is adjustable up to 50."
+    },
+    {
+      "id": "31-vpc-fundamentals-fc-06",
+      "front": "What does AWS create in every default VPC?",
+      "back": "CIDR `172.31.0.0/16`, a **/20 default subnet per AZ** that auto-assigns public IPv4, an attached **internet gateway** with a `0.0.0.0/0` route in the main route table, a default security group and a default NACL.",
+      "tags": ["vpc", "default-vpc"]
+    },
+    {
+      "id": "31-vpc-fundamentals-fc-07",
+      "front": "Which five addresses does AWS reserve in subnet `10.0.1.0/24`?",
+      "back": "`10.0.1.0` network, `.1` VPC router, `.2` Amazon DNS, `.3` future use, `.255` broadcast (unsupported, so reserved). 251 remain usable.",
+      "tags": ["subnet"]
+    },
+    {
+      "id": "31-vpc-fundamentals-fc-08",
+      "front": "You need 60 usable IPs in one subnet. Smallest valid prefix?",
+      "back": "**/25** (128 − 5 = 123). A /26 gives only 64 − 5 = 59.",
+      "tags": ["subnet", "sizing"]
+    },
+    {
+      "id": "31-vpc-fundamentals-fc-09",
+      "front": "What makes a subnet \"public\"?",
+      "back": "Its associated **route table** has a route (usually `0.0.0.0/0`) to an **internet gateway**. Instances there also need a public IPv4 or Elastic IP to use it.",
+      "tags": ["subnet", "internet-gateway", "route-tables"]
+    },
+    {
+      "id": "31-vpc-fundamentals-fc-10",
+      "front": "How many internet gateways can a VPC have attached?",
+      "back": "**One** at a time, and an internet gateway attaches to one VPC. It is free, redundant and scales horizontally.",
+      "tags": ["internet-gateway"]
+    },
+    {
+      "id": "31-vpc-fundamentals-fc-11",
+      "front": "What does an internet gateway do with an instance's private IPv4 address?",
+      "back": "It performs **one-to-one NAT**, swapping the private address for the instance's public IPv4 or Elastic IP on the way out and back on the way in. The instance only sees its private address.",
+      "tags": ["internet-gateway"]
+    },
+    {
+      "id": "31-vpc-fundamentals-fc-12",
+      "front": "Which route table does a subnet use if you never associate one?",
+      "back": "The VPC's **main route table** (implicit association). Each subnet has exactly one route table; one table can serve many subnets.",
+      "tags": ["route-tables"]
+    },
+    {
+      "id": "31-vpc-fundamentals-fc-13",
+      "front": "Two routes match a packet: `10.0.0.0/16 → local` and `0.0.0.0/0 → igw`. Which is used for 10.0.5.9?",
+      "back": "The **most specific route** (longest prefix match): `10.0.0.0/16 → local`.",
+      "tags": ["route-tables"]
+    },
+    {
+      "id": "31-vpc-fundamentals-fc-14",
+      "front": "How should the security groups for a bastion host and the private instances behind it be set up?",
+      "back": "Bastion SG: inbound TCP 22 only from a restricted CIDR (corporate range or your /32). Private instance SG: inbound TCP 22 with the **bastion's security group** (or its private IP) as source.",
+      "tags": ["bastion-host", "security-groups"]
+    },
+    {
+      "id": "31-vpc-fundamentals-fc-15",
+      "front": "Which AWS options let admins reach private instances with no bastion and no inbound SSH from the internet?",
+      "back": "**Systems Manager Session Manager** (IAM-controlled, logged sessions) and **EC2 Instance Connect Endpoint** (identity-aware tunnel to private IPs, no extra charge).",
+      "tags": ["bastion-host", "systems-manager"],
+      "updated": "Modern alternatives not on the slides."
+    },
+    {
+      "id": "31-vpc-fundamentals-fc-16",
+      "front": "Which EC2 setting must be disabled on a NAT instance, and why?",
+      "back": "The **source/destination check**. By default EC2 drops traffic whose source or destination is not the instance itself, but a NAT instance forwards other instances' traffic.",
+      "tags": ["nat-instance"]
+    },
+    {
+      "id": "31-vpc-fundamentals-fc-17",
+      "front": "What is the status of the AWS-provided NAT AMI?",
+      "back": "End of life: built on Amazon Linux AMI 2018.03 (standard support ended 31 Dec 2020, maintenance ended 31 Dec 2023). Use a NAT gateway, or build your own NAT AMI on Amazon Linux 2023.",
+      "tags": ["nat-instance"],
+      "updated": "Docs add the December 2023 end of maintenance support."
+    },
+    {
+      "id": "31-vpc-fundamentals-fc-18",
+      "front": "NAT gateway bandwidth and packet rate?",
+      "back": "Starts at **5 Gbps** and scales automatically to **100 Gbps**; 1 million packets per second scaling to 10 million.",
+      "tags": ["nat-gateway"]
+    },
+    {
+      "id": "31-vpc-fundamentals-fc-19",
+      "front": "Where does a (zonal, public) NAT gateway live and what does it need?",
+      "back": "In a **public subnet** of one AZ, with an **Elastic IP**, and the VPC needs an **internet gateway**. Path: private subnet → NAT gateway → internet gateway.",
+      "tags": ["nat-gateway"]
+    },
+    {
+      "id": "31-vpc-fundamentals-fc-20",
+      "front": "How do you make NAT gateway internet access survive an AZ failure?",
+      "back": "Create **one NAT gateway per AZ** and give each AZ's private subnets a route table pointing at the local gateway. No cross-AZ failover is needed.",
+      "tags": ["nat-gateway", "high-availability"]
+    },
+    {
+      "id": "31-vpc-fundamentals-fc-21",
+      "front": "What is a regional NAT gateway?",
+      "back": "A NAT gateway in **regional availability mode** (since Nov 2025): attached to the VPC, needs **no public subnet** (the VPC still needs an internet gateway), auto-expands to AZs with workloads (up to 60 min), billed per active AZ-hour. No private NAT support.",
+      "tags": ["nat-gateway"],
+      "updated": "Launched 19 November 2025."
+    },
+    {
+      "id": "31-vpc-fundamentals-fc-22",
+      "front": "Can you attach a security group to a NAT gateway?",
+      "back": "**No.** Control traffic with the NAT gateway subnet's NACL and the security groups of the instances behind it. (A NAT instance does use security groups.)",
+      "tags": ["nat-gateway", "security-groups"]
+    },
+    {
+      "id": "31-vpc-fundamentals-fc-23",
+      "front": "How are network ACL rules evaluated?",
+      "back": "By rule number (1 to 32766), **lowest first**; the **first matching rule** decides. The final `*` rule denies anything unmatched.",
+      "tags": ["nacl"]
+    },
+    {
+      "id": "31-vpc-fundamentals-fc-24",
+      "front": "Default NACL versus a newly created custom NACL?",
+      "back": "The **default NACL allows all** inbound and outbound traffic. A **new custom NACL denies all** traffic until you add allow rules.",
+      "tags": ["nacl"]
+    },
+    {
+      "id": "31-vpc-fundamentals-fc-25",
+      "front": "What are ephemeral ports and why do NACLs care?",
+      "back": "Temporary ports a client opens for replies (Linux 32768-60999, Windows 49152-65535, NAT gateway/ELB/Lambda 1024-65535). NACLs are stateless, so the reply direction needs an allow rule for that range, usually **1024-65535**.",
+      "tags": ["nacl", "ephemeral-ports"]
+    },
+    {
+      "id": "31-vpc-fundamentals-fc-26",
+      "front": "Security group or NACL: which one is stateful and allows only allow rules?",
+      "back": "The **security group**: instance level, stateful, allow rules only, all rules evaluated together, can reference other security groups.",
+      "tags": ["security-groups", "nacl"]
+    },
+    {
+      "id": "31-vpc-fundamentals-fc-27",
+      "front": "Best tool to block one malicious IP address from reaching every instance in a subnet?",
+      "back": "A **network ACL deny rule** numbered lower than any rule that would allow the traffic. Security groups cannot deny.",
+      "tags": ["nacl"]
+    },
+    {
+      "id": "31-vpc-fundamentals-fc-28",
+      "front": "Default rule quotas for a NACL and a security group?",
+      "back": "NACL: **20 inbound + 20 outbound** rules (adjustable to 40 each). Security group: **60 inbound + 60 outbound** rules; 5 security groups per network interface (up to 16).",
+      "tags": ["nacl", "security-groups", "quotas"]
+    }
+  ]
+}

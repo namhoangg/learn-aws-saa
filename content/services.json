@@ -1,0 +1,1474 @@
+{
+ "services": [
+  {
+   "id": "ec2",
+   "name": "Amazon EC2",
+   "category": "compute",
+   "core": true,
+   "summary": "Resizable virtual servers billed per second or hour."
+  },
+  {
+   "id": "asg",
+   "name": "EC2 Auto Scaling",
+   "category": "compute",
+   "core": true,
+   "summary": "Keeps the right number of EC2 instances running and scales them with demand."
+  },
+  {
+   "id": "lambda",
+   "name": "AWS Lambda",
+   "category": "compute",
+   "core": true,
+   "summary": "Runs functions on events without managing servers; pay per request and duration."
+  },
+  {
+   "id": "ecs",
+   "name": "Amazon ECS",
+   "category": "compute",
+   "core": true,
+   "summary": "AWS-native orchestrator for Docker containers."
+  },
+  {
+   "id": "fargate",
+   "name": "AWS Fargate",
+   "category": "compute",
+   "core": true,
+   "summary": "Serverless compute engine that runs ECS/EKS containers without managing hosts."
+  },
+  {
+   "id": "eks",
+   "name": "Amazon EKS",
+   "category": "compute",
+   "core": true,
+   "summary": "Managed Kubernetes control plane."
+  },
+  {
+   "id": "elastic-beanstalk",
+   "name": "AWS Elastic Beanstalk",
+   "category": "compute",
+   "core": true,
+   "summary": "Platform that deploys and manages web apps on EC2, ELB and ASG for you."
+  },
+  {
+   "id": "ec2-spot",
+   "name": "EC2 Spot Instances",
+   "category": "compute",
+   "core": false,
+   "summary": "Spare EC2 capacity at a deep discount that AWS can reclaim with a 2-minute notice."
+  },
+  {
+   "id": "ec2-reserved",
+   "name": "EC2 Reserved Instances",
+   "category": "compute",
+   "core": false,
+   "summary": "1- or 3-year commitment to an instance configuration for a discount."
+  },
+  {
+   "id": "savings-plans",
+   "name": "Savings Plans",
+   "category": "compute",
+   "core": false,
+   "summary": "1- or 3-year spend commitment (USD/hour) for discounted compute."
+  },
+  {
+   "id": "ec2-dedicated",
+   "name": "EC2 Dedicated Hosts & Instances",
+   "category": "compute",
+   "core": false,
+   "summary": "Single-tenant hardware for licensing or compliance needs."
+  },
+  {
+   "id": "ec2-capacity-reservations",
+   "name": "EC2 Capacity Reservations",
+   "category": "compute",
+   "core": false,
+   "summary": "Reserve On-Demand capacity in a specific AZ without a term commitment."
+  },
+  {
+   "id": "spot-fleet",
+   "name": "Spot Fleet",
+   "category": "compute",
+   "core": false,
+   "summary": "Requests a mix of Spot and On-Demand instances across pools to hit a target capacity."
+  },
+  {
+   "id": "ami",
+   "name": "Amazon Machine Image (AMI)",
+   "category": "compute",
+   "core": false,
+   "summary": "Template with OS, software and configuration used to launch EC2 instances."
+  },
+  {
+   "id": "placement-groups",
+   "name": "EC2 Placement Groups",
+   "category": "compute",
+   "core": false,
+   "summary": "Control how instances are placed on hardware: cluster, spread or partition."
+  },
+  {
+   "id": "eni",
+   "name": "Elastic Network Interface",
+   "category": "compute",
+   "core": false,
+   "summary": "Virtual network card attached to an EC2 instance in one AZ."
+  },
+  {
+   "id": "elastic-ip",
+   "name": "Elastic IP Address",
+   "category": "compute",
+   "core": false,
+   "summary": "Static public IPv4 address you can remap between instances."
+  },
+  {
+   "id": "ecr",
+   "name": "Amazon ECR",
+   "category": "compute",
+   "core": false,
+   "summary": "Private and public registry for container images."
+  },
+  {
+   "id": "app-runner",
+   "name": "AWS App Runner",
+   "category": "compute",
+   "core": false,
+   "summary": "Fully managed service to run web apps and APIs from source or a container image."
+  },
+  {
+   "id": "batch",
+   "name": "AWS Batch",
+   "category": "compute",
+   "core": false,
+   "summary": "Runs batch computing jobs at any scale on managed EC2 or Fargate capacity."
+  },
+  {
+   "id": "outposts",
+   "name": "AWS Outposts",
+   "category": "compute",
+   "core": false,
+   "summary": "AWS-managed racks that run AWS services in your own data center."
+  },
+  {
+   "id": "lambda-edge",
+   "name": "Lambda@Edge",
+   "category": "compute",
+   "core": false,
+   "summary": "Lambda functions that run at CloudFront Regional edge caches."
+  },
+  {
+   "id": "cloudfront-functions",
+   "name": "CloudFront Functions",
+   "category": "compute",
+   "core": false,
+   "summary": "Lightweight JavaScript functions that run at CloudFront edge locations."
+  },
+  {
+   "id": "lightsail",
+   "name": "Amazon Lightsail",
+   "category": "compute",
+   "core": false,
+   "summary": "Simple virtual private servers with bundled pricing."
+  },
+  {
+   "id": "parallelcluster",
+   "name": "AWS ParallelCluster",
+   "category": "compute",
+   "core": false,
+   "summary": "Open-source tool to deploy and manage HPC clusters on AWS."
+  },
+  {
+   "id": "vmware-cloud",
+   "name": "VMware Cloud on AWS",
+   "category": "compute",
+   "core": false,
+   "summary": "Runs VMware vSphere workloads on dedicated AWS infrastructure."
+  },
+  {
+   "id": "wavelength",
+   "name": "AWS Wavelength",
+   "category": "compute",
+   "core": false,
+   "summary": "AWS compute at the edge of 5G carrier networks."
+  },
+  {
+   "id": "local-zones",
+   "name": "AWS Local Zones",
+   "category": "compute",
+   "core": false,
+   "summary": "AWS infrastructure placed near large metro areas for low latency."
+  },
+  {
+   "id": "s3",
+   "name": "Amazon S3",
+   "category": "storage",
+   "core": true,
+   "summary": "Object storage with eleven nines of durability and many storage classes."
+  },
+  {
+   "id": "ebs",
+   "name": "Amazon EBS",
+   "category": "storage",
+   "core": true,
+   "summary": "Network block storage volumes for EC2, bound to one AZ."
+  },
+  {
+   "id": "efs",
+   "name": "Amazon EFS",
+   "category": "storage",
+   "core": true,
+   "summary": "Managed NFS file system shared by many Linux instances across AZs."
+  },
+  {
+   "id": "s3-glacier",
+   "name": "S3 Glacier storage classes",
+   "category": "storage",
+   "core": true,
+   "summary": "Low-cost archive storage classes with retrieval times from milliseconds to hours."
+  },
+  {
+   "id": "fsx",
+   "name": "Amazon FSx",
+   "category": "storage",
+   "core": true,
+   "summary": "Managed third-party file systems: Windows File Server, Lustre, NetApp ONTAP, OpenZFS."
+  },
+  {
+   "id": "storage-gateway",
+   "name": "AWS Storage Gateway",
+   "category": "storage",
+   "core": true,
+   "summary": "Hybrid service that gives on-premises apps access to cloud storage."
+  },
+  {
+   "id": "snow-family",
+   "name": "AWS Snow Family",
+   "category": "storage",
+   "core": true,
+   "summary": "Physical devices to move data offline into AWS and compute at the edge."
+  },
+  {
+   "id": "instance-store",
+   "name": "EC2 Instance Store",
+   "category": "storage",
+   "core": false,
+   "summary": "Very fast block storage physically attached to the host; lost when the instance stops."
+  },
+  {
+   "id": "ebs-snapshots",
+   "name": "EBS Snapshots",
+   "category": "storage",
+   "core": false,
+   "summary": "Point-in-time incremental backups of EBS volumes stored in S3."
+  },
+  {
+   "id": "s3-express",
+   "name": "S3 Express One Zone",
+   "category": "storage",
+   "core": false,
+   "summary": "High-performance single-AZ S3 storage class for latency-sensitive workloads."
+  },
+  {
+   "id": "s3-intelligent-tiering",
+   "name": "S3 Intelligent-Tiering",
+   "category": "storage",
+   "core": false,
+   "summary": "Storage class that moves objects between tiers based on access patterns."
+  },
+  {
+   "id": "s3-transfer-acceleration",
+   "name": "S3 Transfer Acceleration",
+   "category": "storage",
+   "core": false,
+   "summary": "Speeds up long-distance uploads by routing through edge locations."
+  },
+  {
+   "id": "s3-batch-operations",
+   "name": "S3 Batch Operations",
+   "category": "storage",
+   "core": false,
+   "summary": "Runs one operation on billions of S3 objects with a single job."
+  },
+  {
+   "id": "s3-storage-lens",
+   "name": "S3 Storage Lens",
+   "category": "storage",
+   "core": false,
+   "summary": "Organization-wide analytics and recommendations for S3 usage."
+  },
+  {
+   "id": "s3-object-lambda",
+   "name": "S3 Object Lambda",
+   "category": "storage",
+   "core": false,
+   "summary": "Transforms objects with Lambda as they are retrieved."
+  },
+  {
+   "id": "s3-access-points",
+   "name": "S3 Access Points",
+   "category": "storage",
+   "core": false,
+   "summary": "Named network endpoints with their own policies for shared buckets."
+  },
+  {
+   "id": "s3-object-lock",
+   "name": "S3 Object Lock",
+   "category": "storage",
+   "core": false,
+   "summary": "WORM protection that blocks object deletion or overwrite for a retention period."
+  },
+  {
+   "id": "fsx-windows",
+   "name": "FSx for Windows File Server",
+   "category": "storage",
+   "core": false,
+   "summary": "Managed SMB file shares with Active Directory integration."
+  },
+  {
+   "id": "fsx-lustre",
+   "name": "FSx for Lustre",
+   "category": "storage",
+   "core": false,
+   "summary": "High-performance parallel file system for HPC and ML, with S3 integration."
+  },
+  {
+   "id": "fsx-ontap",
+   "name": "FSx for NetApp ONTAP",
+   "category": "storage",
+   "core": false,
+   "summary": "Managed NetApp ONTAP file system with NFS, SMB and iSCSI."
+  },
+  {
+   "id": "fsx-openzfs",
+   "name": "FSx for OpenZFS",
+   "category": "storage",
+   "core": false,
+   "summary": "Managed OpenZFS file system over NFS."
+  },
+  {
+   "id": "transfer-family",
+   "name": "AWS Transfer Family",
+   "category": "storage",
+   "core": false,
+   "summary": "Managed SFTP, FTPS, FTP and AS2 endpoints for S3 and EFS."
+  },
+  {
+   "id": "datasync",
+   "name": "AWS DataSync",
+   "category": "storage",
+   "core": false,
+   "summary": "Online service that automates and accelerates data transfer to and between storage services."
+  },
+  {
+   "id": "aws-backup",
+   "name": "AWS Backup",
+   "category": "storage",
+   "core": false,
+   "summary": "Central, policy-based backups across AWS services and accounts."
+  },
+  {
+   "id": "rds",
+   "name": "Amazon RDS",
+   "category": "database",
+   "core": true,
+   "summary": "Managed relational databases: PostgreSQL, MySQL, MariaDB, Oracle, SQL Server, Db2."
+  },
+  {
+   "id": "aurora",
+   "name": "Amazon Aurora",
+   "category": "database",
+   "core": true,
+   "summary": "Cloud-native MySQL/PostgreSQL-compatible database with shared distributed storage."
+  },
+  {
+   "id": "dynamodb",
+   "name": "Amazon DynamoDB",
+   "category": "database",
+   "core": true,
+   "summary": "Serverless key-value and document NoSQL database with single-digit ms latency."
+  },
+  {
+   "id": "elasticache",
+   "name": "Amazon ElastiCache",
+   "category": "database",
+   "core": true,
+   "summary": "Managed in-memory cache (Valkey, Redis OSS, Memcached)."
+  },
+  {
+   "id": "redshift",
+   "name": "Amazon Redshift",
+   "category": "database",
+   "core": true,
+   "summary": "Columnar data warehouse for SQL analytics at scale."
+  },
+  {
+   "id": "aurora-serverless",
+   "name": "Aurora Serverless",
+   "category": "database",
+   "core": false,
+   "summary": "Aurora capacity that scales automatically with load."
+  },
+  {
+   "id": "aurora-global",
+   "name": "Aurora Global Database",
+   "category": "database",
+   "core": false,
+   "summary": "One primary Region and read-only secondary Regions with fast replication."
+  },
+  {
+   "id": "rds-proxy",
+   "name": "Amazon RDS Proxy",
+   "category": "database",
+   "core": false,
+   "summary": "Managed connection pool in front of RDS and Aurora."
+  },
+  {
+   "id": "dax",
+   "name": "DynamoDB Accelerator (DAX)",
+   "category": "database",
+   "core": false,
+   "summary": "In-memory cache for DynamoDB with microsecond reads."
+  },
+  {
+   "id": "dynamodb-streams",
+   "name": "DynamoDB Streams",
+   "category": "database",
+   "core": false,
+   "summary": "Ordered log of item-level changes in a DynamoDB table."
+  },
+  {
+   "id": "dynamodb-global-tables",
+   "name": "DynamoDB Global Tables",
+   "category": "database",
+   "core": false,
+   "summary": "Multi-Region, multi-active replication of DynamoDB tables."
+  },
+  {
+   "id": "documentdb",
+   "name": "Amazon DocumentDB",
+   "category": "database",
+   "core": false,
+   "summary": "Managed MongoDB-compatible document database."
+  },
+  {
+   "id": "neptune",
+   "name": "Amazon Neptune",
+   "category": "database",
+   "core": false,
+   "summary": "Managed graph database."
+  },
+  {
+   "id": "keyspaces",
+   "name": "Amazon Keyspaces",
+   "category": "database",
+   "core": false,
+   "summary": "Serverless Apache Cassandra-compatible database."
+  },
+  {
+   "id": "timestream",
+   "name": "Amazon Timestream",
+   "category": "database",
+   "core": false,
+   "summary": "Managed time-series database."
+  },
+  {
+   "id": "memorydb",
+   "name": "Amazon MemoryDB",
+   "category": "database",
+   "core": false,
+   "summary": "Durable in-memory database compatible with Valkey and Redis OSS."
+  },
+  {
+   "id": "vpc",
+   "name": "Amazon VPC",
+   "category": "networking",
+   "core": true,
+   "summary": "Logically isolated virtual network for your AWS resources."
+  },
+  {
+   "id": "route53",
+   "name": "Amazon Route 53",
+   "category": "networking",
+   "core": true,
+   "summary": "Managed DNS, domain registration and health-checked routing."
+  },
+  {
+   "id": "cloudfront",
+   "name": "Amazon CloudFront",
+   "category": "networking",
+   "core": true,
+   "summary": "Content delivery network that caches content at edge locations."
+  },
+  {
+   "id": "elb",
+   "name": "Elastic Load Balancing",
+   "category": "networking",
+   "core": true,
+   "summary": "Managed load balancers that spread traffic across targets."
+  },
+  {
+   "id": "alb",
+   "name": "Application Load Balancer",
+   "category": "networking",
+   "core": true,
+   "summary": "Layer 7 HTTP/HTTPS load balancer with content-based routing."
+  },
+  {
+   "id": "nlb",
+   "name": "Network Load Balancer",
+   "category": "networking",
+   "core": true,
+   "summary": "Layer 4 TCP/UDP/TLS load balancer with very high throughput and static IPs."
+  },
+  {
+   "id": "global-accelerator",
+   "name": "AWS Global Accelerator",
+   "category": "networking",
+   "core": true,
+   "summary": "Anycast static IPs that route users over the AWS backbone to the best endpoint."
+  },
+  {
+   "id": "direct-connect",
+   "name": "AWS Direct Connect",
+   "category": "networking",
+   "core": true,
+   "summary": "Dedicated private network connection from on-premises to AWS."
+  },
+  {
+   "id": "site-to-site-vpn",
+   "name": "AWS Site-to-Site VPN",
+   "category": "networking",
+   "core": true,
+   "summary": "Encrypted IPsec tunnels over the internet between on-premises and a VPC."
+  },
+  {
+   "id": "transit-gateway",
+   "name": "AWS Transit Gateway",
+   "category": "networking",
+   "core": true,
+   "summary": "Regional hub that connects many VPCs and on-premises networks."
+  },
+  {
+   "id": "api-gateway",
+   "name": "Amazon API Gateway",
+   "category": "networking",
+   "core": true,
+   "summary": "Managed service to publish, secure and throttle REST, HTTP and WebSocket APIs."
+  },
+  {
+   "id": "regions-azs",
+   "name": "Regions & Availability Zones",
+   "category": "networking",
+   "core": false,
+   "summary": "AWS global infrastructure: Regions made of isolated Availability Zones."
+  },
+  {
+   "id": "edge-locations",
+   "name": "Edge locations",
+   "category": "networking",
+   "core": false,
+   "summary": "Points of presence used by CloudFront, Route 53 and Global Accelerator."
+  },
+  {
+   "id": "gwlb",
+   "name": "Gateway Load Balancer",
+   "category": "networking",
+   "core": false,
+   "summary": "Layer 3 load balancer that inserts third-party virtual appliances into traffic."
+  },
+  {
+   "id": "clb",
+   "name": "Classic Load Balancer",
+   "category": "networking",
+   "core": false,
+   "summary": "Previous-generation load balancer."
+  },
+  {
+   "id": "subnet",
+   "name": "Subnets",
+   "category": "networking",
+   "core": false,
+   "summary": "IP ranges inside a VPC, each in a single AZ, public or private."
+  },
+  {
+   "id": "internet-gateway",
+   "name": "Internet Gateway",
+   "category": "networking",
+   "core": false,
+   "summary": "Lets public subnets reach the internet."
+  },
+  {
+   "id": "nat-gateway",
+   "name": "NAT Gateway",
+   "category": "networking",
+   "core": false,
+   "summary": "Managed NAT that lets private subnets reach the internet for outbound traffic."
+  },
+  {
+   "id": "nat-instance",
+   "name": "NAT Instance",
+   "category": "networking",
+   "core": false,
+   "summary": "Self-managed EC2 instance doing NAT (legacy approach)."
+  },
+  {
+   "id": "egress-only-igw",
+   "name": "Egress-only Internet Gateway",
+   "category": "networking",
+   "core": false,
+   "summary": "Outbound-only internet access for IPv6."
+  },
+  {
+   "id": "security-groups",
+   "name": "Security Groups",
+   "category": "networking",
+   "core": false,
+   "summary": "Stateful, instance-level firewalls with allow rules."
+  },
+  {
+   "id": "nacl",
+   "name": "Network ACLs",
+   "category": "networking",
+   "core": false,
+   "summary": "Stateless subnet-level firewalls with allow and deny rules."
+  },
+  {
+   "id": "bastion-host",
+   "name": "Bastion Host",
+   "category": "networking",
+   "core": false,
+   "summary": "Public jump box used to reach instances in private subnets."
+  },
+  {
+   "id": "vpc-peering",
+   "name": "VPC Peering",
+   "category": "networking",
+   "core": false,
+   "summary": "Private, non-transitive connection between two VPCs."
+  },
+  {
+   "id": "vpc-endpoints",
+   "name": "VPC Endpoints",
+   "category": "networking",
+   "core": false,
+   "summary": "Private access to AWS services: gateway endpoints and interface endpoints."
+  },
+  {
+   "id": "privatelink",
+   "name": "AWS PrivateLink",
+   "category": "networking",
+   "core": false,
+   "summary": "Exposes a service privately to other VPCs through interface endpoints."
+  },
+  {
+   "id": "vpc-flow-logs",
+   "name": "VPC Flow Logs",
+   "category": "networking",
+   "core": false,
+   "summary": "Captures metadata about IP traffic in a VPC."
+  },
+  {
+   "id": "vpn-cloudhub",
+   "name": "AWS VPN CloudHub",
+   "category": "networking",
+   "core": false,
+   "summary": "Hub-and-spoke VPN connecting multiple sites through a virtual private gateway."
+  },
+  {
+   "id": "client-vpn",
+   "name": "AWS Client VPN",
+   "category": "networking",
+   "core": false,
+   "summary": "Managed OpenVPN-based access for individual users."
+  },
+  {
+   "id": "traffic-mirroring",
+   "name": "VPC Traffic Mirroring",
+   "category": "networking",
+   "core": false,
+   "summary": "Copies network traffic from ENIs to security and monitoring appliances."
+  },
+  {
+   "id": "network-firewall",
+   "name": "AWS Network Firewall",
+   "category": "networking",
+   "core": false,
+   "summary": "Managed stateful network firewall and intrusion prevention for VPCs."
+  },
+  {
+   "id": "route53-resolver",
+   "name": "Route 53 Resolver",
+   "category": "networking",
+   "core": false,
+   "summary": "VPC DNS with inbound and outbound endpoints for hybrid DNS."
+  },
+  {
+   "id": "vpc-lattice",
+   "name": "Amazon VPC Lattice",
+   "category": "networking",
+   "core": false,
+   "summary": "Application networking service connecting services across VPCs and accounts."
+  },
+  {
+   "id": "iam",
+   "name": "AWS IAM",
+   "category": "security",
+   "core": true,
+   "summary": "Users, groups, roles and policies that control access to AWS."
+  },
+  {
+   "id": "kms",
+   "name": "AWS KMS",
+   "category": "security",
+   "core": true,
+   "summary": "Managed encryption keys integrated with most AWS services."
+  },
+  {
+   "id": "cognito",
+   "name": "Amazon Cognito",
+   "category": "security",
+   "core": true,
+   "summary": "User sign-up/sign-in (user pools) and temporary AWS credentials (identity pools)."
+  },
+  {
+   "id": "organizations",
+   "name": "AWS Organizations",
+   "category": "security",
+   "core": true,
+   "summary": "Central management of many AWS accounts with consolidated billing and SCPs."
+  },
+  {
+   "id": "waf",
+   "name": "AWS WAF",
+   "category": "security",
+   "core": true,
+   "summary": "Web application firewall for CloudFront, ALB, API Gateway and more."
+  },
+  {
+   "id": "shield",
+   "name": "AWS Shield",
+   "category": "security",
+   "core": true,
+   "summary": "DDoS protection: Standard for everyone, Advanced as a paid service."
+  },
+  {
+   "id": "guardduty",
+   "name": "Amazon GuardDuty",
+   "category": "security",
+   "core": true,
+   "summary": "Threat detection from logs such as CloudTrail, VPC Flow Logs and DNS logs."
+  },
+  {
+   "id": "secrets-manager",
+   "name": "AWS Secrets Manager",
+   "category": "security",
+   "core": true,
+   "summary": "Stores secrets with automatic rotation."
+  },
+  {
+   "id": "identity-center",
+   "name": "AWS IAM Identity Center",
+   "category": "security",
+   "core": true,
+   "summary": "Single sign-on to multiple AWS accounts and business apps."
+  },
+  {
+   "id": "iam-roles",
+   "name": "IAM Roles",
+   "category": "security",
+   "core": false,
+   "summary": "Identities with temporary credentials assumed by services, users or other accounts."
+  },
+  {
+   "id": "iam-policies",
+   "name": "IAM Policies",
+   "category": "security",
+   "core": false,
+   "summary": "JSON documents that allow or deny actions on resources."
+  },
+  {
+   "id": "mfa",
+   "name": "Multi-Factor Authentication",
+   "category": "security",
+   "core": false,
+   "summary": "Second factor for signing in: passkeys, authenticator apps, hardware tokens."
+  },
+  {
+   "id": "sts",
+   "name": "AWS STS",
+   "category": "security",
+   "core": false,
+   "summary": "Issues temporary security credentials."
+  },
+  {
+   "id": "scp",
+   "name": "Service Control Policies",
+   "category": "security",
+   "core": false,
+   "summary": "Organization guardrails that cap the permissions available in member accounts."
+  },
+  {
+   "id": "control-tower",
+   "name": "AWS Control Tower",
+   "category": "security",
+   "core": false,
+   "summary": "Sets up and governs a secure multi-account landing zone."
+  },
+  {
+   "id": "directory-service",
+   "name": "AWS Directory Service",
+   "category": "security",
+   "core": false,
+   "summary": "Managed Microsoft AD, AD Connector and Simple AD."
+  },
+  {
+   "id": "acm",
+   "name": "AWS Certificate Manager",
+   "category": "security",
+   "core": false,
+   "summary": "Provisions and renews TLS certificates for AWS services."
+  },
+  {
+   "id": "cloudhsm",
+   "name": "AWS CloudHSM",
+   "category": "security",
+   "core": false,
+   "summary": "Dedicated single-tenant hardware security modules."
+  },
+  {
+   "id": "ssm-parameter-store",
+   "name": "SSM Parameter Store",
+   "category": "security",
+   "core": false,
+   "summary": "Hierarchical storage for configuration data and secrets."
+  },
+  {
+   "id": "firewall-manager",
+   "name": "AWS Firewall Manager",
+   "category": "security",
+   "core": false,
+   "summary": "Central management of firewall rules across accounts."
+  },
+  {
+   "id": "inspector",
+   "name": "Amazon Inspector",
+   "category": "security",
+   "core": false,
+   "summary": "Automated vulnerability scanning for EC2, container images and Lambda."
+  },
+  {
+   "id": "macie",
+   "name": "Amazon Macie",
+   "category": "security",
+   "core": false,
+   "summary": "Discovers sensitive data such as PII in S3."
+  },
+  {
+   "id": "security-hub",
+   "name": "AWS Security Hub",
+   "category": "security",
+   "core": false,
+   "summary": "Aggregates security findings and checks posture against standards."
+  },
+  {
+   "id": "detective",
+   "name": "Amazon Detective",
+   "category": "security",
+   "core": false,
+   "summary": "Investigates the root cause of security findings."
+  },
+  {
+   "id": "ram",
+   "name": "AWS Resource Access Manager",
+   "category": "security",
+   "core": false,
+   "summary": "Shares resources such as subnets and Transit Gateways across accounts."
+  },
+  {
+   "id": "artifact",
+   "name": "AWS Artifact",
+   "category": "security",
+   "core": false,
+   "summary": "On-demand access to AWS compliance reports and agreements."
+  },
+  {
+   "id": "sqs",
+   "name": "Amazon SQS",
+   "category": "integration",
+   "core": true,
+   "summary": "Fully managed message queues to decouple producers and consumers."
+  },
+  {
+   "id": "sns",
+   "name": "Amazon SNS",
+   "category": "integration",
+   "core": true,
+   "summary": "Pub/sub topics that push messages to many subscribers."
+  },
+  {
+   "id": "eventbridge",
+   "name": "Amazon EventBridge",
+   "category": "integration",
+   "core": true,
+   "summary": "Serverless event bus and scheduler that routes events to targets."
+  },
+  {
+   "id": "step-functions",
+   "name": "AWS Step Functions",
+   "category": "integration",
+   "core": true,
+   "summary": "Visual workflows that orchestrate Lambda and other services."
+  },
+  {
+   "id": "kinesis-data-streams",
+   "name": "Kinesis Data Streams",
+   "category": "integration",
+   "core": true,
+   "summary": "Real-time data streaming with shards and replay."
+  },
+  {
+   "id": "data-firehose",
+   "name": "Amazon Data Firehose",
+   "category": "integration",
+   "core": false,
+   "summary": "Managed delivery of streaming data to S3, Redshift, OpenSearch and more."
+  },
+  {
+   "id": "amazon-mq",
+   "name": "Amazon MQ",
+   "category": "integration",
+   "core": false,
+   "summary": "Managed ActiveMQ and RabbitMQ brokers for standard protocols."
+  },
+  {
+   "id": "ses",
+   "name": "Amazon SES",
+   "category": "integration",
+   "core": false,
+   "summary": "Sends and receives email at scale."
+  },
+  {
+   "id": "pinpoint",
+   "name": "Amazon Pinpoint",
+   "category": "integration",
+   "core": false,
+   "summary": "Targeted multichannel marketing messages."
+  },
+  {
+   "id": "appflow",
+   "name": "Amazon AppFlow",
+   "category": "integration",
+   "core": false,
+   "summary": "Transfers data between SaaS apps and AWS without code."
+  },
+  {
+   "id": "amplify",
+   "name": "AWS Amplify",
+   "category": "integration",
+   "core": false,
+   "summary": "Tools and hosting to build full-stack web and mobile apps."
+  },
+  {
+   "id": "appsync",
+   "name": "AWS AppSync",
+   "category": "integration",
+   "core": false,
+   "summary": "Managed GraphQL and real-time APIs."
+  },
+  {
+   "id": "connect",
+   "name": "Amazon Connect",
+   "category": "integration",
+   "core": false,
+   "summary": "Cloud contact center."
+  },
+  {
+   "id": "athena",
+   "name": "Amazon Athena",
+   "category": "analytics",
+   "core": true,
+   "summary": "Serverless SQL queries directly on data in S3."
+  },
+  {
+   "id": "glue",
+   "name": "AWS Glue",
+   "category": "analytics",
+   "core": true,
+   "summary": "Serverless ETL and the Data Catalog."
+  },
+  {
+   "id": "emr",
+   "name": "Amazon EMR",
+   "category": "analytics",
+   "core": true,
+   "summary": "Managed Hadoop/Spark clusters for big data processing."
+  },
+  {
+   "id": "opensearch",
+   "name": "Amazon OpenSearch Service",
+   "category": "analytics",
+   "core": true,
+   "summary": "Managed search and log analytics."
+  },
+  {
+   "id": "quicksight",
+   "name": "Amazon QuickSight",
+   "category": "analytics",
+   "core": true,
+   "summary": "Serverless BI dashboards."
+  },
+  {
+   "id": "redshift-spectrum",
+   "name": "Redshift Spectrum",
+   "category": "analytics",
+   "core": false,
+   "summary": "Queries S3 data from Redshift without loading it."
+  },
+  {
+   "id": "lake-formation",
+   "name": "AWS Lake Formation",
+   "category": "analytics",
+   "core": false,
+   "summary": "Builds and secures data lakes with fine-grained access control."
+  },
+  {
+   "id": "managed-flink",
+   "name": "Amazon Managed Service for Apache Flink",
+   "category": "analytics",
+   "core": false,
+   "summary": "Managed Apache Flink for real-time stream processing."
+  },
+  {
+   "id": "msk",
+   "name": "Amazon MSK",
+   "category": "analytics",
+   "core": false,
+   "summary": "Managed Apache Kafka."
+  },
+  {
+   "id": "glue-data-catalog",
+   "name": "Glue Data Catalog",
+   "category": "analytics",
+   "core": false,
+   "summary": "Central metadata catalog for tables used by Athena, EMR and Redshift Spectrum."
+  },
+  {
+   "id": "sagemaker",
+   "name": "Amazon SageMaker AI",
+   "category": "ml",
+   "core": true,
+   "summary": "Build, train and deploy machine learning models."
+  },
+  {
+   "id": "rekognition",
+   "name": "Amazon Rekognition",
+   "category": "ml",
+   "core": true,
+   "summary": "Image and video analysis: objects, faces, text, moderation."
+  },
+  {
+   "id": "comprehend",
+   "name": "Amazon Comprehend",
+   "category": "ml",
+   "core": true,
+   "summary": "Natural-language processing: sentiment, entities, key phrases."
+  },
+  {
+   "id": "bedrock",
+   "name": "Amazon Bedrock",
+   "category": "ml",
+   "core": true,
+   "summary": "Managed access to foundation models for generative AI."
+  },
+  {
+   "id": "transcribe",
+   "name": "Amazon Transcribe",
+   "category": "ml",
+   "core": false,
+   "summary": "Speech to text."
+  },
+  {
+   "id": "polly",
+   "name": "Amazon Polly",
+   "category": "ml",
+   "core": false,
+   "summary": "Text to lifelike speech."
+  },
+  {
+   "id": "translate",
+   "name": "Amazon Translate",
+   "category": "ml",
+   "core": false,
+   "summary": "Neural machine translation."
+  },
+  {
+   "id": "lex",
+   "name": "Amazon Lex",
+   "category": "ml",
+   "core": false,
+   "summary": "Conversational chatbots with speech and text."
+  },
+  {
+   "id": "comprehend-medical",
+   "name": "Amazon Comprehend Medical",
+   "category": "ml",
+   "core": false,
+   "summary": "Extracts medical information from clinical text."
+  },
+  {
+   "id": "kendra",
+   "name": "Amazon Kendra",
+   "category": "ml",
+   "core": false,
+   "summary": "ML-powered enterprise document search."
+  },
+  {
+   "id": "personalize",
+   "name": "Amazon Personalize",
+   "category": "ml",
+   "core": false,
+   "summary": "Real-time personalized recommendations."
+  },
+  {
+   "id": "textract",
+   "name": "Amazon Textract",
+   "category": "ml",
+   "core": false,
+   "summary": "Extracts text, forms and tables from scanned documents."
+  },
+  {
+   "id": "cloudwatch",
+   "name": "Amazon CloudWatch",
+   "category": "management",
+   "core": true,
+   "summary": "Metrics, logs, alarms and dashboards for AWS and apps."
+  },
+  {
+   "id": "cloudtrail",
+   "name": "AWS CloudTrail",
+   "category": "management",
+   "core": true,
+   "summary": "Records API calls and account activity for audit."
+  },
+  {
+   "id": "config",
+   "name": "AWS Config",
+   "category": "management",
+   "core": true,
+   "summary": "Records resource configuration over time and checks compliance rules."
+  },
+  {
+   "id": "cloudformation",
+   "name": "AWS CloudFormation",
+   "category": "management",
+   "core": true,
+   "summary": "Infrastructure as code from templates."
+  },
+  {
+   "id": "systems-manager",
+   "name": "AWS Systems Manager",
+   "category": "management",
+   "core": true,
+   "summary": "Operations hub: Session Manager, Run Command, Patch Manager, Automation."
+  },
+  {
+   "id": "cloudwatch-logs",
+   "name": "CloudWatch Logs",
+   "category": "management",
+   "core": false,
+   "summary": "Central log storage, search and subscriptions."
+  },
+  {
+   "id": "cloudwatch-alarms",
+   "name": "CloudWatch Alarms",
+   "category": "management",
+   "core": false,
+   "summary": "Trigger actions when a metric crosses a threshold."
+  },
+  {
+   "id": "trusted-advisor",
+   "name": "AWS Trusted Advisor",
+   "category": "management",
+   "core": false,
+   "summary": "Checks accounts against best practices for cost, security, resilience and more."
+  },
+  {
+   "id": "well-architected-tool",
+   "name": "AWS Well-Architected Tool",
+   "category": "management",
+   "core": false,
+   "summary": "Reviews workloads against the Well-Architected Framework."
+  },
+  {
+   "id": "cost-explorer",
+   "name": "AWS Cost Explorer",
+   "category": "management",
+   "core": false,
+   "summary": "Visualizes, analyzes and forecasts costs and usage."
+  },
+  {
+   "id": "cost-anomaly-detection",
+   "name": "AWS Cost Anomaly Detection",
+   "category": "management",
+   "core": false,
+   "summary": "ML-based alerts on unusual spend."
+  },
+  {
+   "id": "budgets",
+   "name": "AWS Budgets",
+   "category": "management",
+   "core": false,
+   "summary": "Custom cost and usage budgets with alerts."
+  },
+  {
+   "id": "health-dashboard",
+   "name": "AWS Health Dashboard",
+   "category": "management",
+   "core": false,
+   "summary": "Service health and events affecting your account."
+  },
+  {
+   "id": "instance-scheduler",
+   "name": "Instance Scheduler on AWS",
+   "category": "management",
+   "core": false,
+   "summary": "Solution that starts and stops EC2 and RDS on a schedule."
+  },
+  {
+   "id": "compute-optimizer",
+   "name": "AWS Compute Optimizer",
+   "category": "management",
+   "core": false,
+   "summary": "Rightsizing recommendations from utilization data."
+  },
+  {
+   "id": "x-ray",
+   "name": "AWS X-Ray",
+   "category": "management",
+   "core": false,
+   "summary": "Distributed tracing for applications."
+  },
+  {
+   "id": "service-catalog",
+   "name": "AWS Service Catalog",
+   "category": "management",
+   "core": false,
+   "summary": "Curated portfolios of approved IaC products."
+  },
+  {
+   "id": "infrastructure-composer",
+   "name": "AWS Infrastructure Composer",
+   "category": "management",
+   "core": false,
+   "summary": "Visual designer for CloudFormation templates."
+  },
+  {
+   "id": "cli-sdk",
+   "name": "AWS CLI & SDKs",
+   "category": "management",
+   "core": false,
+   "summary": "Command-line tool and language SDKs that call AWS APIs."
+  },
+  {
+   "id": "console",
+   "name": "AWS Management Console",
+   "category": "management",
+   "core": false,
+   "summary": "Web interface for managing AWS."
+  },
+  {
+   "id": "cloudshell",
+   "name": "AWS CloudShell",
+   "category": "management",
+   "core": false,
+   "summary": "Browser-based shell with the AWS CLI preinstalled."
+  },
+  {
+   "id": "dms",
+   "name": "AWS Database Migration Service",
+   "category": "migration",
+   "core": true,
+   "summary": "Migrates databases with minimal downtime, including continuous replication."
+  },
+  {
+   "id": "mgn",
+   "name": "AWS Application Migration Service",
+   "category": "migration",
+   "core": true,
+   "summary": "Lift-and-shift rehosting of servers to AWS."
+  },
+  {
+   "id": "drs",
+   "name": "AWS Elastic Disaster Recovery",
+   "category": "migration",
+   "core": true,
+   "summary": "Continuous block-level replication for fast failover to AWS."
+  },
+  {
+   "id": "sct",
+   "name": "AWS Schema Conversion Tool",
+   "category": "migration",
+   "core": false,
+   "summary": "Converts database schemas between engines."
+  },
+  {
+   "id": "application-discovery",
+   "name": "AWS Application Discovery Service",
+   "category": "migration",
+   "core": false,
+   "summary": "Collects on-premises server inventory and dependencies for migration planning."
+  },
+  {
+   "id": "migration-hub",
+   "name": "AWS Migration Hub",
+   "category": "migration",
+   "core": false,
+   "summary": "Tracks migrations across tools."
+  },
+  {
+   "id": "global-view",
+   "name": "AWS Global View",
+   "category": "management",
+   "core": false,
+   "summary": "Console page that lists Regions and Zones, their opt-in status and AZ IDs, and shows resources across Regions."
+  },
+  {
+   "id": "ec2-instance-connect",
+   "name": "EC2 Instance Connect",
+   "category": "security",
+   "core": false,
+   "summary": "IAM-controlled SSH access that pushes a one-time public key to an instance for 60 seconds, from the console or CLI."
+  },
+  {
+   "id": "route53-global-resolver",
+   "name": "Amazon Route 53 Global Resolver",
+   "category": "networking",
+   "core": false,
+   "summary": "Internet-reachable anycast DNS resolver (GA March 2026) that lets authorized clients anywhere resolve public domains and Route 53 private hosted zones, with DNS filtering and query logging."
+  },
+  {
+   "id": "ec2-image-builder",
+   "name": "EC2 Image Builder",
+   "category": "compute",
+   "core": false,
+   "summary": "Managed pipelines that build, patch, test and distribute golden AMIs and container images on a schedule; no charge beyond the resources used."
+  },
+  {
+   "id": "data-transfer-terminal",
+   "name": "AWS Data Transfer Terminal",
+   "category": "migration",
+   "core": false,
+   "summary": "Reservable physical AWS facilities where you plug in your own storage devices and upload data at high speed to AWS; currently offered to Enterprise Support customers."
+  },
+  {
+   "id": "application-auto-scaling",
+   "name": "Application Auto Scaling",
+   "category": "management",
+   "core": false,
+   "summary": "Scales resources other than EC2 instances, such as ECS service task counts, DynamoDB capacity and Lambda concurrency, with target tracking, step, scheduled and predictive policies."
+  },
+  {
+   "id": "ecs-anywhere",
+   "name": "Amazon ECS Anywhere",
+   "category": "compute",
+   "core": false,
+   "summary": "Registers on-premises servers and VMs as external instances of an ECS cluster so AWS orchestrates containers outside AWS Regions."
+  },
+  {
+   "id": "eks-anywhere",
+   "name": "Amazon EKS Anywhere",
+   "category": "compute",
+   "core": false,
+   "summary": "Customer-managed Kubernetes clusters built on EKS Distro for on-premises and edge infrastructure such as vSphere, bare metal and Nutanix."
+  },
+  {
+   "id": "iot-core",
+   "name": "AWS IoT Core",
+   "category": "integration",
+   "core": false,
+   "summary": "Managed service that connects IoT devices to AWS over MQTT and HTTPS and routes their messages to other services with rules."
+  },
+  {
+   "id": "network-synthetic-monitor",
+   "name": "CloudWatch Network Synthetic Monitor",
+   "category": "management",
+   "core": false,
+   "summary": "Agentless probes that measure latency and packet loss from a VPC to on-premises destinations over Direct Connect or Site-to-Site VPN and publish them as CloudWatch metrics."
+  },
+  {
+   "id": "eventbridge-scheduler",
+   "name": "Amazon EventBridge Scheduler",
+   "category": "integration",
+   "core": false,
+   "summary": "Serverless scheduler for cron, rate and one-time schedules that invoke AWS service targets, with retries, time zones and flexible windows; replaces EventBridge scheduled rules."
+  },
+  {
+   "id": "rcp",
+   "name": "Resource Control Policies",
+   "category": "security",
+   "core": false,
+   "summary": "AWS Organizations policy type that sets the maximum permissions on resources (S3 buckets, KMS keys, SQS queues, Secrets Manager secrets and more) in member accounts, whoever the caller is. Used to build data perimeters."
+  },
+  {
+   "id": "aws-transform",
+   "name": "AWS Transform",
+   "category": "migration",
+   "core": false,
+   "summary": "Agentic AI service for migration and modernization: discovery, wave planning and rehosting; successor to Migration Hub and Application Discovery Service."
+  },
+  {
+   "id": "vm-import-export",
+   "name": "VM Import/Export",
+   "category": "migration",
+   "core": false,
+   "summary": "Imports VMware, Hyper-V and other VM images as AMIs, instances or EBS snapshots, and exports previously imported VMs."
+  },
+  {
+   "id": "evs",
+   "name": "Amazon Elastic VMware Service (Amazon EVS)",
+   "category": "compute",
+   "core": false,
+   "summary": "Runs VMware Cloud Foundation directly on EC2 bare-metal instances inside your own VPC."
+  },
+  {
+   "id": "fis",
+   "name": "AWS Fault Injection Service",
+   "category": "management",
+   "core": false,
+   "summary": "Managed chaos engineering: runs controlled fault-injection experiments to test resilience."
+  },
+  {
+   "id": "resilience-hub",
+   "name": "AWS Resilience Hub",
+   "category": "management",
+   "core": false,
+   "summary": "Assesses workloads against RTO and RPO targets and tracks resilience over time."
+  },
+  {
+   "id": "pcs",
+   "name": "AWS Parallel Computing Service (AWS PCS)",
+   "category": "compute",
+   "core": false,
+   "summary": "Managed service that runs Slurm-based HPC clusters, with AWS operating the scheduler controller; you pay a controller fee and per-node management fee plus the EC2 capacity."
+  },
+  {
+   "id": "end-user-messaging",
+   "name": "AWS End User Messaging",
+   "category": "integration",
+   "core": false,
+   "summary": "Developer APIs for sending SMS, MMS, WhatsApp, voice and mobile push messages; the renamed home of Amazon Pinpoint's channel APIs."
+  },
+  {
+   "id": "aws-support",
+   "name": "AWS Support Plans",
+   "category": "management",
+   "core": false,
+   "summary": "Paid support tiers (Business Support+, Enterprise, Unified Operations) on top of free Basic Support; they add technical cases, faster response times, the full Trusted Advisor check set and the AWS Support and Trusted Advisor APIs."
+  },
+  {
+   "id": "service-quotas",
+   "name": "Service Quotas",
+   "category": "management",
+   "core": false,
+   "summary": "Central place to view the quotas (limits) of AWS services per account and Region, request increases and alarm on usage before a limit blocks a deployment."
+  }
+ ]
+}

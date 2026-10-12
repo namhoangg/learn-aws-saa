@@ -1,0 +1,191 @@
+{
+  "section": "19-containers",
+  "cards": [
+    {
+      "id": "19-containers-fc-01",
+      "front": "What is the difference between a Docker **image** and a **container**?",
+      "back": "An **image** is a read-only, versioned package built from a Dockerfile (code, runtime, libraries). A **container** is a running instance of that image. One image can start many identical containers.",
+      "tags": ["docker"]
+    },
+    {
+      "id": "19-containers-fc-02",
+      "front": "Why can one server run many more containers than virtual machines?",
+      "back": "Containers share the **host OS kernel** through the container runtime, so they carry no guest OS. Each VM boots its own full operating system on a hypervisor, which costs gigabytes and minutes.",
+      "tags": ["docker", "vm"]
+    },
+    {
+      "id": "19-containers-fc-03",
+      "front": "Name three places to store Docker images and when to use each.",
+      "back": "**Docker Hub**: public base images. **Amazon ECR private**: your own images, close to ECS/EKS/Lambda, IAM-controlled. **Amazon ECR Public** (`gallery.ecr.aws`): publish public images or pull public images without Docker Hub rate limits.",
+      "tags": ["ecr", "docker"]
+    },
+    {
+      "id": "19-containers-fc-04",
+      "front": "In ECS, what are a **task definition**, a **task** and a **service**?",
+      "back": "**Task definition**: versioned JSON blueprint (image, CPU/memory, ports, roles, logs, volumes). **Task**: one running copy of it. **Service**: keeps a desired number of tasks running, replaces failures and registers them with a load balancer.",
+      "tags": ["ecs"]
+    },
+    {
+      "id": "19-containers-fc-05",
+      "front": "With the ECS **EC2 launch type**, what must every instance run, and who maintains the instances?",
+      "back": "Each instance runs the **ECS container agent** so it registers with the cluster. **You** provision, patch and scale the instances (usually an Auto Scaling group); ECS only places and starts the containers.",
+      "tags": ["ecs", "ec2"]
+    },
+    {
+      "id": "19-containers-fc-06",
+      "front": "How do you scale an ECS service that runs on **Fargate**?",
+      "back": "Increase the number of tasks (manually or with Service Auto Scaling). There are no instances to add: Fargate supplies capacity for each task based on the CPU and memory in the task definition.",
+      "tags": ["fargate", "ecs"]
+    },
+    {
+      "id": "19-containers-fc-07",
+      "front": "What is **ECS Managed Instances** and when would you choose it over Fargate?",
+      "back": "EC2 capacity for ECS that **AWS provisions, patches and scales** (Bottlerocket, instances replaced within 14 days). Choose it when you need EC2 features Fargate lacks, such as **GPUs** or specific instance types, without running the fleet. Billed as EC2 plus a management fee.",
+      "tags": ["ecs"],
+      "updated": "Third ECS capacity option added in late 2025; not in the slides."
+    },
+    {
+      "id": "19-containers-fc-08",
+      "front": "Fargate task size limits and default ephemeral storage?",
+      "back": "From **0.25 vCPU / 0.5 GB** up to **16 vCPU / 120 GB**, plus a 32 vCPU option (up to 244 GB) on Linux. Ephemeral storage is **20 GiB** by default, up to **200 GiB**.",
+      "tags": ["fargate"]
+    },
+    {
+      "id": "19-containers-fc-09",
+      "front": "What does the ECS **task role** do?",
+      "back": "Gives the **application code inside the task** temporary AWS credentials, for example to read S3 or write DynamoDB. Set as `taskRoleArn` in the task definition; use one role per service for least privilege.",
+      "tags": ["ecs", "iam-roles"]
+    },
+    {
+      "id": "19-containers-fc-10",
+      "front": "What does the ECS **task execution role** do?",
+      "back": "Lets the ECS/Fargate **agent** prepare the task: pull private ECR images, send `awslogs` output to CloudWatch Logs, and fetch Secrets Manager or Parameter Store values referenced in the task definition. Managed policy `AmazonECSTaskExecutionRolePolicy`.",
+      "tags": ["ecs", "iam-roles"],
+      "updated": "The slides give these jobs to the EC2 instance profile; on Fargate and in current guidance it is the task execution role."
+    },
+    {
+      "id": "19-containers-fc-11",
+      "front": "What is the ECS **container instance role** (EC2 instance profile) used for?",
+      "back": "Used by the ECS agent and Docker daemon on **EC2 container instances** to register with the cluster and call AWS APIs (managed policy `AmazonEC2ContainerServiceforEC2Role`). It does not exist on Fargate.",
+      "tags": ["ecs", "iam-roles", "ec2"]
+    },
+    {
+      "id": "19-containers-fc-12",
+      "front": "Which load balancer does AWS recommend for ECS services, and when would you use an NLB instead?",
+      "back": "The **Application Load Balancer** (path/host routing, dynamic host ports, Fargate and EC2). Use a **Network Load Balancer** for very high throughput or low latency TCP/UDP, static IPs, or to expose the service through **AWS PrivateLink**.",
+      "tags": ["alb", "nlb", "ecs"]
+    },
+    {
+      "id": "19-containers-fc-13",
+      "front": "Which target type must a target group use for Fargate tasks, and why?",
+      "back": "Target type **ip**. Fargate tasks use the `awsvpc` network mode, so each task has its own network interface and IP address rather than being an EC2 instance target.",
+      "tags": ["fargate", "alb"]
+    },
+    {
+      "id": "19-containers-fc-14",
+      "front": "What is **dynamic host port mapping**, and which security group rule does it need?",
+      "back": "On the EC2 launch type (bridge mode, host port 0) each task gets a random host port so several copies fit on one instance; the ALB tracks them. The instance security group must allow the **ALB security group on the ephemeral port range**.",
+      "tags": ["alb", "ecs", "security-groups"]
+    },
+    {
+      "id": "19-containers-fc-15",
+      "front": "Containers in tasks across several AZs need the same persistent files, with no servers to manage. What do you use?",
+      "back": "**Amazon EFS** mounted into ECS tasks running on **Fargate** (platform version 1.4.0+). EFS is shared and multi-AZ; EBS is single-AZ and attaches to one task.",
+      "tags": ["efs", "fargate"]
+    },
+    {
+      "id": "19-containers-fc-16",
+      "front": "Can an ECS task mount an Amazon S3 bucket as a file system?",
+      "back": "Since 2026, yes, with **Amazon S3 Files** (NFS mount of a bucket on Fargate, Managed Instances and EC2). Older exam questions still treat S3 as not mountable and expect **EFS** for shared files.",
+      "tags": ["s3", "ecs"],
+      "updated": "The slides say S3 cannot be mounted; S3 Files launched in April 2026."
+    },
+    {
+      "id": "19-containers-fc-17",
+      "front": "Which service actually performs **ECS Service Auto Scaling**, and on which predefined metrics?",
+      "back": "**Application Auto Scaling**. Predefined metrics: `ECSServiceAverageCPUUtilization`, `ECSServiceAverageMemoryUtilization` and `ALBRequestCountPerTarget`.",
+      "tags": ["ecs", "application-auto-scaling"]
+    },
+    {
+      "id": "19-containers-fc-18",
+      "front": "Which scaling policy types can an ECS service use?",
+      "back": "**Target tracking** (keep a metric at a target), **step scaling** (react to alarm breach size), **scheduled scaling** (date/time) and **predictive scaling** (learn daily/weekly patterns). SQS backlog per task is a documented custom metric.",
+      "tags": ["ecs", "application-auto-scaling"],
+      "updated": "Predictive scaling for ECS is newer than the slides."
+    },
+    {
+      "id": "19-containers-fc-19",
+      "front": "On the EC2 launch type, tasks are stuck in PROVISIONING because no instance has room. What fixes this automatically?",
+      "back": "An **ECS capacity provider** linked to the **Auto Scaling group** with **managed scaling** on. ECS scales the group out when tasks cannot be placed and scales in idle instances later.",
+      "tags": ["ecs", "asg"]
+    },
+    {
+      "id": "19-containers-fc-20",
+      "front": "What is **Fargate Spot**?",
+      "back": "Fargate capacity at **up to 70% off** for interruption-tolerant ECS tasks. AWS can reclaim it with a **two-minute warning** (SIGTERM plus an EventBridge event). Not available on EKS.",
+      "tags": ["fargate", "cost"]
+    },
+    {
+      "id": "19-containers-fc-21",
+      "front": "How do you get an email when an ECS task stops unexpectedly?",
+      "back": "Create an **EventBridge rule** matching `source: aws.ecs`, `detail-type: ECS Task State Change` and `lastStatus: STOPPED`, with an **SNS topic** (email subscription) as the target.",
+      "tags": ["eventbridge", "sns", "ecs"]
+    },
+    {
+      "id": "19-containers-fc-22",
+      "front": "How do you run a containerized batch job every hour without a server waiting in between?",
+      "back": "An **EventBridge Scheduler** schedule (or scheduled rule) that calls ECS **RunTask** on **Fargate**. The task runs, exits, and billing stops.",
+      "tags": ["eventbridge", "fargate"],
+      "updated": "AWS now documents EventBridge Scheduler for scheduled ECS tasks."
+    },
+    {
+      "id": "19-containers-fc-23",
+      "front": "Name five features of Amazon ECR besides storing images.",
+      "back": "**Vulnerability scanning** (basic or enhanced with Inspector), **lifecycle policies**, **tag immutability**, **cross-Region / cross-account replication**, **pull through cache** (for example Docker Hub).",
+      "tags": ["ecr"]
+    },
+    {
+      "id": "19-containers-fc-24",
+      "front": "ECR **basic** vs **enhanced** scanning?",
+      "back": "**Basic**: OS vulnerabilities, on push or manual, at most once per image per 24 hours. **Enhanced**: Amazon Inspector, **continuous**, OS and programming-language packages, findings sent to EventBridge.",
+      "tags": ["ecr", "inspector"]
+    },
+    {
+      "id": "19-containers-fc-25",
+      "front": "A task fails with an access-denied error pulling an image from ECR. What do you check first?",
+      "back": "The **IAM policy** of the role doing the pull: the **task execution role** (Fargate, Managed Instances) or the **container instance role** (EC2 launch type). ECR access is controlled by IAM and repository policies.",
+      "tags": ["ecr", "iam-roles"]
+    },
+    {
+      "id": "19-containers-fc-26",
+      "front": "When should a company choose **Amazon EKS** over ECS?",
+      "back": "When it already runs **Kubernetes** (on premises or another cloud) and wants to migrate with the same manifests and tools, or needs a **cloud-agnostic** open-source API. ECS wins on simplicity and has no control plane fee (EKS charges USD 0.10 per cluster-hour).",
+      "tags": ["eks", "ecs"]
+    },
+    {
+      "id": "19-containers-fc-27",
+      "front": "List the EKS worker node options.",
+      "back": "**Managed node groups** (EKS-managed ASG, On-Demand or Spot), **self-managed nodes** (your ASG, EKS-optimized AMI), **AWS Fargate** (no nodes), **EKS Auto Mode** (AWS runs nodes with Karpenter) and **Hybrid Nodes** (your on-premises servers).",
+      "tags": ["eks"],
+      "updated": "EKS Auto Mode (Dec 2024) and Hybrid Nodes are newer than the slides."
+    },
+    {
+      "id": "19-containers-fc-28",
+      "front": "How does EKS provide persistent volumes, and which storage works with EKS on Fargate?",
+      "back": "A **StorageClass** points to a **CSI driver** (EBS, EFS, FSx for Lustre, FSx for NetApp ONTAP and more). Pods on **Fargate** can use only **Amazon EFS** (static provisioning).",
+      "tags": ["eks", "efs"]
+    },
+    {
+      "id": "19-containers-fc-29",
+      "front": "An application on Amazon EKS must run in two Regions. How many EKS clusters do you need?",
+      "back": "**Two: one EKS cluster per Region.** A cluster and its node groups cannot span Regions; replicate images with ECR cross-Region replication and route users with Route 53 or Global Accelerator.",
+      "tags": ["eks", "disaster-recovery"]
+    },
+    {
+      "id": "19-containers-fc-30",
+      "front": "ECS Anywhere vs EKS Anywhere?",
+      "back": "**ECS Anywhere**: register your own Linux servers as external instances of an AWS-managed ECS cluster (no load balancer integration). **EKS Anywhere**: customer-managed Kubernetes clusters on your own infrastructure, built on EKS Distro, can run air-gapped.",
+      "tags": ["ecs-anywhere", "eks-anywhere"]
+    }
+  ]
+}

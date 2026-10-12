@@ -1,0 +1,269 @@
+{
+  "section": "32-vpc-connectivity",
+  "cards": [
+    {
+      "id": "32-vpc-connectivity-fc-01",
+      "front": "What two conditions must hold before instances in two peered VPCs can talk to each other?",
+      "back": "The VPC CIDRs must **not overlap**, and **both** VPCs need a route to the other VPC's CIDR with the peering connection (`pcx-...`) as target. Security groups and NACLs on both sides must also allow the traffic.",
+      "tags": [
+        "vpc-peering",
+        "routing"
+      ]
+    },
+    {
+      "id": "32-vpc-connectivity-fc-02",
+      "front": "VPC A is peered with B, and B with C. Can A reach C through B?",
+      "back": "**No.** Peering is **not transitive**. A needs its own peering connection to C, or all three VPCs attach to a Transit Gateway.",
+      "tags": [
+        "vpc-peering"
+      ]
+    },
+    {
+      "id": "32-vpc-connectivity-fc-03",
+      "front": "Can a peered VPC send traffic out through the other VPC's internet gateway, NAT gateway, VPN or gateway endpoint?",
+      "back": "**No.** VPC peering does not support **edge-to-edge routing**: each VPC must have its own internet gateway, NAT, VPN, Direct Connect or gateway endpoint.",
+      "tags": [
+        "vpc-peering"
+      ]
+    },
+    {
+      "id": "32-vpc-connectivity-fc-04",
+      "front": "How do you reference a security group from a peered VPC in another account, and when is it not possible?",
+      "back": "Write the account ID and group ID together, like `123456789012/sg-1a2b3c4d`. It works only when the peer VPC is in the **same Region**; for an inter-Region peer, use its **CIDR block** instead.",
+      "tags": [
+        "vpc-peering",
+        "security-groups"
+      ]
+    },
+    {
+      "id": "32-vpc-connectivity-fc-05",
+      "front": "Which services support **gateway** VPC endpoints, and what do they cost?",
+      "back": "Only **Amazon S3 and DynamoDB**. They are **free**: the endpoint is a route-table target (destination = AWS-managed prefix list `pl-...`, target = `vpce-...`), with no ENI and no security group.",
+      "tags": [
+        "vpc-endpoints",
+        "s3",
+        "dynamodb"
+      ]
+    },
+    {
+      "id": "32-vpc-connectivity-fc-06",
+      "front": "What does an **interface** VPC endpoint create, and how is it billed?",
+      "back": "An **ENI with a private IP** in each chosen subnet, protected by a **security group** (AWS PrivateLink). Billed per hour per AZ (about USD 0.01) plus per GB processed (about USD 0.01 in us-east-1).",
+      "tags": [
+        "vpc-endpoints",
+        "privatelink"
+      ]
+    },
+    {
+      "id": "32-vpc-connectivity-fc-07",
+      "front": "When should you pick an **interface** endpoint for S3 instead of the free gateway endpoint?",
+      "back": "When requests come from **outside the VPC**: on-premises over Site-to-Site VPN or Direct Connect, a peered VPC in **another Region**, or VPCs behind a **transit gateway**. Gateway endpoints only serve their own VPC and Region.",
+      "tags": [
+        "vpc-endpoints",
+        "s3"
+      ]
+    },
+    {
+      "id": "32-vpc-connectivity-fc-08",
+      "front": "A VPC endpoint was created but applications still cannot reach the service. What do you check first?",
+      "back": "The VPC **DNS settings** (DNS resolution and DNS hostnames enabled) and the **route tables** (a gateway endpoint only helps subnets whose route table has the `pl-...` route). Then security groups, NACLs and the endpoint policy.",
+      "tags": [
+        "vpc-endpoints",
+        "troubleshooting"
+      ]
+    },
+    {
+      "id": "32-vpc-connectivity-fc-10",
+      "front": "At what levels can you create VPC Flow Logs, and where can they be delivered?",
+      "back": "For a **VPC**, a **subnet** or a single **ENI** (including ENIs of ELB, RDS, NAT gateways, transit gateways and so on). Destinations: **CloudWatch Logs**, **Amazon S3** or **Amazon Data Firehose**.",
+      "tags": [
+        "vpc-flow-logs"
+      ],
+      "updated": "Kinesis Data Firehose is now named Amazon Data Firehose."
+    },
+    {
+      "id": "32-vpc-connectivity-fc-11",
+      "front": "Flow logs show an inbound request ACCEPTed but its outbound reply REJECTed. What is blocking it?",
+      "back": "A **network ACL** (stateless) outbound rule, usually missing the **ephemeral ports**. A security group is stateful and never blocks the reply to traffic it allowed in.",
+      "tags": [
+        "vpc-flow-logs",
+        "nacl",
+        "security-groups"
+      ]
+    },
+    {
+      "id": "32-vpc-connectivity-fc-12",
+      "front": "Which tools analyse VPC Flow Logs, depending on where they are stored?",
+      "back": "In **CloudWatch Logs**: Logs Insights queries, metric filters with alarms and SNS, Contributor Insights for top talkers. In **S3**: **Athena** SQL, with **QuickSight** dashboards.",
+      "tags": [
+        "vpc-flow-logs",
+        "athena",
+        "cloudwatch-logs"
+      ]
+    },
+    {
+      "id": "32-vpc-connectivity-fc-13",
+      "front": "What permissions does a flow log need to publish to CloudWatch Logs?",
+      "back": "An **IAM role** trusted by `vpc-flow-logs.amazonaws.com` with `logs:CreateLogGroup`, `logs:CreateLogStream` and `logs:PutLogEvents` (plus the Describe actions). The person creating the flow log needs `iam:PassRole` for that role.",
+      "tags": [
+        "vpc-flow-logs",
+        "iam"
+      ]
+    },
+    {
+      "id": "32-vpc-connectivity-fc-14",
+      "front": "Name the AWS-side and customer-side pieces of a Site-to-Site VPN.",
+      "back": "AWS side: a **virtual private gateway** attached to one VPC (or a **transit gateway**). Customer side: a **customer gateway** resource describing your router or software appliance. Each VPN connection has **two IPsec tunnels** over the internet.",
+      "tags": [
+        "site-to-site-vpn"
+      ]
+    },
+    {
+      "id": "32-vpc-connectivity-fc-15",
+      "front": "Your customer gateway device sits behind a NAT device. Which IP do you give the customer gateway?",
+      "back": "The **public IP of the NAT device**, which must support **NAT traversal (NAT-T)**. Without NAT, use the device's own internet-routable public IP.",
+      "tags": [
+        "site-to-site-vpn"
+      ]
+    },
+    {
+      "id": "32-vpc-connectivity-fc-16",
+      "front": "The VPN tunnels show UP, but instances cannot reach the data center. What step is usually missing?",
+      "back": "**Route propagation** for the virtual private gateway on the subnets' route tables (or static routes pointing to it). Without it, instances have no route back to the on-premises CIDR.",
+      "tags": [
+        "site-to-site-vpn",
+        "routing"
+      ]
+    },
+    {
+      "id": "32-vpc-connectivity-fc-17",
+      "front": "What is AWS VPN CloudHub?",
+      "back": "A low-cost **hub-and-spoke** design where several sites, each with a VPN connection to the **same virtual private gateway**, can reach **each other** through AWS over the internet. Needs dynamic (BGP) routing and a unique ASN per site.",
+      "tags": [
+        "vpn-cloudhub"
+      ]
+    },
+    {
+      "id": "32-vpc-connectivity-fc-18",
+      "front": "Which Direct Connect virtual interface do you use for each target: a VPC, public AWS endpoints like S3, many VPCs through a transit gateway?",
+      "back": "**Private VIF** for a VPC (via a virtual private gateway or Direct Connect gateway), **public VIF** for public AWS endpoints, **transit VIF** for transit gateways via a Direct Connect gateway.",
+      "tags": [
+        "direct-connect"
+      ]
+    },
+    {
+      "id": "32-vpc-connectivity-fc-19",
+      "front": "Direct Connect dedicated vs hosted connections: what speeds?",
+      "back": "**Dedicated**: a physical port of **1, 10, 100 or 400 Gbps** for one customer. **Hosted**: provisioned by a Direct Connect Partner, **50 Mbps to 25 Gbps**.",
+      "tags": [
+        "direct-connect"
+      ]
+    },
+    {
+      "id": "32-vpc-connectivity-fc-20",
+      "front": "Is traffic over AWS Direct Connect encrypted by default?",
+      "back": "**No.** It is private but **not encrypted**. For encryption, run an **IPsec Site-to-Site VPN over the DX link**, or use **MACsec** (layer 2, on dedicated 10/100/400 Gbps connections).",
+      "tags": [
+        "direct-connect",
+        "site-to-site-vpn"
+      ]
+    },
+    {
+      "id": "32-vpc-connectivity-fc-21",
+      "front": "One Direct Connect connection must reach VPCs in us-east-1 and us-west-1. What do you add?",
+      "back": "A **Direct Connect gateway**: a global resource. Attach the private (or transit) VIF to it once, then associate the virtual private gateways (or transit gateways) of VPCs in many Regions.",
+      "tags": [
+        "direct-connect"
+      ]
+    },
+    {
+      "id": "32-vpc-connectivity-fc-22",
+      "front": "Direct Connect high resiliency vs maximum resiliency?",
+      "back": "**High**: one connection at each of **two** DX locations (99.9% SLA). **Maximum**: **two** connections on **separate devices** at each of two locations (99.99% SLA).",
+      "tags": [
+        "direct-connect"
+      ]
+    },
+    {
+      "id": "32-vpc-connectivity-fc-23",
+      "front": "What problems does AWS Transit Gateway solve that VPC peering cannot?",
+      "back": "**Transitive** hub-and-spoke routing for thousands of VPCs plus VPN and Direct Connect gateways, route tables for segmentation, **RAM** sharing across accounts, inter-Region peering and **IP multicast**.",
+      "tags": [
+        "transit-gateway"
+      ]
+    },
+    {
+      "id": "32-vpc-connectivity-fc-24",
+      "front": "How much VPN throughput do you get with a VGW vs a transit gateway using ECMP?",
+      "back": "VGW: about **1.25 Gbps** (one tunnel carries the traffic). Transit gateway with ECMP and BGP: both tunnels, so about **2.5 Gbps** per VPN connection, **5 Gbps** with two, **7.5 Gbps** with three.",
+      "tags": [
+        "transit-gateway",
+        "site-to-site-vpn"
+      ]
+    },
+    {
+      "id": "32-vpc-connectivity-fc-25",
+      "front": "What does VPC Traffic Mirroring copy, and where can it send it?",
+      "back": "Full **packets** (optionally filtered or truncated) from source **ENIs**, wrapped in VXLAN, to a target **ENI**, **Network Load Balancer** or **Gateway Load Balancer endpoint**, for IDS, content inspection or troubleshooting.",
+      "tags": [
+        "traffic-mirroring"
+      ],
+      "updated": "Gateway Load Balancer endpoints were added as a target type."
+    },
+    {
+      "id": "32-vpc-connectivity-fc-26",
+      "front": "What is an egress-only internet gateway?",
+      "back": "The **IPv6** equivalent of a NAT gateway: instances can open outbound IPv6 connections, but the internet cannot initiate connections to them. Stateful, free, IPv6 only; add a `::/0` route to it.",
+      "tags": [
+        "egress-only-igw",
+        "ipv6"
+      ]
+    },
+    {
+      "id": "32-vpc-connectivity-fc-27",
+      "front": "You cannot launch an EC2 instance in a dual-stack subnet. What is the likely cause and fix?",
+      "back": "The subnet has run out of **IPv4** addresses (a VPC always needs IPv4; the IPv6 /64 is effectively unlimited). Add an IPv4 CIDR to the VPC if needed and create a **new subnet** with a fresh IPv4 range.",
+      "tags": [
+        "ipv6",
+        "vpc"
+      ]
+    },
+    {
+      "id": "32-vpc-connectivity-fc-28",
+      "front": "Rough per-GB data transfer prices for EC2 in us-east-1?",
+      "back": "Inbound: free. Same AZ on private IPs: free. Cross-AZ: about **USD 0.01 each direction**. Using a public/Elastic IP in-Region: USD 0.01 each way. Inter-Region: about **USD 0.02**. Internet egress: about **USD 0.09** (first 100 GB/month free).",
+      "tags": [
+        "networking-costs"
+      ]
+    },
+    {
+      "id": "32-vpc-connectivity-fc-29",
+      "front": "Why put CloudFront in front of S3 to cut costs?",
+      "back": "Transfer from **S3 to CloudFront is free**, CloudFront's internet egress is slightly cheaper than S3's, and cached objects are served without generating S3 requests. CloudFront bills its own per-request fee, so the saving is mainly on data transfer.",
+      "tags": [
+        "networking-costs",
+        "cloudfront",
+        "s3"
+      ]
+    },
+    {
+      "id": "32-vpc-connectivity-fc-30",
+      "front": "What does AWS Network Firewall add on top of security groups, NACLs and WAF?",
+      "back": "Managed **layer 3-7** inspection for a **whole VPC** in every direction (internet, VPC-to-VPC, VPN, Direct Connect): Suricata-compatible stateful rules, **domain allow/deny lists**, protocol detection and intrusion prevention. Managed across accounts with **Firewall Manager**.",
+      "tags": [
+        "network-firewall",
+        "firewall-manager"
+      ]
+    },
+    {
+      "id": "32-vpc-connectivity-fc-31",
+      "front": "A company needs private connectivity from its data center to AWS within one week. Is Direct Connect a good fit?",
+      "back": "**No.** AWS alone needs up to 72 business hours to provision the port; with the LOA-CFA, cross-connect and a new partner circuit, a net-new connection typically takes **several weeks to a few months**. For a deadline measured in days, use a **Site-to-Site VPN**.",
+      "tags": [
+        "direct-connect",
+        "site-to-site-vpn"
+      ],
+      "updated": "AWS documents only its own port step (up to 72 business hours); weeks to months is illustrative guidance from its archived hybrid connectivity whitepaper."
+    }
+  ]
+}

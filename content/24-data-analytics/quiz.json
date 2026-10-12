@@ -1,0 +1,232 @@
+{
+  "section": "24-data-analytics",
+  "questions": [
+    {
+      "id": "24-data-analytics-q01",
+      "type": "single",
+      "domain": "cost",
+      "difficulty": "easy",
+      "question": "A company stores Application Load Balancer access logs in an Amazon S3 bucket. A few times a month, the security team needs to run SQL queries against the logs to investigate incidents. The solution must have the LEAST operational overhead and no cost when no queries run. What should a solutions architect recommend?",
+      "options": [
+        { "id": "A", "text": "Load the logs into an Amazon Redshift provisioned cluster with the COPY command and query them with SQL", "correct": false, "explanation": "A provisioned cluster bills every hour it exists, even when nobody queries it, and the load step adds work for an occasional need." },
+        { "id": "B", "text": "Launch a transient Amazon EMR cluster with Hive whenever an investigation starts", "correct": false, "explanation": "EMR can query the logs, but creating and configuring a cluster for each investigation is far more operational effort than a serverless query service." },
+        { "id": "C", "text": "Define a table over the log prefix and query it with Amazon Athena", "correct": true, "explanation": "Athena runs standard SQL directly on the files in S3, has no infrastructure to manage, and charges only for the data each query scans." },
+        { "id": "D", "text": "Stream the logs into Amazon OpenSearch Service and use OpenSearch Dashboards", "correct": false, "explanation": "An OpenSearch domain runs and bills continuously and needs an ingestion pipeline; it suits continuous log search, not a few ad-hoc SQL queries a month." }
+      ],
+      "explanation": "Occasional SQL over data that already sits in S3, with no servers and pay-per-query pricing, is the textbook Athena use case.",
+      "tags": ["athena", "logs"]
+    },
+    {
+      "id": "24-data-analytics-q02",
+      "type": "single",
+      "domain": "cost",
+      "difficulty": "medium",
+      "question": "A data team queries 20 TB of uncompressed CSV files in Amazon S3 with Amazon Athena. Most queries read 5 of the 60 columns and filter on the event date. Athena costs are growing quickly. Which change will reduce query cost the MOST?",
+      "options": [
+        { "id": "A", "text": "Use an AWS Glue ETL job to convert the data to compressed Apache Parquet partitioned by event date, and query the new table", "correct": true, "explanation": "Parquet lets Athena read only the 5 needed columns, compression shrinks the bytes, and date partitions let queries skip every other day, so the bytes scanned (and the bill) drop dramatically." },
+        { "id": "B", "text": "Split the CSV files into many smaller files of about 1 MB each", "correct": false, "explanation": "Smaller files add listing and open overhead and do not reduce the bytes scanned; Athena prefers fewer, larger files." },
+        { "id": "C", "text": "Move the CSV files to the S3 Standard-Infrequent Access storage class", "correct": false, "explanation": "This lowers storage cost slightly but adds retrieval charges and does nothing to the per-TB-scanned Athena price." },
+        { "id": "D", "text": "Run the queries from a separate Athena workgroup with a different query results location", "correct": false, "explanation": "Workgroups help with isolation and cost controls, but the queries would still scan the same 20 TB of CSV data." }
+      ],
+      "explanation": "Athena bills per byte scanned: columnar formats, compression and partitioning are the main levers, and Glue is the usual tool to convert CSV to Parquet.",
+      "tags": ["athena", "parquet", "glue"]
+    },
+    {
+      "id": "24-data-analytics-q03",
+      "type": "multi",
+      "domain": "secure",
+      "difficulty": "medium",
+      "question": "A company builds executive dashboards in Amazon Quick Sight on top of an Amazon Athena dataset. Dashboards must load quickly without running an Athena query every time someone opens them. Some users must not see the salary column in the dataset. Which actions meet these requirements? (Select TWO.)",
+      "options": [
+        { "id": "A", "text": "Attach an IAM policy to each executive's IAM user that denies access to the salary column", "correct": false, "explanation": "Quick Sight shares dashboards with its own users and groups, and IAM policies cannot hide individual dataset columns inside Quick Sight." },
+        { "id": "B", "text": "Share the analysis directly with every executive instead of publishing a dashboard", "correct": false, "explanation": "Sharing an analysis gives authoring access and does nothing to restrict columns; read-only consumers should get a published dashboard." },
+        { "id": "C", "text": "Import the dataset into SPICE and refresh it on a schedule", "correct": true, "explanation": "SPICE keeps the data in Quick Sight's in-memory engine, so dashboards are fast and Athena is queried only when the dataset refreshes." },
+        { "id": "D", "text": "Switch the dataset to direct query mode so the data is always current", "correct": false, "explanation": "Direct query sends a query to Athena on every interaction, which is exactly what the company wants to avoid." },
+        { "id": "E", "text": "Use Quick Sight Enterprise edition and configure column-level security on the dataset", "correct": true, "explanation": "Column-level security, an Enterprise edition feature, restricts which users and groups can see specific columns such as salary." }
+      ],
+      "explanation": "SPICE gives fast, cost-efficient dashboards; column-level security (Enterprise edition) hides sensitive columns from chosen Quick Sight users and groups.",
+      "tags": ["quicksight", "spice", "column-level-security"]
+    },
+    {
+      "id": "24-data-analytics-q04",
+      "type": "single",
+      "domain": "performant",
+      "difficulty": "medium",
+      "question": "An analyst must produce a weekly report that joins order data in an Amazon S3 data lake with customer profiles in Amazon DynamoDB and inventory levels in an on-premises MySQL database. The company does not want to build pipelines that copy the DynamoDB and MySQL data. Which solution meets these requirements?",
+      "options": [
+        { "id": "A", "text": "Use AWS Glue crawlers on all three sources and query the Glue Data Catalog directly with SQL", "correct": false, "explanation": "The Data Catalog only stores metadata; it is not a query engine, so something like Athena is still needed to run SQL." },
+        { "id": "B", "text": "Export the DynamoDB table and MySQL database to S3 every week with AWS DMS, then query with Amazon Athena", "correct": false, "explanation": "This works but builds exactly the copy pipelines the company wants to avoid." },
+        { "id": "C", "text": "Load all three sources into Amazon Redshift with the COPY command and run the join there", "correct": false, "explanation": "COPY moves the data into Redshift, which requires load jobs and a warehouse for a single weekly report." },
+        { "id": "D", "text": "Use Amazon Athena Federated Query with data source connectors for DynamoDB and MySQL, joining them with the S3 table in one query", "correct": true, "explanation": "Federated Query reaches DynamoDB, JDBC databases (including on-premises MySQL) and S3 through connectors in a single SQL statement, with no data copied beforehand." }
+      ],
+      "explanation": "Querying several data stores in place with one SQL statement points to Athena Federated Query.",
+      "tags": ["athena", "federated-query"]
+    },
+    {
+      "id": "24-data-analytics-q05",
+      "type": "single",
+      "domain": "performant",
+      "difficulty": "easy",
+      "question": "A retailer wants to consolidate several years of sales, inventory and marketing data (hundreds of terabytes) so that 200 analysts can run complex joins and aggregations every day from BI tools over JDBC. Which AWS service is the BEST fit?",
+      "options": [
+        { "id": "A", "text": "Amazon Aurora PostgreSQL with read replicas", "correct": false, "explanation": "Aurora is a row-based OLTP database; heavy analytical scans over hundreds of terabytes are not its strength." },
+        { "id": "B", "text": "Amazon Redshift", "correct": true, "explanation": "Redshift is the AWS data warehouse: columnar storage and a massively parallel engine designed for complex, concurrent OLAP queries from BI tools." },
+        { "id": "C", "text": "Amazon DynamoDB with global secondary indexes", "correct": false, "explanation": "DynamoDB is a key-value database that cannot run SQL joins and aggregations across tables." },
+        { "id": "D", "text": "Amazon OpenSearch Service", "correct": false, "explanation": "OpenSearch is built for search and log analytics, not for relational joins across a warehouse of business data." }
+      ],
+      "explanation": "Data warehouse, OLAP, complex joins and BI at scale point to Amazon Redshift.",
+      "tags": ["redshift"]
+    },
+    {
+      "id": "24-data-analytics-q06",
+      "type": "single",
+      "domain": "resilient",
+      "difficulty": "medium",
+      "question": "A company runs an Amazon Redshift provisioned cluster in us-east-1. Its disaster recovery plan requires the ability to recreate the data warehouse in eu-west-1 if us-east-1 becomes unavailable, with as little manual effort as possible. What should a solutions architect do?",
+      "options": [
+        { "id": "A", "text": "Enable Multi-AZ on the cluster", "correct": false, "explanation": "Multi-AZ protects against the loss of an Availability Zone within us-east-1, not against a Region-wide outage." },
+        { "id": "B", "text": "Take manual snapshots weekly and download them to on-premises storage", "correct": false, "explanation": "Redshift snapshots live in Redshift-managed S3 storage and cannot simply be downloaded; this is also highly manual and infrequent." },
+        { "id": "C", "text": "Configure automatic cross-Region snapshot copy to eu-west-1 and restore a new cluster there when needed", "correct": true, "explanation": "Redshift can copy automated and manual snapshots to another Region automatically; in a disaster you restore a new cluster from the copied snapshot in eu-west-1." },
+        { "id": "D", "text": "Enable Enhanced VPC Routing and peer the VPC with a VPC in eu-west-1", "correct": false, "explanation": "Enhanced VPC Routing controls COPY and UNLOAD network paths; it does not back up or replicate the warehouse." }
+      ],
+      "explanation": "Cross-Region DR for Redshift = automatic cross-Region snapshot copy plus restore into a new cluster.",
+      "tags": ["redshift", "snapshots", "dr"]
+    },
+    {
+      "id": "24-data-analytics-q07",
+      "type": "single",
+      "domain": "secure",
+      "difficulty": "medium",
+      "question": "A financial company loads files from an Amazon S3 bucket into an Amazon Redshift cluster with the COPY command. A new security policy says this traffic must not traverse the public internet and must be visible in VPC Flow Logs. What should the company do?",
+      "options": [
+        { "id": "A", "text": "Turn on Enhanced VPC Routing for the cluster and add an S3 gateway VPC endpoint to the cluster's route tables", "correct": true, "explanation": "Enhanced VPC Routing forces COPY and UNLOAD traffic through the VPC, and the S3 gateway endpoint keeps it on the AWS network, so it appears in Flow Logs and can be restricted with an endpoint policy." },
+        { "id": "B", "text": "Replace the COPY command with INSERT statements sent from an EC2 instance in the same VPC", "correct": false, "explanation": "Row-by-row inserts are much slower and costlier, and they do not change how the cluster itself reaches S3." },
+        { "id": "C", "text": "Enable default encryption with SSE-KMS on the S3 bucket", "correct": false, "explanation": "Encryption at rest protects the stored objects but does not change the network path the COPY traffic takes." },
+        { "id": "D", "text": "Load the files through Redshift Spectrum external tables instead of COPY", "correct": false, "explanation": "Spectrum queries the files in place; it is not a way to route bulk load traffic privately through the VPC." }
+      ],
+      "explanation": "Private, VPC-visible COPY and UNLOAD traffic is what Redshift Enhanced VPC Routing (with a VPC endpoint for S3) provides.",
+      "tags": ["redshift", "enhanced-vpc-routing"]
+    },
+    {
+      "id": "24-data-analytics-q08",
+      "type": "single",
+      "domain": "cost",
+      "difficulty": "medium",
+      "question": "A company keeps the most recent 12 months of sales data in Amazon Redshift. Five years of older sales data sits in Amazon S3 as partitioned Parquet files and is queried only a few times per quarter, but those queries must join it with the current Redshift tables. Which approach is MOST cost-effective?",
+      "options": [
+        { "id": "A", "text": "Load all five years of historical data into Redshift and resize the cluster to hold it", "correct": false, "explanation": "Storing and paying compute for rarely used data inside the warehouse is the expensive option the requirement is trying to avoid." },
+        { "id": "B", "text": "Export the current Redshift tables to S3 every quarter and run the joins in Amazon EMR", "correct": false, "explanation": "This adds export jobs and a cluster to manage just to run occasional joins that Redshift can already do." },
+        { "id": "C", "text": "Copy the historical data into Amazon DynamoDB and query it from Redshift with federated queries", "correct": false, "explanation": "DynamoDB is not designed for analytical scans, and moving the data adds cost and complexity." },
+        { "id": "D", "text": "Define external tables over the S3 data and query them together with the local tables using Redshift Spectrum", "correct": true, "explanation": "Spectrum lets the existing cluster join local tables with S3 data in place, paying only for the data scanned, and Parquet partitions keep that scan small." }
+      ],
+      "explanation": "Keep hot data in Redshift and leave cold data in S3; Redshift Spectrum joins the two without loading the cold data.",
+      "tags": ["redshift-spectrum", "cost"]
+    },
+    {
+      "id": "24-data-analytics-q09",
+      "type": "single",
+      "domain": "performant",
+      "difficulty": "medium",
+      "question": "An online store keeps its product catalog in an Amazon DynamoDB table keyed by product ID. Customers now need to search products by any words in the title or description, including partial matches, and results must reflect catalog changes within seconds. Which solution meets these requirements?",
+      "options": [
+        { "id": "A", "text": "Add a global secondary index on the description attribute and use Query with a begins_with condition", "correct": false, "explanation": "A GSI on long text cannot do relevance-ranked or substring search; begins_with only matches the start of a value." },
+        { "id": "B", "text": "Enable DynamoDB Streams and use an AWS Lambda function to index each change in Amazon OpenSearch Service, then search in OpenSearch", "correct": true, "explanation": "OpenSearch searches any field with full-text and partial matching, and Streams plus Lambda keep the index updated within seconds while DynamoDB remains the source of truth." },
+        { "id": "C", "text": "Export the table to Amazon S3 every hour and query it with Amazon Athena using LIKE filters", "correct": false, "explanation": "Hourly exports miss the seconds-level freshness requirement, and Athena is an analytics engine, not a low-latency search backend for customers." },
+        { "id": "D", "text": "Use a DynamoDB Scan with a FilterExpression on the description for every search", "correct": false, "explanation": "Scans read the entire table on every search, which is slow and expensive at scale, and still offer no relevance ranking." }
+      ],
+      "explanation": "Search on any field or partial text next to DynamoDB is the classic OpenSearch pattern, fed by DynamoDB Streams and Lambda (or the zero-ETL integration).",
+      "tags": ["opensearch", "dynamodb-streams"]
+    },
+    {
+      "id": "24-data-analytics-q10",
+      "type": "single",
+      "domain": "cost",
+      "difficulty": "medium",
+      "question": "A company runs nightly Apache Spark jobs on an Amazon EMR cluster with input and output data in Amazon S3. During peaks the jobs need additional processing capacity. The company wants to lower cost without risking loss of data stored in the cluster's HDFS. What should a solutions architect recommend?",
+      "options": [
+        { "id": "A", "text": "Run the primary node on Spot Instances", "correct": false, "explanation": "If the primary node is interrupted the whole cluster fails; it should stay On-Demand or Reserved." },
+        { "id": "B", "text": "Add more core nodes using Spot Instances", "correct": false, "explanation": "Core nodes store HDFS data, so a Spot interruption could lose data and destabilise the cluster." },
+        { "id": "C", "text": "Add task nodes that use Spot Instances for the extra capacity", "correct": true, "explanation": "Task nodes run processing only and hold no HDFS data, so Spot interruptions cost some compute time but no data, at a large discount." },
+        { "id": "D", "text": "Purchase three-year Reserved Instances for the peak capacity", "correct": false, "explanation": "Reservations suit steady, always-on capacity; paying for peak capacity all year is more expensive than Spot for short bursts." }
+      ],
+      "explanation": "On EMR, keep primary and core nodes reliable and put burst capacity on Spot task nodes.",
+      "tags": ["emr", "spot"]
+    },
+    {
+      "id": "24-data-analytics-q11",
+      "type": "single",
+      "domain": "secure",
+      "difficulty": "medium",
+      "question": "A company is building a data lake in Amazon S3 with data ingested from Amazon RDS and on-premises databases. Analysts use Amazon Athena and Amazon Quick Sight. EU analysts may see only EU rows, and no analyst may see the customer_ssn column. The company wants to manage these permissions in one place. Which solution meets these requirements with the LEAST effort?",
+      "options": [
+        { "id": "A", "text": "Use AWS Lake Formation to register the data lake and define data filters that exclude the column and restrict rows, granted to the analyst roles", "correct": true, "explanation": "Lake Formation centralises fine-grained column, row and cell-level permissions on Glue Data Catalog tables and enforces them across Athena, Quick Sight and other integrated services." },
+        { "id": "B", "text": "Write separate S3 bucket policies for each analyst group that deny access to the objects containing SSNs", "correct": false, "explanation": "Bucket policies work at the object level; they cannot hide one column or filter rows inside the same files." },
+        { "id": "C", "text": "Create a separate copy of each table for EU analysts with the SSN column removed, using AWS Glue jobs", "correct": false, "explanation": "Maintaining filtered copies multiplies storage and pipelines, and every new rule needs another copy." },
+        { "id": "D", "text": "Encrypt the customer_ssn column with a dedicated AWS KMS key that only administrators can use", "correct": false, "explanation": "S3 and Athena encryption apply to whole objects, not single columns, so a KMS key is not a way to hide one column from Athena and Quick Sight users; it also does nothing for row-level filtering." }
+      ],
+      "explanation": "Central row- and column-level permissions for a data lake used by several analytics services is the defining feature of AWS Lake Formation.",
+      "tags": ["lake-formation", "security"]
+    },
+    {
+      "id": "24-data-analytics-q12",
+      "type": "single",
+      "domain": "performant",
+      "difficulty": "easy",
+      "question": "An AWS Glue ETL job runs every hour and reads new CSV files that arrive in an S3 prefix. Each run currently reprocesses every file in the prefix, producing duplicates and taking longer every day. What is the SIMPLEST fix?",
+      "options": [
+        { "id": "A", "text": "Run a Glue crawler before every job run", "correct": false, "explanation": "Crawlers update table metadata and partitions; they do not tell the job which files it already processed." },
+        { "id": "B", "text": "Move processed files to S3 Glacier Flexible Retrieval with a Lambda function after each run", "correct": false, "explanation": "This could work but adds custom code and archive costs for a problem Glue solves natively." },
+        { "id": "C", "text": "Switch the job to Flex execution", "correct": false, "explanation": "Flex lowers the price of non-urgent runs but does not change which data the job reads." },
+        { "id": "D", "text": "Enable job bookmarks on the Glue job", "correct": true, "explanation": "Job bookmarks persist state between runs so the job processes only files added since the last successful run." }
+      ],
+      "explanation": "Glue job bookmarks are the built-in way to avoid reprocessing old data.",
+      "tags": ["glue", "job-bookmarks"]
+    },
+    {
+      "id": "24-data-analytics-q13",
+      "type": "single",
+      "domain": "performant",
+      "difficulty": "hard",
+      "question": "A gaming company collects player events and must compute rolling 1-minute leaderboards with sub-second latency using Apache Flink. A copy of all raw events must also be archived to Amazon S3. Which architecture is correct?",
+      "options": [
+        { "id": "A", "text": "Producers write to Amazon Data Firehose; Firehose is the source for an Amazon Managed Service for Apache Flink application and also delivers to S3", "correct": false, "explanation": "Managed Service for Apache Flink cannot read from Firehose, and Firehose's buffering would not give sub-second latency anyway." },
+        { "id": "B", "text": "Producers write to Amazon Kinesis Data Streams; a Managed Service for Apache Flink application reads the stream, and an Amazon Data Firehose stream also reads it and delivers to S3", "correct": true, "explanation": "Kinesis Data Streams is a supported Flink source with real-time latency, and multiple consumers can read the same stream, so Firehose can archive the raw events in parallel." },
+        { "id": "C", "text": "Producers write directly to Amazon S3; S3 event notifications invoke a Managed Service for Apache Flink application for each object", "correct": false, "explanation": "Writing individual events to S3 and reacting per object is batch-like and slow; Flink applications consume streams rather than being invoked per S3 event." },
+        { "id": "D", "text": "Producers write to an Amazon SQS queue that the Flink application polls, and a Lambda function copies messages to S3", "correct": false, "explanation": "SQS deletes messages after processing and is not a standard Flink streaming source; only one consumer path could reliably see each message." }
+      ],
+      "explanation": "Managed Service for Apache Flink reads from Kinesis Data Streams or MSK, never from Firehose; a stream can feed both Flink and Firehose at once.",
+      "tags": ["managed-flink", "kinesis-data-streams", "data-firehose"]
+    },
+    {
+      "id": "24-data-analytics-q14",
+      "type": "single",
+      "domain": "resilient",
+      "difficulty": "medium",
+      "question": "A company runs self-managed Apache Kafka clusters on premises. Dozens of producer and consumer applications use the Kafka client libraries, and some topics must keep data for three years. The company wants to move to AWS with minimal code changes and stop managing broker infrastructure. Which service should it use?",
+      "options": [
+        { "id": "A", "text": "Amazon Managed Streaming for Apache Kafka (Amazon MSK)", "correct": true, "explanation": "MSK runs open-source Kafka, so existing clients work unchanged; AWS manages the brokers across AZs, and retention can be set as long as needed (including unlimited with tiered storage)." },
+        { "id": "B", "text": "Amazon Kinesis Data Streams", "correct": false, "explanation": "Kinesis uses its own APIs, so every application would need rewriting, and retention tops out at 365 days." },
+        { "id": "C", "text": "Amazon SQS FIFO queues", "correct": false, "explanation": "SQS is a queue that deletes processed messages, offers no Kafka API, and keeps messages for at most 14 days." },
+        { "id": "D", "text": "Amazon MQ for RabbitMQ", "correct": false, "explanation": "Amazon MQ hosts traditional message brokers (ActiveMQ, RabbitMQ), not Kafka, so Kafka clients would not work." }
+      ],
+      "explanation": "Existing Kafka applications and long retention point to Amazon MSK rather than Kinesis.",
+      "tags": ["msk", "kafka"]
+    },
+    {
+      "id": "24-data-analytics-q15",
+      "type": "multi",
+      "domain": "performant",
+      "difficulty": "hard",
+      "question": "A company must build a fully serverless pipeline that collects IoT sensor data in real time through Amazon Kinesis Data Streams, transforms it, stores it in Amazon S3, runs SQL to produce reports into a separate S3 bucket, and visualises the reports. Which components should the solutions architect include? (Select TWO.)",
+      "options": [
+        { "id": "A", "text": "An Amazon Data Firehose stream that reads from the data stream, calls a Lambda function to transform records, and delivers batches to an S3 ingestion bucket", "correct": true, "explanation": "Firehose is serverless, consumes Kinesis Data Streams, supports Lambda transformation and lands data in S3 in near real time." },
+        { "id": "B", "text": "A long-running Amazon EMR cluster that polls the ingestion bucket every minute and runs Hive queries", "correct": false, "explanation": "An always-on EMR cluster is not serverless and is more expensive and operationally heavy than event-driven Athena queries." },
+        { "id": "C", "text": "S3 event notifications to an Amazon SQS queue, with a Lambda function that starts Amazon Athena queries writing results to a reporting bucket", "correct": true, "explanation": "Event notifications (buffered by SQS) trigger Lambda, which runs serverless Athena SQL whose results land in S3 for Quick Sight or Redshift." },
+        { "id": "D", "text": "An Amazon Managed Service for Apache Flink application that reads from the Firehose stream to produce the reports", "correct": false, "explanation": "Flink cannot use Firehose as a source; it reads from Kinesis Data Streams or MSK." },
+        { "id": "E", "text": "An Amazon Redshift provisioned cluster that runs INSERT statements for each sensor reading", "correct": false, "explanation": "A provisioned cluster is not serverless, and row-by-row inserts are the least efficient way to load Redshift." }
+      ],
+      "explanation": "The serverless reference pipeline is Kinesis Data Streams → Firehose (with Lambda) → S3 → event-driven Lambda running Athena → reporting bucket → Quick Sight or Redshift Serverless.",
+      "tags": ["pipeline", "data-firehose", "athena"]
+    }
+  ]
+}

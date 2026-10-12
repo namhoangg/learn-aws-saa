@@ -1,0 +1,234 @@
+{
+  "section": "28-advanced-identity",
+  "questions": [
+    {
+      "id": "28-advanced-identity-q01",
+      "type": "single",
+      "domain": "secure",
+      "difficulty": "medium",
+      "question": "A company manages 60 AWS accounts with AWS Organizations (all features enabled). For data residency, nobody in any member account, including account administrators and the root user, may create resources outside eu-west-1 and eu-central-1. Global services such as IAM and Route 53 must keep working. Which solution meets these requirements with the LEAST operational overhead?",
+      "options": [
+        { "id": "A", "text": "Attach an IAM policy with a Deny statement on aws:RequestedRegion to every IAM user and role in each member account.", "correct": false, "explanation": "Account administrators could detach or edit these policies, the root user is not covered, and maintaining policies on every principal in 60 accounts is heavy work." },
+        { "id": "B", "text": "Deploy an AWS Config rule in every account that flags resources created outside the two Regions.", "correct": false, "explanation": "AWS Config is detective: it reports resources after they exist but does not stop anyone from creating them." },
+        { "id": "C", "text": "Create an SCP that denies all actions except those of global services when aws:RequestedRegion is not eu-west-1 or eu-central-1, and attach it to the organization root.", "correct": true, "explanation": "One SCP at the root applies to every member account, including administrators and the member accounts' root users, and cannot be removed from inside the accounts. NotAction exempts global services." },
+        { "id": "D", "text": "Set a permissions boundary that allows only the two Regions on every administrator in each account.", "correct": false, "explanation": "Boundaries apply one user or role at a time, do not cover the root user, and administrators could create new principals without the boundary." }
+      ],
+      "explanation": "Account-wide restrictions that local administrators must not be able to remove are the job of service control policies; aws:RequestedRegion with StringNotEquals and a NotAction list for global services is the standard pattern.",
+      "tags": ["scp", "conditions", "regions"]
+    },
+    {
+      "id": "28-advanced-identity-q02",
+      "type": "single",
+      "domain": "secure",
+      "difficulty": "easy",
+      "question": "A security engineer attaches an SCP that denies s3:DeleteBucket to the root of the organization. Testing shows that administrators in member accounts can no longer delete buckets, but an administrator in the account that created the organization still can. What is the reason?",
+      "options": [
+        { "id": "A", "text": "SCPs never restrict users or roles in the management account.", "correct": true, "explanation": "By design SCPs affect only member accounts. This is why AWS recommends keeping workloads out of the management account." },
+        { "id": "B", "text": "SCP changes take up to 24 hours to reach the management account.", "correct": false, "explanation": "There is no such delay; the management account is simply never in scope for SCPs." },
+        { "id": "C", "text": "The FullAWSAccess policy attached to the management account overrides the Deny.", "correct": false, "explanation": "An explicit Deny would always beat an Allow; FullAWSAccess cannot override a deny in any account." },
+        { "id": "D", "text": "The administrator's IAM policy explicitly allows s3:DeleteBucket, which takes precedence over the SCP.", "correct": false, "explanation": "An IAM allow never overrides an SCP deny in accounts where SCPs apply; the management account is just exempt." }
+      ],
+      "explanation": "SCPs apply to member accounts only. Protect the management account with tight IAM, MFA and minimal use instead.",
+      "tags": ["scp", "management-account"]
+    },
+    {
+      "id": "28-advanced-identity-q03",
+      "type": "single",
+      "domain": "secure",
+      "difficulty": "medium",
+      "question": "An organization's root has the FullAWSAccess SCP. The Analytics OU has FullAWSAccess detached and an SCP attached that allows only athena:*, s3:* and glue:*. Account X sits in the Analytics OU and has FullAWSAccess plus an extra SCP that allows ec2:*. Users in account X have the AdministratorAccess IAM policy. What can those users do?",
+      "options": [
+        { "id": "A", "text": "Use every AWS service, because account X has FullAWSAccess attached.", "correct": false, "explanation": "An allow at the account level cannot widen what a parent OU allows; every level on the path must allow the action." },
+        { "id": "B", "text": "Use Athena, S3, Glue and EC2.", "correct": false, "explanation": "EC2 is allowed at the account but not at the Analytics OU, so the OU's allow list blocks it." },
+        { "id": "C", "text": "Only launch and manage EC2 instances.", "correct": false, "explanation": "The account's EC2 allow is cut off by the OU, and Athena, S3 and Glue are still allowed at all levels." },
+        { "id": "D", "text": "Use only Athena, S3 and Glue.", "correct": true, "explanation": "Only these three services are allowed at the root (FullAWSAccess), the OU (allow list) and the account (FullAWSAccess); AdministratorAccess grants them." }
+      ],
+      "explanation": "SCP allows intersect down the path: an action needs an Allow at the root, every OU on the way and the account, and no Deny anywhere.",
+      "tags": ["scp", "inheritance"]
+    },
+    {
+      "id": "28-advanced-identity-q04",
+      "type": "single",
+      "domain": "secure",
+      "difficulty": "hard",
+      "question": "A Lambda function in account A must scan a DynamoDB table in account A and write the export file to an S3 bucket owned by account B. The team wants the simplest setup in which the function keeps its access to the table while writing to the bucket. What should a solutions architect do?",
+      "options": [
+        { "id": "A", "text": "Create an IAM role in account B with s3:PutObject on the bucket and have the function assume it before running the scan and the upload.", "correct": false, "explanation": "While using the role session the function has only the role's permissions, so it loses access to the table in account A unless more cross-account setup is added." },
+        { "id": "B", "text": "Add a bucket policy in account B that allows the function's execution role to call s3:PutObject, and allow s3:PutObject on that bucket in the execution role's policy.", "correct": true, "explanation": "With a resource-based policy the function keeps its own identity and permissions, so it reads the table and writes to B's bucket. Cross-account access needs both the bucket policy and the identity policy." },
+        { "id": "C", "text": "Make the bucket in account B writable by everyone so the function can upload without extra permissions.", "correct": false, "explanation": "A publicly writable bucket is a serious security risk and is blocked by S3 Block Public Access defaults." },
+        { "id": "D", "text": "Configure S3 Cross-Region Replication from account A to the bucket in account B.", "correct": false, "explanation": "Replication copies objects between buckets; the data here starts in a DynamoDB table, and replication adds a bucket and rules for no benefit." }
+      ],
+      "explanation": "When the caller must keep its own permissions while touching another account's resource, prefer a resource-based policy over assuming a role.",
+      "tags": ["iam-roles", "resource-based-policy", "cross-account"]
+    },
+    {
+      "id": "28-advanced-identity-q05",
+      "type": "single",
+      "domain": "secure",
+      "difficulty": "medium",
+      "question": "An IAM policy allows s3:GetObject and s3:ListBucket with the resource arn:aws:s3:::quarterly-reports/*. Users can download files they know the names of, but get AccessDenied when they try to list the contents of the bucket. Which change fixes the problem while following least privilege?",
+      "options": [
+        { "id": "A", "text": "Add s3:ListAllMyBuckets on resource \"*\" to the policy.", "correct": false, "explanation": "ListAllMyBuckets lists the buckets in the account; it does not allow listing objects inside quarterly-reports." },
+        { "id": "B", "text": "Add a bucket policy that grants public read access to the bucket.", "correct": false, "explanation": "Public access exposes the reports to the internet and is far broader than the users need." },
+        { "id": "C", "text": "Change the resource for both actions to \"*\".", "correct": false, "explanation": "This would work but grants the actions on every bucket and object in the account, which breaks least privilege." },
+        { "id": "D", "text": "Add a statement that allows s3:ListBucket on the resource arn:aws:s3:::quarterly-reports.", "correct": true, "explanation": "ListBucket is a bucket-level action and must target the bucket ARN without /*; object actions keep the /* ARN." }
+      ],
+      "explanation": "Bucket-level actions (ListBucket) use arn:aws:s3:::bucket; object-level actions (GetObject, PutObject, DeleteObject) use arn:aws:s3:::bucket/*.",
+      "tags": ["s3", "iam-policies"]
+    },
+    {
+      "id": "28-advanced-identity-q06",
+      "type": "single",
+      "domain": "secure",
+      "difficulty": "medium",
+      "question": "A platform team wants developers to create IAM roles for their own Lambda functions without waiting for tickets. Developers must never be able to create a role with more permissions than the customer managed policy DevWorkloadMax, and they must not be able to escalate their own privileges. Which approach meets these requirements with the LEAST operational overhead?",
+      "options": [
+        { "id": "A", "text": "Allow developers to create and modify roles only when the iam:PermissionsBoundary condition equals DevWorkloadMax, deny them changes to that policy, and set a permissions boundary on the developers themselves.", "correct": true, "explanation": "Every role a developer creates must carry the boundary, so no attached policy can exceed DevWorkloadMax, and the developers' own boundary blocks self-escalation. This is the documented delegation pattern." },
+        { "id": "B", "text": "Attach an SCP to the account that denies iam:CreateRole.", "correct": false, "explanation": "This blocks role creation entirely, so developers could not create the Lambda roles they need." },
+        { "id": "C", "text": "Keep role creation with the platform team and have developers request roles through a ticketing system.", "correct": false, "explanation": "This is safe but adds the manual overhead and waiting the team wants to remove." },
+        { "id": "D", "text": "Give developers AdministratorAccess and review AWS CloudTrail logs weekly for risky roles.", "correct": false, "explanation": "CloudTrail review detects problems after the fact and does nothing to prevent privilege escalation." }
+      ],
+      "explanation": "Permissions boundaries let you delegate IAM administration safely: delegated admins can create principals only if those principals carry a boundary you control.",
+      "tags": ["permissions-boundary", "delegation"]
+    },
+    {
+      "id": "28-advanced-identity-q07",
+      "type": "single",
+      "domain": "secure",
+      "difficulty": "easy",
+      "question": "A shared-services account owns an S3 bucket of approved software installers. Every account in the company's AWS organization, including accounts created in the future, must be able to read the installers, and nobody outside the organization may. Which solution requires the LEAST ongoing maintenance?",
+      "options": [
+        { "id": "A", "text": "List each account ID as a principal in the bucket policy and update the policy whenever an account joins.", "correct": false, "explanation": "This works but needs a policy change for every new account, which is exactly the maintenance to avoid." },
+        { "id": "B", "text": "Create an IAM user for each team in the shared-services account and distribute access keys.", "correct": false, "explanation": "Long-term access keys are hard to manage and rotate, and this scales poorly as accounts are added." },
+        { "id": "C", "text": "Add a bucket policy statement that allows s3:GetObject for all principals with a condition that aws:PrincipalOrgID equals the organization ID.", "correct": true, "explanation": "Any principal from any current or future member account matches the organization ID; everyone else is excluded, with no updates needed." },
+        { "id": "D", "text": "Turn off S3 Block Public Access and make the installers publicly readable.", "correct": false, "explanation": "This exposes the installers to the whole internet, violating the requirement that outsiders have no access." }
+      ],
+      "explanation": "aws:PrincipalOrgID in a resource-based policy shares a resource with the entire organization without tracking account IDs.",
+      "tags": ["s3", "organizations", "conditions"]
+    },
+    {
+      "id": "28-advanced-identity-q08",
+      "type": "single",
+      "domain": "secure",
+      "difficulty": "medium",
+      "question": "Operators have the AmazonEC2FullAccess managed policy. The security team wants to add a policy so that ec2:TerminateInstances fails unless the caller authenticated with MFA. Calls made from the AWS CLI with long-term access keys must also be blocked. Which policy statement should be added?",
+      "options": [
+        { "id": "A", "text": "An Allow for ec2:TerminateInstances with the condition Bool aws:MultiFactorAuthPresent = true.", "correct": false, "explanation": "AmazonEC2FullAccess already allows termination without any condition, and an extra Allow cannot take that away." },
+        { "id": "B", "text": "A Deny for ec2:TerminateInstances with the condition Bool aws:MultiFactorAuthPresent = false.", "correct": false, "explanation": "Requests signed with long-term access keys carry no MFA key at all, so a plain Bool test does not match them and they are not denied." },
+        { "id": "C", "text": "A Deny for ec2:TerminateInstances with the condition Bool aws:SecureTransport = false.", "correct": false, "explanation": "SecureTransport checks for TLS, not MFA; AWS API calls already use HTTPS." },
+        { "id": "D", "text": "A Deny for ec2:TerminateInstances with the condition BoolIfExists aws:MultiFactorAuthPresent = false.", "correct": true, "explanation": "BoolIfExists matches when MFA is false or when the key is missing, so both non-MFA sessions and long-term key calls are denied; the explicit deny beats the managed policy's allow." }
+      ],
+      "explanation": "To require MFA, use an explicit Deny with BoolIfExists on aws:MultiFactorAuthPresent so that missing keys are treated as no MFA.",
+      "tags": ["mfa", "conditions"]
+    },
+    {
+      "id": "28-advanced-identity-q09",
+      "type": "single",
+      "domain": "secure",
+      "difficulty": "medium",
+      "question": "A company has 40 AWS accounts in AWS Organizations. Its 900 employees already sign in to everything with Okta. The company wants employees to use their Okta credentials to reach the AWS accounts and Salesforce, with access per account managed centrally by job role. Which solution meets these requirements?",
+      "options": [
+        { "id": "A", "text": "Create IAM users with the same user names in every account and synchronize passwords from Okta with a script.", "correct": false, "explanation": "Thousands of long-term IAM users across 40 accounts is insecure and operationally painful, and it is not single sign-on." },
+        { "id": "B", "text": "Enable IAM Identity Center, connect Okta as the external identity provider, and assign Okta groups to accounts with permission sets; add Salesforce as an application.", "correct": true, "explanation": "Identity Center gives one sign-in through the existing IdP, permission sets define access per account centrally, and SAML apps like Salesforce appear in the same access portal." },
+        { "id": "C", "text": "Create an Amazon Cognito user pool federated with Okta and use it to sign in to the AWS console.", "correct": false, "explanation": "Cognito is for customer-facing application users, not for workforce access to AWS accounts." },
+        { "id": "D", "text": "Deploy AD Connector pointing at Okta and use it to sign in to each account.", "correct": false, "explanation": "AD Connector proxies to Microsoft Active Directory, not to an Okta cloud directory." }
+      ],
+      "explanation": "Workforce single sign-on to many AWS accounts and business apps with an existing IdP is IAM Identity Center with permission sets.",
+      "tags": ["identity-center"]
+    },
+    {
+      "id": "28-advanced-identity-q10",
+      "type": "multi",
+      "domain": "secure",
+      "difficulty": "medium",
+      "question": "A company sets up a new multi-account environment with AWS Control Tower. Which statements about Control Tower controls are correct? (Select TWO.)",
+      "options": [
+        { "id": "A", "text": "Preventive controls are implemented with service control policies and stop disallowed actions before they happen.", "correct": true, "explanation": "Preventive controls are SCPs (and RCPs); a blocked action is denied and logged in CloudTrail." },
+        { "id": "B", "text": "Detective controls are implemented with AWS Config rules and report resources that are out of compliance.", "correct": true, "explanation": "Detective controls use AWS Config rules to find violations, such as unencrypted EBS volumes, after resources exist." },
+        { "id": "C", "text": "Detective controls block API calls that would create noncompliant resources.", "correct": false, "explanation": "Detective controls only detect and report; blocking is the job of preventive or proactive controls." },
+        { "id": "D", "text": "Controls restrict the management account in the same way as member accounts.", "correct": false, "explanation": "Like SCPs, controls deliberately do not restrict the management account so it cannot lock itself out." },
+        { "id": "E", "text": "AWS Control Tower charges a monthly fee for every control enabled in each account.", "correct": false, "explanation": "Control Tower itself has no charge; you pay for the underlying services it uses, such as AWS Config and CloudTrail." }
+      ],
+      "explanation": "Control Tower controls: preventive = SCPs/RCPs, detective = AWS Config rules, proactive = CloudFormation hooks. None of them bind the management account.",
+      "tags": ["control-tower"],
+      "updated": "Guardrails are now called controls; proactive controls and RCP-based preventive controls were added after the slides"
+    },
+    {
+      "id": "28-advanced-identity-q11",
+      "type": "single",
+      "domain": "secure",
+      "difficulty": "medium",
+      "question": "A company's users are in an on-premises Microsoft Active Directory, reachable from AWS over AWS Direct Connect. The company wants these users to sign in to Amazon WorkSpaces and the AWS Management Console with their existing AD credentials and its existing RADIUS MFA. Users must keep being managed only on premises, and no directory data may be stored in AWS. Which solution is MOST suitable?",
+      "options": [
+        { "id": "A", "text": "Deploy AWS Managed Microsoft AD and create a two-way forest trust with the on-premises domain.", "correct": false, "explanation": "Managed Microsoft AD is a separate directory whose domain controllers store directory data in AWS, which breaks the no-directory-data requirement, and it adds a second directory to run and pay for." },
+        { "id": "B", "text": "Deploy Simple AD and synchronize users from the on-premises directory.", "correct": false, "explanation": "Simple AD cannot connect to or trust an on-premises AD, has no MFA support and is closed to new customers." },
+        { "id": "C", "text": "Deploy AD Connector in the VPC and point it at the on-premises domain controllers.", "correct": true, "explanation": "AD Connector is a proxy that forwards sign-in requests to on-premises AD without caching directory data, supports RADIUS MFA and works with WorkSpaces and console sign-in." },
+        { "id": "D", "text": "Recreate every user in the IAM Identity Center directory and ask them to set new passwords.", "correct": false, "explanation": "This duplicates identities and stops users from using their existing AD credentials." }
+      ],
+      "explanation": "Existing on-premises AD, nothing stored in AWS, minimal effort: AD Connector. Real AD features or trusts in AWS: AWS Managed Microsoft AD.",
+      "tags": ["directory-service"]
+    },
+    {
+      "id": "28-advanced-identity-q12",
+      "type": "single",
+      "domain": "cost",
+      "difficulty": "easy",
+      "question": "A startup runs five standalone AWS accounts, each paying its own bill. Two accounts own Reserved Instances that are often underused while the other accounts run matching On-Demand instances. The finance team wants one bill and to make better use of the existing reservations, and each team must keep its own separate account. What should the company do?",
+      "options": [
+        { "id": "A", "text": "Create an organization in AWS Organizations and invite the other four accounts so consolidated billing shares discounts across them.", "correct": true, "explanation": "Consolidated billing gives a single bill, combines usage for volume pricing and lets unused RI and Savings Plans discounts apply to matching usage in other accounts, at no extra cost." },
+        { "id": "B", "text": "Enable Cost Explorer in each account and review RI utilization monthly.", "correct": false, "explanation": "Cost Explorer shows the waste but neither combines bills nor shares the reservations between accounts." },
+        { "id": "C", "text": "Move every workload into a single AWS account.", "correct": false, "explanation": "This would give one bill, but it breaks the requirement that each team keeps its own account and is a large migration when Organizations solves the billing goal directly." },
+        { "id": "D", "text": "Create an AWS Budgets alert in every account for RI utilization below 80%.", "correct": false, "explanation": "Budgets alerts warn about low utilization but do not consolidate billing or share discounts." }
+      ],
+      "explanation": "One bill, volume discounts and shared RI/Savings Plans benefits across accounts are what consolidated billing in AWS Organizations provides.",
+      "tags": ["organizations", "billing"]
+    },
+    {
+      "id": "28-advanced-identity-q13",
+      "type": "single",
+      "domain": "secure",
+      "difficulty": "medium",
+      "question": "The finance department relies on a CostCenter tag for cost allocation, but teams across 25 member accounts write costcenter, Cost-Center and CostCenter with random values. The company wants one definition of the key and its allowed values for the whole organization, and tagging operations on EC2 instances that break the rule must be rejected. Which solution meets these requirements?",
+      "options": [
+        { "id": "A", "text": "Deploy the AWS Config required-tags managed rule in every account.", "correct": false, "explanation": "The Config rule reports noncompliant resources but does not reject the tagging call, and it does not standardize capitalization organization-wide." },
+        { "id": "B", "text": "Ask each account administrator to add an IAM policy that limits tag values.", "correct": false, "explanation": "Per-account IAM policies are hard to keep consistent across 25 accounts and can be changed by local administrators." },
+        { "id": "C", "text": "Attach an SCP that denies ec2:CreateTags to all member accounts.", "correct": false, "explanation": "Denying all tagging on EC2 stops the teams from adding the CostCenter tag at all." },
+        { "id": "D", "text": "Create a tag policy that defines the CostCenter key, its capitalization and allowed values, enable enforcement for ec2:instance, and attach it to the organization root.", "correct": true, "explanation": "Tag policies standardize keys and values across the organization and, with enforcement, block noncompliant tagging requests on the chosen resource types." }
+      ],
+      "explanation": "Tag policies in AWS Organizations standardize tags organization-wide; enforcement rejects noncompliant tagging operations for the listed resource types.",
+      "tags": ["tag-policies", "organizations"]
+    },
+    {
+      "id": "28-advanced-identity-q14",
+      "type": "multi",
+      "domain": "secure",
+      "difficulty": "hard",
+      "question": "An IAM user in a member account has the AdministratorAccess policy and a permissions boundary that allows s3:* and dynamodb:*. The account is in the Dev OU, which has the FullAWSAccess SCP and an SCP that denies dynamodb:*. The root has FullAWSAccess. Which actions can the user perform? (Select TWO.)",
+      "options": [
+        { "id": "A", "text": "s3:PutObject", "correct": true, "explanation": "Allowed by the identity policy, inside the boundary and allowed by the SCPs at every level." },
+        { "id": "B", "text": "dynamodb:PutItem", "correct": false, "explanation": "The Dev OU's SCP explicitly denies DynamoDB, and an explicit deny beats every allow." },
+        { "id": "C", "text": "ec2:RunInstances", "correct": false, "explanation": "The permissions boundary does not include EC2, so the action is implicitly denied." },
+        { "id": "D", "text": "s3:ListBucket", "correct": true, "explanation": "S3 actions pass all three checks: identity policy, boundary and SCPs." },
+        { "id": "E", "text": "iam:CreateUser", "correct": false, "explanation": "IAM actions are outside the permissions boundary, so AdministratorAccess cannot grant them." }
+      ],
+      "explanation": "Effective permissions are the intersection of the identity policy, the permissions boundary and the SCPs, and any explicit deny wins.",
+      "tags": ["permissions-boundary", "scp", "evaluation"]
+    },
+    {
+      "id": "28-advanced-identity-q15",
+      "type": "single",
+      "domain": "secure",
+      "difficulty": "hard",
+      "question": "A security team must guarantee that objects in S3 buckets across all member accounts can never be read by principals outside the company's organization, even if a developer later writes a bucket policy that grants access to an external account. Which solution meets this requirement?",
+      "options": [
+        { "id": "A", "text": "Attach an SCP to the root that denies s3:GetObject for principals outside the organization.", "correct": false, "explanation": "SCPs restrict only principals in your own member accounts; they cannot affect callers from other organizations." },
+        { "id": "B", "text": "Attach a resource control policy to the root that denies S3 access unless aws:PrincipalOrgID equals the organization ID (with exceptions for AWS service principals as needed).", "correct": true, "explanation": "RCPs cap the permissions available on resources in member accounts for every caller, so a permissive bucket policy cannot grant access beyond the perimeter." },
+        { "id": "C", "text": "Turn on S3 Block Public Access at the account level in every member account.", "correct": false, "explanation": "Block Public Access stops public grants but not a bucket policy that names a specific external AWS account." },
+        { "id": "D", "text": "Set a permissions boundary on every developer that denies s3:PutBucketPolicy.", "correct": false, "explanation": "Boundaries are per principal and easy to miss for new roles; they also do nothing about policies already in place." }
+      ],
+      "explanation": "SCPs limit your principals; RCPs limit access to your resources. A data perimeter against outside principals uses an RCP with aws:PrincipalOrgID.",
+      "tags": ["rcp", "data-perimeter", "s3"],
+      "updated": "Resource control policies were introduced in late 2024, after the course slides"
+    }
+  ]
+}

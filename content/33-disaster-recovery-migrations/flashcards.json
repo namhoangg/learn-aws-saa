@@ -1,0 +1,178 @@
+{
+  "section": "33-disaster-recovery-migrations",
+  "cards": [
+    {
+      "id": "33-disaster-recovery-migrations-fc-01",
+      "front": "What does **RPO** (Recovery Point Objective) measure?",
+      "back": "The maximum amount of data, measured as time, that you can afford to lose: how old the last good copy may be when disaster strikes. Backups every 6 hours mean an RPO of up to 6 hours.",
+      "tags": ["rpo", "dr-basics"]
+    },
+    {
+      "id": "33-disaster-recovery-migrations-fc-02",
+      "front": "What does **RTO** (Recovery Time Objective) measure?",
+      "back": "The maximum time the service may be unavailable, counted from the disaster until users can work again. It depends on how much of the recovery site is already running.",
+      "tags": ["rto", "dr-basics"]
+    },
+    {
+      "id": "33-disaster-recovery-migrations-fc-03",
+      "front": "Rank the four AWS DR strategies from slowest and cheapest to fastest and most expensive.",
+      "back": "**Backup and restore** → **Pilot light** → **Warm standby** → **Multi-site active/active**.",
+      "tags": ["dr-strategies"]
+    },
+    {
+      "id": "33-disaster-recovery-migrations-fc-04",
+      "front": "What is the one difference that separates **pilot light** from **warm standby**?",
+      "back": "Whether the application tier is running. Pilot light keeps only the core (usually the replicated database) live and cannot serve requests until servers are started. Warm standby runs the full stack at minimum size and can take traffic at once, then scales out.",
+      "tags": ["pilot-light", "warm-standby"]
+    },
+    {
+      "id": "33-disaster-recovery-migrations-fc-05",
+      "front": "How do **multi-site active/active** and **hot standby** differ?",
+      "back": "Both run a full-size copy of production in another location. Active/active sends users to every site at the same time; hot standby keeps the second site idle (no user traffic) until failover.",
+      "tags": ["multi-site", "dr-strategies"]
+    },
+    {
+      "id": "33-disaster-recovery-migrations-fc-06",
+      "front": "Why is continuous replication (read replicas, global tables, DRS) **not** a substitute for backups?",
+      "back": "Replication copies corruption, ransomware encryption and accidental deletes to the other site within seconds. You still need point-in-time backups (snapshots, PITR, S3 Versioning, AWS Backup) to roll back to a good moment.",
+      "tags": ["backup", "replication"]
+    },
+    {
+      "id": "33-disaster-recovery-migrations-fc-07",
+      "front": "Which AWS service continuously replicates physical, virtual or cloud servers at block level into a low-cost staging area, with RPO in seconds and RTO in minutes?",
+      "back": "**AWS Elastic Disaster Recovery (DRS)**, the successor of CloudEndure Disaster Recovery. It launches recovery instances on demand and supports failback.",
+      "tags": ["drs"]
+    },
+    {
+      "id": "33-disaster-recovery-migrations-fc-08",
+      "front": "How is Elastic Disaster Recovery priced?",
+      "back": "**USD 0.028 per source server per hour**, plus the staging resources it creates in your account: small replication servers (t3.small by default), EBS staging volumes and point-in-time snapshots.",
+      "tags": ["drs", "pricing"]
+    },
+    {
+      "id": "33-disaster-recovery-migrations-fc-09",
+      "front": "DRS and Application Migration Service (MGN) use the same replication engine. How do you tell them apart in a question?",
+      "back": "A **one-time move** that ends in a **cutover** is MGN (rehost). **Ongoing protection** that ends in **failover and failback**, repeatable with drills, is DRS.",
+      "tags": ["drs", "mgn"]
+    },
+    {
+      "id": "33-disaster-recovery-migrations-fc-10",
+      "front": "In AWS Backup, what is a **backup plan** and how does it usually pick resources?",
+      "back": "A policy made of rules (frequency, backup window, lifecycle, optional cross-Region or cross-account copy). Resources are assigned by type, ID or, most often, by **tag** (for example `backup=daily`).",
+      "tags": ["aws-backup"]
+    },
+    {
+      "id": "33-disaster-recovery-migrations-fc-11",
+      "front": "Which backup frequencies can you choose in an AWS Backup rule?",
+      "back": "Hourly, every 12 hours, daily, weekly, monthly, or a custom cron expression (as often as hourly). Default window: start within 8 hours, complete within 7 days.",
+      "tags": ["aws-backup"],
+      "updated": "The console now offers an hourly option; the slides list 12-hourly as the most frequent preset."
+    },
+    {
+      "id": "33-disaster-recovery-migrations-fc-12",
+      "front": "What rule applies when an AWS Backup rule moves recovery points to **cold storage**?",
+      "back": "They must stay in cold storage at least **90 days**, so total retention must be at least 90 days longer than the \"move to cold\" setting. Only some resource types support cold storage (for example EFS, EBS via Snapshots Archive, DynamoDB advanced features).",
+      "tags": ["aws-backup", "cold-storage"]
+    },
+    {
+      "id": "33-disaster-recovery-migrations-fc-13",
+      "front": "How long can AWS Backup keep **continuous backups** (point-in-time restore), compared with snapshot backups?",
+      "back": "Continuous backups: 1 to **35 days**. Snapshot backups: 1 day to 100 years, or indefinitely.",
+      "tags": ["aws-backup", "pitr"]
+    },
+    {
+      "id": "33-disaster-recovery-migrations-fc-14",
+      "front": "AWS Backup Vault Lock: **governance mode** vs **compliance mode**?",
+      "back": "Both enforce WORM retention. Governance mode can be removed by users with enough IAM permissions. Compliance mode becomes immutable after its grace time: nobody, not the root user and not AWS, can delete early or remove the lock.",
+      "tags": ["vault-lock"]
+    },
+    {
+      "id": "33-disaster-recovery-migrations-fc-15",
+      "front": "What is the minimum grace time for a compliance-mode Vault Lock, and what can you do during it?",
+      "back": "At least **3 days (72 hours)**. During the grace time you can still change or delete the lock; afterwards the vault and lock are permanent while recovery points remain.",
+      "tags": ["vault-lock"]
+    },
+    {
+      "id": "33-disaster-recovery-migrations-fc-16",
+      "front": "What is an AWS Backup **logically air-gapped vault**?",
+      "back": "A special vault that is compliance-mode locked by default, encrypted with an AWS owned key unless you choose your own, and shareable with a recovery account through AWS RAM so you can restore quickly after an account compromise.",
+      "tags": ["aws-backup", "ransomware"],
+      "updated": "Newer than the slides."
+    },
+    {
+      "id": "33-disaster-recovery-migrations-fc-17",
+      "front": "Which DMS migration type keeps the target in sync while applications keep writing to the source?",
+      "back": "**Full load + CDC** (\"migrate existing data and replicate ongoing changes\"): DMS copies the existing rows, then applies changes read from the source's transaction log until you cut over.",
+      "tags": ["dms", "cdc"]
+    },
+    {
+      "id": "33-disaster-recovery-migrations-fc-18",
+      "front": "When do you need **AWS SCT** (or DMS Schema Conversion) in a database migration?",
+      "back": "Only when the engine changes (heterogeneous), for example SQL Server or Oracle to Aurora PostgreSQL, or Teradata to Redshift. On-premises PostgreSQL to RDS for PostgreSQL is the same engine: no conversion needed.",
+      "tags": ["sct", "dms"]
+    },
+    {
+      "id": "33-disaster-recovery-migrations-fc-19",
+      "front": "What is **DMS Schema Conversion** and how does it differ from AWS SCT?",
+      "back": "A managed, browser-based schema converter inside the DMS console, built on the SCT engine, free to use (you pay only for S3 storage) and able to use generative AI on some paths. SCT is a desktop app that supports more source engines.",
+      "tags": ["sct", "dms"],
+      "updated": "Not in the slides, which mention only the SCT desktop tool."
+    },
+    {
+      "id": "33-disaster-recovery-migrations-fc-20",
+      "front": "What does enabling **Multi-AZ** on a DMS replication instance give you?",
+      "back": "A synchronous standby replication instance in another AZ with automatic failover: data redundancy, no I/O freezes during backups, fewer latency spikes. Recommended for long CDC or ongoing replication.",
+      "tags": ["dms", "multi-az"]
+    },
+    {
+      "id": "33-disaster-recovery-migrations-fc-21",
+      "front": "Which schema objects does DMS create on the target by itself?",
+      "back": "Only basic tables and primary keys. Secondary indexes, foreign keys, stored procedures, users and similar objects come from SCT, DMS Schema Conversion or native tools.",
+      "tags": ["dms"]
+    },
+    {
+      "id": "33-disaster-recovery-migrations-fc-22",
+      "front": "Two ways to move **RDS for MySQL** (or PostgreSQL) to Aurora, and their trade-off?",
+      "back": "1) Restore an RDS **snapshot** as an Aurora cluster: simple, needs a downtime window. 2) Create an **Aurora read replica**, wait for zero lag, then **promote** it: little downtime, but slower and you pay for both databases meanwhile.",
+      "tags": ["aurora", "rds"]
+    },
+    {
+      "id": "33-disaster-recovery-migrations-fc-23",
+      "front": "Fastest way to load a large **external** MySQL 5.7 or 8.0 database into Aurora MySQL?",
+      "back": "Back it up with **Percona XtraBackup**, upload the files to S3, and create a new Aurora cluster with **Restore from S3**. Much faster than `mysqldump`, which replays every statement.",
+      "tags": ["aurora", "mysql"]
+    },
+    {
+      "id": "33-disaster-recovery-migrations-fc-24",
+      "front": "How do you load data from an external PostgreSQL database into Aurora PostgreSQL through S3?",
+      "back": "Export the data to S3 (CSV, text or gzip files), then import it with the Aurora PostgreSQL **`aws_s3` extension** (`aws_s3.table_import_from_s3`). Use DMS instead if both databases must stay live.",
+      "tags": ["aurora", "postgresql"]
+    },
+    {
+      "id": "33-disaster-recovery-migrations-fc-25",
+      "front": "What is AWS Application Migration Service (MGN) called today, and what does it cost?",
+      "back": "**AWS Transform MGN** (renamed on 8 June 2026). It is free for **2,160 hours** (90 days) of replication per source server; you still pay for the staging, test and cutover EC2 and EBS resources.",
+      "tags": ["mgn"],
+      "updated": "Renamed from AWS Application Migration Service; the exam guide still uses the old name."
+    },
+    {
+      "id": "33-disaster-recovery-migrations-fc-26",
+      "front": "Application Discovery Service: what does the **Discovery Agent** collect that the **Agentless Collector** cannot?",
+      "back": "**Running processes** and detailed time-series performance (about every 15 seconds) from inside each server. The Agentless Collector is one VMware appliance that sees VM inventory and utilization from the hypervisor (about hourly).",
+      "tags": ["application-discovery"],
+      "updated": "Application Discovery Service and Migration Hub closed to new customers on 7 November 2025; AWS Transform replaces them."
+    },
+    {
+      "id": "33-disaster-recovery-migrations-fc-27",
+      "front": "Name three uses of **VM Import/Export**.",
+      "back": "Migrate existing VMs to EC2 as AMIs or instances, copy an approved VM image catalog into AWS, and keep a DR repository of on-premises VMs as ready-to-launch AMIs. Imported VMs can be exported back. No extra charge.",
+      "tags": ["vm-import-export"]
+    },
+    {
+      "id": "33-disaster-recovery-migrations-fc-28",
+      "front": "About how long does it take to send **50 TB** over a fully used **1 Gbps** link?",
+      "back": "50 × 10^12 bytes × 8 = 4 × 10^14 bits; ÷ 10^9 bit/s = 400,000 s ≈ **4.6 days**, and longer in practice. Always estimate before choosing online versus offline transfer.",
+      "tags": ["data-transfer"]
+    }
+  ]
+}

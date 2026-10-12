@@ -1,0 +1,272 @@
+{
+  "section": "29-encryption-secrets",
+  "cards": [
+    {
+      "id": "29-encryption-secrets-fc-01",
+      "front": "What is the difference between server-side encryption at rest and client-side encryption?",
+      "back": "**Server-side**: the AWS service encrypts data after receiving it and decrypts it before returning it, so the service can read it. **Client-side**: your app encrypts before sending, and the service only ever stores ciphertext it cannot decrypt.",
+      "tags": [
+        "encryption",
+        "client-side"
+      ]
+    },
+    {
+      "id": "29-encryption-secrets-fc-02",
+      "front": "What is the maximum amount of data the KMS `Encrypt` API accepts with a symmetric key, and how do you encrypt anything bigger?",
+      "back": "**4 KB (4,096 bytes)**. For larger data use **envelope encryption**: call `GenerateDataKey`, encrypt the data locally with the plaintext data key, and store only the encrypted copy of the data key next to the data.",
+      "tags": [
+        "kms",
+        "envelope-encryption"
+      ]
+    },
+    {
+      "id": "29-encryption-secrets-fc-03",
+      "front": "Name the three kinds of KMS keys by ownership and their monthly fee.",
+      "back": "**AWS owned** (in an AWS account, free, invisible to you), **AWS managed** (`aws/<service>` in your account, no monthly fee, requests billed), **customer managed** (you create or import them, **USD 1 per key per month** plus requests).",
+      "tags": [
+        "kms",
+        "pricing"
+      ]
+    },
+    {
+      "id": "29-encryption-secrets-fc-04",
+      "front": "How often are AWS managed KMS keys rotated, and can you change it?",
+      "back": "**Every year** (about 365 days), always on, and you **cannot** change or disable it.",
+      "tags": [
+        "kms",
+        "rotation"
+      ]
+    },
+    {
+      "id": "29-encryption-secrets-fc-05",
+      "front": "What rotation options does a symmetric customer managed key with KMS-generated material have today?",
+      "back": "Optional **automatic** rotation with a period of **90–2,560 days** (default 365), plus **on-demand** rotation up to 25 times per key. Key ID, ARN and policy stay the same, and old material is kept for decryption.",
+      "tags": [
+        "kms",
+        "rotation"
+      ],
+      "updated": "Custom periods and on-demand rotation were added in 2024; the slides only mention yearly rotation."
+    },
+    {
+      "id": "29-encryption-secrets-fc-06",
+      "front": "Which KMS keys can only be rotated manually (new key + move the alias)?",
+      "back": "**Asymmetric** keys, **HMAC** keys and keys in a **custom key store** (CloudHSM or external). Symmetric keys with **imported** material now also support on-demand rotation after you import new material.",
+      "tags": [
+        "kms",
+        "rotation"
+      ],
+      "updated": "On-demand rotation for imported key material is newer than the slides, which say imported keys can only be rotated manually."
+    },
+    {
+      "id": "29-encryption-secrets-fc-07",
+      "front": "When would you choose an asymmetric KMS key over a symmetric one?",
+      "back": "When someone **outside AWS who cannot call KMS** must encrypt data for you (they use the downloadable **public key**), or to **sign and verify** data, for example code signing. AWS services use symmetric keys for encryption at rest.",
+      "tags": [
+        "kms",
+        "asymmetric"
+      ]
+    },
+    {
+      "id": "29-encryption-secrets-fc-08",
+      "front": "What does the default KMS key policy created by the API do?",
+      "back": "It gives the **account principal** (`arn:aws:iam::<account>:root`) `kms:*`. That statement **enables IAM policies** in the account to grant access to the key. Without it, IAM policies alone could not allow anyone to use the key.",
+      "tags": [
+        "kms",
+        "key-policy"
+      ]
+    },
+    {
+      "id": "29-encryption-secrets-fc-09",
+      "front": "What two permissions are needed for a role in account B to use a KMS key owned by account A?",
+      "back": "1) The **key policy** in account A must allow account B (or the role). 2) An **IAM policy** in account B must allow the role to use that key ARN.",
+      "tags": [
+        "kms",
+        "cross-account"
+      ]
+    },
+    {
+      "id": "29-encryption-secrets-fc-10",
+      "front": "What is the waiting period when you schedule a KMS key for deletion?",
+      "back": "**7 to 30 days** (default 30). The key is unusable but recoverable during that time. Afterwards, all data encrypted under it is lost. Disabling the key is the safe, reversible alternative.",
+      "tags": [
+        "kms",
+        "deletion"
+      ]
+    },
+    {
+      "id": "29-encryption-secrets-fc-11",
+      "front": "You copy an encrypted EBS snapshot from eu-west-2 to ap-southeast-2. What happens to the encryption?",
+      "back": "KMS keys are Regional, so the copy is **re-encrypted with a KMS key in the destination Region**: one you pick, or that Region's default EBS key (normally `aws/ebs`). The key must already exist there.",
+      "tags": [
+        "kms",
+        "ebs-snapshots"
+      ]
+    },
+    {
+      "id": "29-encryption-secrets-fc-12",
+      "front": "Why can't you share an EBS snapshot or AMI encrypted with the `aws/ebs` key with another account?",
+      "back": "AWS managed keys have a fixed key policy that only works inside your account. Re-encrypt with a **customer managed key**, add the other account to its **key policy**, then share the snapshot or AMI.",
+      "tags": [
+        "kms",
+        "ebs-snapshots",
+        "ami"
+      ]
+    },
+    {
+      "id": "29-encryption-secrets-fc-13",
+      "front": "Which KMS permissions does the target account need to launch instances from a shared AMI whose snapshots are encrypted with your key?",
+      "back": "At least `kms:DescribeKey`, `kms:ReEncrypt*`, `kms:CreateGrant` and `kms:Decrypt` on the key (EBS also lists `kms:GenerateDataKey*`). They can re-encrypt the new volumes with their own key at launch.",
+      "tags": [
+        "kms",
+        "ami"
+      ]
+    },
+    {
+      "id": "29-encryption-secrets-fc-14",
+      "front": "Which S3 objects are NOT replicated by default, and what must you add?",
+      "back": "Objects encrypted with **SSE-KMS or DSSE-KMS**. Opt in (`SseKmsEncryptedObjects`), set a **destination-Region KMS key**, and give the replication role `kms:Decrypt` on the source key and `kms:Encrypt` on the destination key.",
+      "tags": [
+        "s3",
+        "replication",
+        "kms"
+      ]
+    },
+    {
+      "id": "29-encryption-secrets-fc-15",
+      "front": "What do related KMS multi-Region keys share, and what is set separately in each Region?",
+      "back": "**Shared**: key ID (`mrk-…`), key material, key spec, usage, origin, rotation. **Independent**: key policy, grants, aliases, tags, enabled state. Each replica is billed as its own key.",
+      "tags": [
+        "kms",
+        "multi-region-keys"
+      ]
+    },
+    {
+      "id": "29-encryption-secrets-fc-16",
+      "front": "Give a classic use case for KMS multi-Region keys.",
+      "back": "**Client-side encryption on global databases**: encrypt a field with the AWS Database Encryption SDK (DynamoDB global tables) or the AWS Encryption SDK (Aurora Global Database), then decrypt locally in each Region with the replica key, with no cross-Region KMS call.",
+      "tags": [
+        "kms",
+        "multi-region-keys",
+        "dynamodb-global-tables"
+      ]
+    },
+    {
+      "id": "29-encryption-secrets-fc-17",
+      "front": "Can you turn an existing single-Region KMS key into a multi-Region key?",
+      "back": "**No.** The multi-Region property is fixed at creation. Create a new multi-Region primary key and re-encrypt the data.",
+      "tags": [
+        "kms",
+        "multi-region-keys"
+      ]
+    },
+    {
+      "id": "29-encryption-secrets-fc-18",
+      "front": "Parameter Store standard vs advanced tier: count, size and price?",
+      "back": "**Standard**: 10,000 parameters, 4 KB values, free. **Advanced**: 100,000 parameters, 8 KB values, parameter policies and cross-account sharing, **USD 0.05 per parameter per month**. Advanced cannot be downgraded.",
+      "tags": [
+        "ssm-parameter-store"
+      ]
+    },
+    {
+      "id": "29-encryption-secrets-fc-19",
+      "front": "What are the three Parameter Store parameter policy types?",
+      "back": "**Expiration** (deletes the parameter at a date), **ExpirationNotification** (EventBridge event before expiry), **NoChangeNotification** (EventBridge event if unchanged for a set time). Advanced tier only, up to 10 per parameter.",
+      "tags": [
+        "ssm-parameter-store",
+        "eventbridge"
+      ]
+    },
+    {
+      "id": "29-encryption-secrets-fc-20",
+      "front": "What do the Parameter Store paths `/aws/reference/secretsmanager/…` and `/aws/service/…` give you?",
+      "back": "`/aws/reference/secretsmanager/<name>` reads a **Secrets Manager secret** through the Parameter Store API. `/aws/service/…` holds AWS **public parameters**, such as the latest Amazon Linux 2023 AMI ID.",
+      "tags": [
+        "ssm-parameter-store",
+        "secrets-manager"
+      ]
+    },
+    {
+      "id": "29-encryption-secrets-fc-21",
+      "front": "What does Secrets Manager cost and how often can it rotate a secret?",
+      "back": "**USD 0.40 per secret per month** plus USD 0.05 per 10,000 API calls. Rotation can run as often as every **4 hours** and as rarely as every 999 days, using a Lambda function or managed rotation.",
+      "tags": [
+        "secrets-manager",
+        "pricing"
+      ]
+    },
+    {
+      "id": "29-encryption-secrets-fc-22",
+      "front": "Which services offer managed rotation (no Lambda of your own) for their admin credentials in Secrets Manager?",
+      "back": "**Amazon RDS, Aurora, Redshift and DocumentDB** (plus newer managed external partner secrets). Any other secret rotates through a Lambda function.",
+      "tags": [
+        "secrets-manager",
+        "rds"
+      ]
+    },
+    {
+      "id": "29-encryption-secrets-fc-23",
+      "front": "How do Secrets Manager multi-Region secrets behave?",
+      "back": "Replicas keep the same name and ARN (different Region), are encrypted with a KMS key in their Region, and receive the primary's new values after rotation. In a disaster you can **promote a replica to a standalone secret**.",
+      "tags": [
+        "secrets-manager",
+        "disaster-recovery"
+      ]
+    },
+    {
+      "id": "29-encryption-secrets-fc-24",
+      "front": "Which ACM certificates renew automatically, and how long are ACM public certificates valid now?",
+      "back": "Certificates **issued by ACM** that are in use and validated (DNS validation renews hands-free). Validity is **198 days**, and DNS-validated renewal starts **45 days** before expiry. **Imported** certificates never renew automatically.",
+      "tags": [
+        "acm"
+      ],
+      "updated": "The slides say renewal starts 60 days before expiry, which applied to the older 395-day certificates."
+    },
+    {
+      "id": "29-encryption-secrets-fc-25",
+      "front": "How can you get warned before an imported ACM certificate expires?",
+      "back": "ACM sends a daily **ACM Certificate Approaching Expiration** event to **EventBridge** (from 45 days out for imported certificates, adjustable), and the **AWS Config** rule `acm-certificate-expiration-check` flags certificates expiring within N days (default 14).",
+      "tags": [
+        "acm",
+        "eventbridge",
+        "config"
+      ]
+    },
+    {
+      "id": "29-encryption-secrets-fc-26",
+      "front": "In which Region must the ACM certificate be for (a) CloudFront, (b) an edge-optimized API Gateway custom domain, (c) a Regional API or an ALB in eu-west-1?",
+      "back": "(a) **us-east-1**, (b) **us-east-1**, (c) the **same Region as the resource**, here eu-west-1.",
+      "tags": [
+        "acm",
+        "api-gateway",
+        "cloudfront"
+      ]
+    },
+    {
+      "id": "29-encryption-secrets-fc-27",
+      "front": "What are the three API Gateway REST endpoint types?",
+      "back": "**Edge-optimized** (default, through CloudFront PoPs, for global clients), **Regional** (clients in the same Region, optionally your own CloudFront), **Private** (reachable only from a VPC through an interface VPC endpoint, controlled by a resource policy).",
+      "tags": [
+        "api-gateway"
+      ]
+    },
+    {
+      "id": "29-encryption-secrets-fc-28",
+      "front": "KMS vs CloudHSM in one line each?",
+      "back": "**KMS**: multi-tenant managed service, access through IAM and key policies, native service integration. **CloudHSM**: single-tenant HSMs in your VPC (FIPS 140-3 Level 3), **you** manage keys and HSM users, you add HSMs across AZs for HA, no free tier.",
+      "tags": [
+        "cloudhsm",
+        "kms"
+      ],
+      "updated": "Current hsm2m.medium HSMs are FIPS 140-3 Level 3; the slides cite FIPS 140-2 Level 3 (the retired hsm1.medium)."
+    },
+    {
+      "id": "29-encryption-secrets-fc-29",
+      "front": "How do AWS services such as EBS, S3 and RDS use keys stored in CloudHSM?",
+      "back": "Through a **KMS custom key store** (CloudHSM key store) backed by your cluster, which needs at least two active HSMs in different AZs. Its KMS keys are symmetric only, with no automatic rotation and no multi-Region support.",
+      "tags": [
+        "cloudhsm",
+        "kms"
+      ]
+    }
+  ]
+}

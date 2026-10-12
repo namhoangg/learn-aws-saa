@@ -1,0 +1,467 @@
+{
+  "id": "26-cloudwatch-eventbridge",
+  "order": 26,
+  "title": "Monitoring with CloudWatch & EventBridge",
+  "courseSection": "AWS Monitoring, Audit & Performance",
+  "slides": [
+    575,
+    604
+  ],
+  "estimatedMinutes": 70,
+  "summary": "Amazon CloudWatch metrics, custom metrics, dashboards and Metric Streams; CloudWatch Logs (retention, export versus subscription filters, cross-account aggregation, Logs Insights, metric filters); the unified CloudWatch agent; alarms, composite alarms and EC2 instance recovery; Network Synthetic Monitor; Amazon EventBridge rules, buses, archive and replay, schema registry and cross-account policies; and the Container, Lambda, Contributor and Application Insights features.",
+  "services": [
+    "cloudwatch",
+    "cloudwatch-logs",
+    "cloudwatch-alarms",
+    "eventbridge",
+    "ec2",
+    "asg",
+    "sns",
+    "sqs",
+    "lambda",
+    "data-firehose",
+    "kinesis-data-streams",
+    "opensearch",
+    "s3",
+    "athena",
+    "kms",
+    "ssm-parameter-store",
+    "systems-manager",
+    "cloudtrail",
+    "ecs",
+    "eks",
+    "fargate",
+    "step-functions",
+    "direct-connect",
+    "site-to-site-vpn",
+    "vpc-flow-logs",
+    "route53",
+    "api-gateway",
+    "elastic-beanstalk",
+    "organizations",
+    "iam-roles",
+    "sagemaker",
+    "trusted-advisor",
+    "network-synthetic-monitor",
+    "eventbridge-scheduler"
+  ],
+  "relations": [
+    {
+      "from": "cloudwatch-alarms",
+      "to": "sns",
+      "label": "send notifications through"
+    },
+    {
+      "from": "cloudwatch-alarms",
+      "to": "ec2",
+      "label": "stop, reboot or recover"
+    },
+    {
+      "from": "cloudwatch-alarms",
+      "to": "asg",
+      "label": "trigger scaling policies on"
+    },
+    {
+      "from": "cloudwatch-alarms",
+      "to": "lambda",
+      "label": "invoke directly"
+    },
+    {
+      "from": "cloudwatch-logs",
+      "to": "cloudwatch",
+      "label": "turn log lines into metrics via metric filters in"
+    },
+    {
+      "from": "cloudwatch-logs",
+      "to": "kinesis-data-streams",
+      "label": "stream events by subscription filter to"
+    },
+    {
+      "from": "cloudwatch-logs",
+      "to": "data-firehose",
+      "label": "stream events by subscription filter to"
+    },
+    {
+      "from": "cloudwatch-logs",
+      "to": "s3",
+      "label": "export log data in batches to"
+    },
+    {
+      "from": "network-synthetic-monitor",
+      "to": "cloudwatch",
+      "label": "publishes hybrid latency and packet loss metrics to"
+    },
+    {
+      "from": "cloudwatch",
+      "to": "data-firehose",
+      "label": "pushes metric streams through"
+    },
+    {
+      "from": "ssm-parameter-store",
+      "to": "ec2",
+      "label": "stores CloudWatch agent configuration for"
+    },
+    {
+      "from": "eventbridge",
+      "to": "lambda",
+      "label": "invokes on matching events or schedules"
+    },
+    {
+      "from": "eventbridge",
+      "to": "sqs",
+      "label": "routes matching events to"
+    },
+    {
+      "from": "cloudtrail",
+      "to": "eventbridge",
+      "label": "emits API call events to"
+    },
+    {
+      "from": "organizations",
+      "to": "eventbridge",
+      "label": "scopes cross-account bus policies for"
+    }
+  ],
+  "examDomains": [
+    "resilient",
+    "performant",
+    "secure",
+    "cost"
+  ],
+  "lastVerified": "2026-10-04",
+  "sources": [
+    {
+      "title": "Amazon CloudWatch metrics concepts (namespaces, dimensions, resolution, retention, periods)",
+      "url": "https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/cloudwatch_concepts.html"
+    },
+    {
+      "title": "Publish custom metrics (PutMetricData / EMF)",
+      "url": "https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/publishingMetrics.html"
+    },
+    {
+      "title": "Using Amazon CloudWatch dashboards",
+      "url": "https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/CloudWatch_Dashboards.html"
+    },
+    {
+      "title": "Use metric streams",
+      "url": "https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/CloudWatch-Metric-Streams.html"
+    },
+    {
+      "title": "Working with log groups and log streams",
+      "url": "https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/Working-with-log-groups-and-streams.html"
+    },
+    {
+      "title": "PutRetentionPolicy (CloudWatch Logs API Reference)",
+      "url": "https://docs.aws.amazon.com/AmazonCloudWatchLogs/latest/APIReference/API_PutRetentionPolicy.html"
+    },
+    {
+      "title": "Encrypt log data in CloudWatch Logs using AWS KMS",
+      "url": "https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/encrypt-log-data-kms.html"
+    },
+    {
+      "title": "CloudWatch Logs log classes",
+      "url": "https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/CloudWatch_Logs_Log_Classes.html"
+    },
+    {
+      "title": "Enable logging from AWS services (CloudWatch Logs)",
+      "url": "https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/aws-services-sending-logs.html"
+    },
+    {
+      "title": "Exporting log data to Amazon S3",
+      "url": "https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/S3Export.html"
+    },
+    {
+      "title": "Real-time processing of log data with subscriptions",
+      "url": "https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/Subscriptions.html"
+    },
+    {
+      "title": "Log group-level subscription filters",
+      "url": "https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/SubscriptionFilters.html"
+    },
+    {
+      "title": "Cross-account cross-Region subscriptions",
+      "url": "https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/CrossAccountSubscriptions.html"
+    },
+    {
+      "title": "Cross-account cross-Region log centralization",
+      "url": "https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/CloudWatchLogs_Centralization.html"
+    },
+    {
+      "title": "Analyzing log data with CloudWatch Logs Insights",
+      "url": "https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/AnalyzingLogData.html"
+    },
+    {
+      "title": "Tutorial: Run and modify a sample Logs Insights query",
+      "url": "https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/CWL_AnalyzeLogData_RunSampleQuery.html"
+    },
+    {
+      "title": "Creating metrics from log events using filters",
+      "url": "https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/MonitoringLogData.html"
+    },
+    {
+      "title": "Create a metric filter for a log group",
+      "url": "https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/CreateMetricFilterProcedure.html"
+    },
+    {
+      "title": "Use the previous CloudWatch Logs agent (deprecated)",
+      "url": "https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/UsePreviousCloudWatchLogsAgent.html"
+    },
+    {
+      "title": "Collect metrics, logs, and traces using the CloudWatch agent",
+      "url": "https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/Install-CloudWatch-Agent.html"
+    },
+    {
+      "title": "Metrics collected by the CloudWatch agent",
+      "url": "https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/metrics-collected-by-CloudWatch-agent.html"
+    },
+    {
+      "title": "CloudWatch agent prerequisites (IAM roles)",
+      "url": "https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/prerequisites.html"
+    },
+    {
+      "title": "Download the CloudWatch agent package",
+      "url": "https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/download-CloudWatch-Agent-on-EC2-Instance-commandline-first.html"
+    },
+    {
+      "title": "Create the CloudWatch agent configuration file with the wizard",
+      "url": "https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/create-cloudwatch-agent-configuration-file-wizard.html"
+    },
+    {
+      "title": "CloudWatch agent configuration file details",
+      "url": "https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/CloudWatch-Agent-Configuration-File-Details.html"
+    },
+    {
+      "title": "Install the CloudWatch agent on multiple servers (fetch-config commands)",
+      "url": "https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/install-CloudWatch-Agent-commandline-fleet.html"
+    },
+    {
+      "title": "Common scenarios with the CloudWatch agent",
+      "url": "https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/CloudWatch-Agent-common-scenarios.html"
+    },
+    {
+      "title": "AWS managed policy: CloudWatchAgentServerPolicy",
+      "url": "https://docs.aws.amazon.com/aws-managed-policy/latest/reference/CloudWatchAgentServerPolicy.html"
+    },
+    {
+      "title": "CloudWatch alarm evaluation",
+      "url": "https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/alarm-evaluation.html"
+    },
+    {
+      "title": "CloudWatch alarm actions",
+      "url": "https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/alarm-actions.html"
+    },
+    {
+      "title": "PutMetricAlarm (CloudWatch API Reference)",
+      "url": "https://docs.aws.amazon.com/AmazonCloudWatch/latest/APIReference/API_PutMetricAlarm.html"
+    },
+    {
+      "title": "Create a CloudWatch alarm based on a static threshold",
+      "url": "https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/ConsoleAlarms.html"
+    },
+    {
+      "title": "Create a composite alarm",
+      "url": "https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/Create_Composite_Alarm.html"
+    },
+    {
+      "title": "PutCompositeAlarm (CloudWatch API Reference)",
+      "url": "https://docs.aws.amazon.com/AmazonCloudWatch/latest/APIReference/API_PutCompositeAlarm.html"
+    },
+    {
+      "title": "Stop, terminate, reboot, or recover an EC2 instance with alarm actions",
+      "url": "https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/UsingAlarmActions.html"
+    },
+    {
+      "title": "AWS CLI reference: aws cloudwatch set-alarm-state",
+      "url": "https://docs.aws.amazon.com/cli/latest/reference/cloudwatch/set-alarm-state.html"
+    },
+    {
+      "title": "Automatic instance recovery (Amazon EC2)",
+      "url": "https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-instance-recover.html"
+    },
+    {
+      "title": "Configure CloudWatch action based recovery on an EC2 instance",
+      "url": "https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/cloudwatch-recovery.html"
+    },
+    {
+      "title": "Status checks for Amazon EC2 instances",
+      "url": "https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/monitoring-system-instance-status-check.html"
+    },
+    {
+      "title": "Launch an EC2 instance using the launch instance wizard",
+      "url": "https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-launch-instance-wizard.html"
+    },
+    {
+      "title": "Start a Session Manager session",
+      "url": "https://docs.aws.amazon.com/systems-manager/latest/userguide/session-manager-working-with-sessions-start.html"
+    },
+    {
+      "title": "Using Network Synthetic Monitor",
+      "url": "https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/what-is-network-monitor.html"
+    },
+    {
+      "title": "How Network Synthetic Monitor works",
+      "url": "https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/nw-monitor-how-it-works.html"
+    },
+    {
+      "title": "Container Insights",
+      "url": "https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/ContainerInsights.html"
+    },
+    {
+      "title": "Lambda Insights",
+      "url": "https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/Lambda-Insights.html"
+    },
+    {
+      "title": "Use Contributor Insights to analyze high-cardinality data",
+      "url": "https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/ContributorInsights.html"
+    },
+    {
+      "title": "Detect common application problems with CloudWatch Application Insights",
+      "url": "https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/cloudwatch-application-insights.html"
+    },
+    {
+      "title": "What is Amazon CloudWatch Application Insights?",
+      "url": "https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/appinsights-what-is.html"
+    },
+    {
+      "title": "Amazon CloudWatch pricing",
+      "url": "https://aws.amazon.com/cloudwatch/pricing/"
+    },
+    {
+      "title": "What is Amazon EventBridge?",
+      "url": "https://docs.aws.amazon.com/eventbridge/latest/userguide/eb-what-is.html"
+    },
+    {
+      "title": "Amazon EventBridge event bus (default and Classic)",
+      "url": "https://docs.aws.amazon.com/eventbridge/latest/userguide/eb-event-bus.html"
+    },
+    {
+      "title": "Amazon EventBridge event bus (Custom)",
+      "url": "https://docs.aws.amazon.com/eventbridge/latest/userguide/eb-custom-bus.html"
+    },
+    {
+      "title": "What is the EventBridge Custom Event Bus?",
+      "url": "https://docs.aws.amazon.com/eventbridge/latest/userguide/eb-custom-bus-what-is.html"
+    },
+    {
+      "title": "Amazon EventBridge relaunches event buses for enterprise scale (Sep 2026)",
+      "url": "https://aws.amazon.com/about-aws/whats-new/2026/09/eventbridge-relaunches-custom-event-buses/"
+    },
+    {
+      "title": "Creating an event bus in Amazon EventBridge",
+      "url": "https://docs.aws.amazon.com/eventbridge/latest/userguide/eb-create-event-bus.html"
+    },
+    {
+      "title": "Creating rules using the Enhanced Builder",
+      "url": "https://docs.aws.amazon.com/eventbridge/latest/userguide/eb-create-rule-visual.html"
+    },
+    {
+      "title": "Creating rules using the Advanced Builder",
+      "url": "https://docs.aws.amazon.com/eventbridge/latest/userguide/eb-create-rule-wizard.html"
+    },
+    {
+      "title": "Event bus targets in Amazon EventBridge",
+      "url": "https://docs.aws.amazon.com/eventbridge/latest/userguide/eb-targets.html"
+    },
+    {
+      "title": "Using resource-based policies for Amazon EventBridge",
+      "url": "https://docs.aws.amazon.com/eventbridge/latest/userguide/eb-use-resource-based.html"
+    },
+    {
+      "title": "Archiving and replaying events in Amazon EventBridge",
+      "url": "https://docs.aws.amazon.com/eventbridge/latest/userguide/eb-archive.html"
+    },
+    {
+      "title": "Creating event archives in Amazon EventBridge",
+      "url": "https://docs.aws.amazon.com/eventbridge/latest/userguide/eb-archive-event.html"
+    },
+    {
+      "title": "Creating replays of archived events in Amazon EventBridge",
+      "url": "https://docs.aws.amazon.com/eventbridge/latest/userguide/eb-replay-archived-event.html"
+    },
+    {
+      "title": "Amazon EventBridge schemas",
+      "url": "https://docs.aws.amazon.com/eventbridge/latest/userguide/eb-schema.html"
+    },
+    {
+      "title": "Sending and receiving events between AWS accounts in Amazon EventBridge",
+      "url": "https://docs.aws.amazon.com/eventbridge/latest/userguide/eb-cross-account.html"
+    },
+    {
+      "title": "Setting a schedule pattern for scheduled rules (legacy)",
+      "url": "https://docs.aws.amazon.com/eventbridge/latest/userguide/eb-scheduled-rule-pattern.html"
+    },
+    {
+      "title": "Amazon EventBridge quotas",
+      "url": "https://docs.aws.amazon.com/eventbridge/latest/userguide/eb-quota.html"
+    },
+    {
+      "title": "Amazon EventBridge pricing",
+      "url": "https://aws.amazon.com/eventbridge/pricing/"
+    },
+    {
+      "title": "Amazon VPC pricing (public IPv4 addresses)",
+      "url": "https://aws.amazon.com/vpc/pricing/"
+    },
+    {
+      "title": "Creating a bus (EventBridge Custom Event Bus, eventsv2 CLI)",
+      "url": "https://docs.aws.amazon.com/eventbridge/latest/userguide/eb-custom-bus-create.html"
+    },
+    {
+      "title": "Sending events with PutEvents in Amazon EventBridge",
+      "url": "https://docs.aws.amazon.com/eventbridge/latest/userguide/eb-putevents.html"
+    },
+    {
+      "title": "Getting started with EventBridge Scheduler",
+      "url": "https://docs.aws.amazon.com/scheduler/latest/UserGuide/getting-started.html"
+    },
+    {
+      "title": "Manual installation of the CloudWatch agent on Amazon EC2",
+      "url": "https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/manual-installation.html"
+    },
+    {
+      "title": "Starting the CloudWatch agent",
+      "url": "https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/start-CloudWatch-Agent-on-premise-SSM-onprem.html"
+    },
+    {
+      "title": "Troubleshooting the CloudWatch agent (status, log files)",
+      "url": "https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/troubleshooting-CloudWatch-Agent.html"
+    },
+    {
+      "title": "Creating an Amazon SNS topic",
+      "url": "https://docs.aws.amazon.com/sns/latest/dg/sns-create-topic.html"
+    },
+    {
+      "title": "Creating a subscription to an Amazon SNS topic",
+      "url": "https://docs.aws.amazon.com/sns/latest/dg/sns-create-subscribe-endpoint-to-topic.html"
+    },
+    {
+      "title": "Amazon SNS FAQs (free tier)",
+      "url": "https://aws.amazon.com/sns/faqs/"
+    },
+    {
+      "title": "Creating an Amazon SQS standard queue",
+      "url": "https://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/creating-sqs-standard-queues.html"
+    },
+    {
+      "title": "CloudWatch Logs quotas (subscription filters, metric filters, export tasks)",
+      "url": "https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/cloudwatch_limits_cwl.html"
+    },
+    {
+      "title": "Account-level subscription filters",
+      "url": "https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/SubscriptionFilters-AccountLevel.html"
+    },
+    {
+      "title": "PutAccountPolicy (CloudWatch Logs API Reference)",
+      "url": "https://docs.aws.amazon.com/AmazonCloudWatchLogs/latest/APIReference/API_PutAccountPolicy.html"
+    },
+    {
+      "title": "PutSubscriptionFilter (CloudWatch Logs API Reference)",
+      "url": "https://docs.aws.amazon.com/AmazonCloudWatchLogs/latest/APIReference/API_PutSubscriptionFilter.html"
+    },
+    {
+      "title": "CloudWatch metrics that are available for your EC2 instances (dimensions, status check metrics)",
+      "url": "https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/viewing_metrics_with_cloudwatch.html"
+    }
+  ],
+  "newServices": []
+}

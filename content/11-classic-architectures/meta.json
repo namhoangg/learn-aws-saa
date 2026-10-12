@@ -1,0 +1,374 @@
+{
+  "id": "11-classic-architectures",
+  "order": 11,
+  "title": "Classic Solutions Architecture",
+  "courseSection": "Classic Solutions Architecture",
+  "slides": [
+    227,
+    266
+  ],
+  "estimatedMinutes": 60,
+  "summary": "Three case studies that grow a web app step by step: a stateless site (Elastic IP, DNS, ELB, Auto Scaling, multi-AZ, reserved capacity), a stateful shop (sessions, ElastiCache, RDS replicas, security group chaining) and a WordPress site (Aurora, EBS versus EFS). Then fast instantiation with golden AMIs and snapshots, and AWS Elastic Beanstalk: components, platforms, web and worker tiers, environment types and deployments.",
+  "services": [
+    "route53",
+    "elastic-ip",
+    "ec2",
+    "elb",
+    "alb",
+    "asg",
+    "regions-azs",
+    "security-groups",
+    "subnet",
+    "ec2-reserved",
+    "savings-plans",
+    "elasticache",
+    "dynamodb",
+    "rds",
+    "aurora",
+    "ebs",
+    "efs",
+    "ami",
+    "ebs-snapshots",
+    "ec2-image-builder",
+    "elastic-beanstalk",
+    "sqs",
+    "cloudformation",
+    "s3",
+    "eks"
+  ],
+  "relations": [
+    {
+      "from": "route53",
+      "to": "alb",
+      "label": "points an alias record at"
+    },
+    {
+      "from": "alb",
+      "to": "ec2",
+      "label": "spreads requests across healthy"
+    },
+    {
+      "from": "asg",
+      "to": "ec2",
+      "label": "launches and replaces"
+    },
+    {
+      "from": "ec2",
+      "to": "elasticache",
+      "label": "keeps session data and cached reads in"
+    },
+    {
+      "from": "ec2",
+      "to": "dynamodb",
+      "label": "can keep session data in"
+    },
+    {
+      "from": "ec2",
+      "to": "rds",
+      "label": "reads and writes customer data in"
+    },
+    {
+      "from": "ec2",
+      "to": "aurora",
+      "label": "stores blog content in"
+    },
+    {
+      "from": "ec2",
+      "to": "efs",
+      "label": "shares uploaded files across AZs through"
+    },
+    {
+      "from": "security-groups",
+      "to": "rds",
+      "label": "allow only the app tier to reach"
+    },
+    {
+      "from": "ec2-image-builder",
+      "to": "ami",
+      "label": "builds and patches golden"
+    },
+    {
+      "from": "elastic-beanstalk",
+      "to": "cloudformation",
+      "label": "provisions environment resources with"
+    },
+    {
+      "from": "elastic-beanstalk",
+      "to": "asg",
+      "label": "manages instance capacity through"
+    },
+    {
+      "from": "elastic-beanstalk",
+      "to": "alb",
+      "label": "creates for load-balanced environments"
+    },
+    {
+      "from": "elastic-beanstalk",
+      "to": "sqs",
+      "label": "feeds worker environments from"
+    },
+    {
+      "from": "elastic-beanstalk",
+      "to": "s3",
+      "label": "stores application versions in"
+    }
+  ],
+  "examDomains": [
+    "resilient",
+    "performant",
+    "secure",
+    "cost"
+  ],
+  "lastVerified": "2026-10-04",
+  "sources": [
+    {
+      "title": "Understanding concepts in Elastic Beanstalk",
+      "url": "https://docs.aws.amazon.com/elasticbeanstalk/latest/dg/concepts.html"
+    },
+    {
+      "title": "Elastic Beanstalk supported platforms",
+      "url": "https://docs.aws.amazon.com/elasticbeanstalk/latest/platforms/platforms-supported.html"
+    },
+    {
+      "title": "Elastic Beanstalk platform release schedule (retired AL1 and AL2 branches)",
+      "url": "https://docs.aws.amazon.com/elasticbeanstalk/latest/dg/platforms-schedule.html"
+    },
+    {
+      "title": "Elastic Beanstalk custom platforms (retired)",
+      "url": "https://docs.aws.amazon.com/elasticbeanstalk/latest/dg/custom-platforms.html"
+    },
+    {
+      "title": "Beanstalk Cluster architecture",
+      "url": "https://docs.aws.amazon.com/elasticbeanstalk/latest/dg/beanstalk-cluster-concepts.html"
+    },
+    {
+      "title": "AWS Elastic Beanstalk introduces Cluster Mode (What's New, 17 Sep 2026)",
+      "url": "https://aws.amazon.com/about-aws/whats-new/2026/09/elastic-beanstalk-cluster-mode/"
+    },
+    {
+      "title": "Learn how to get started with Elastic Beanstalk",
+      "url": "https://docs.aws.amazon.com/elasticbeanstalk/latest/dg/GettingStarted.html"
+    },
+    {
+      "title": "The create new environment wizard",
+      "url": "https://docs.aws.amazon.com/elasticbeanstalk/latest/dg/environments-create-wizard.html"
+    },
+    {
+      "title": "Elastic Beanstalk environment types",
+      "url": "https://docs.aws.amazon.com/elasticbeanstalk/latest/dg/using-features-managing-env-types.html"
+    },
+    {
+      "title": "Elastic Beanstalk worker environments",
+      "url": "https://docs.aws.amazon.com/elasticbeanstalk/latest/dg/using-features-managing-env-tiers.html"
+    },
+    {
+      "title": "Auto Scaling triggers for your Elastic Beanstalk environment",
+      "url": "https://docs.aws.amazon.com/elasticbeanstalk/latest/dg/environments-cfg-autoscaling-triggers.html"
+    },
+    {
+      "title": "Elastic Beanstalk deployment policies and settings",
+      "url": "https://docs.aws.amazon.com/elasticbeanstalk/latest/dg/using-features.rolling-version-deploy.html"
+    },
+    {
+      "title": "Blue/Green deployments with Elastic Beanstalk",
+      "url": "https://docs.aws.amazon.com/elasticbeanstalk/latest/dg/using-features.CNAMESwap.html"
+    },
+    {
+      "title": "Adding a database to your Elastic Beanstalk environment",
+      "url": "https://docs.aws.amazon.com/elasticbeanstalk/latest/dg/using-features.managing.db.html"
+    },
+    {
+      "title": "Load balancer for your Elastic Beanstalk environment",
+      "url": "https://docs.aws.amazon.com/elasticbeanstalk/latest/dg/using-features.managing.elb.html"
+    },
+    {
+      "title": "Configuring an Application Load Balancer (Elastic Beanstalk; type chosen only at creation)",
+      "url": "https://docs.aws.amazon.com/elasticbeanstalk/latest/dg/environments-cfg-alb.html"
+    },
+    {
+      "title": "eb create (--single, --elb-type default application)",
+      "url": "https://docs.aws.amazon.com/elasticbeanstalk/latest/dg/eb3-create.html"
+    },
+    {
+      "title": "Configuration options for Beanstalk Standard environments",
+      "url": "https://docs.aws.amazon.com/elasticbeanstalk/latest/dg/command-options-general.html"
+    },
+    {
+      "title": "Configuring EC2 security groups and instance types using the AWS CLI (Elastic Beanstalk)",
+      "url": "https://docs.aws.amazon.com/elasticbeanstalk/latest/dg/using-features.managing.ec2.aws-cli.html"
+    },
+    {
+      "title": "Creating Elastic Beanstalk environments with the AWS CLI",
+      "url": "https://docs.aws.amazon.com/elasticbeanstalk/latest/dg/environments-create-awscli.html"
+    },
+    {
+      "title": "CreateEnvironment API reference (default sample application)",
+      "url": "https://docs.aws.amazon.com/elasticbeanstalk/latest/api/API_CreateEnvironment.html"
+    },
+    {
+      "title": "Managing Elastic Beanstalk service roles",
+      "url": "https://docs.aws.amazon.com/elasticbeanstalk/latest/dg/iam-servicerole.html"
+    },
+    {
+      "title": "Managing Elastic Beanstalk instance profiles",
+      "url": "https://docs.aws.amazon.com/elasticbeanstalk/latest/dg/iam-instanceprofile.html"
+    },
+    {
+      "title": "AWSElasticBeanstalkEnhancedHealth managed policy",
+      "url": "https://docs.aws.amazon.com/aws-managed-policy/latest/reference/AWSElasticBeanstalkEnhancedHealth.html"
+    },
+    {
+      "title": "AWSElasticBeanstalkManagedUpdatesCustomerRolePolicy managed policy",
+      "url": "https://docs.aws.amazon.com/aws-managed-policy/latest/reference/AWSElasticBeanstalkManagedUpdatesCustomerRolePolicy.html"
+    },
+    {
+      "title": "AWSElasticBeanstalkWebTier managed policy",
+      "url": "https://docs.aws.amazon.com/aws-managed-policy/latest/reference/AWSElasticBeanstalkWebTier.html"
+    },
+    {
+      "title": "Using Elastic Beanstalk with Amazon S3 (storage bucket and deletion)",
+      "url": "https://docs.aws.amazon.com/elasticbeanstalk/latest/dg/AWSHowTo.S3.html"
+    },
+    {
+      "title": "AWS Elastic Beanstalk pricing",
+      "url": "https://aws.amazon.com/elasticbeanstalk/pricing/"
+    },
+    {
+      "title": "Elastic IP addresses (pricing, quota of five per Region)",
+      "url": "https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/elastic-ip-addresses-eip.html"
+    },
+    {
+      "title": "Amazon VPC pricing (public IPv4 addresses)",
+      "url": "https://aws.amazon.com/vpc/pricing/"
+    },
+    {
+      "title": "New AWS public IPv4 address charge (AWS News Blog, effective 1 Feb 2024)",
+      "url": "https://aws.amazon.com/blogs/aws/new-aws-public-ipv4-address-charge-public-ip-insights/"
+    },
+    {
+      "title": "Choosing between alias and non-alias records (Route 53)",
+      "url": "https://docs.aws.amazon.com/Route53/latest/DeveloperGuide/resource-record-sets-choosing-alias-non-alias.html"
+    },
+    {
+      "title": "What are Savings Plans?",
+      "url": "https://docs.aws.amazon.com/savingsplans/latest/userguide/what-is-savings-plans.html"
+    },
+    {
+      "title": "Compute Savings Plans and Reserved Instances",
+      "url": "https://docs.aws.amazon.com/savingsplans/latest/userguide/sp-ris.html"
+    },
+    {
+      "title": "Sticky sessions for your Application Load Balancer",
+      "url": "https://docs.aws.amazon.com/elasticloadbalancing/latest/application/sticky-sessions.html"
+    },
+    {
+      "title": "RFC 6265 HTTP State Management Mechanism, section 6.1 (cookie size limits)",
+      "url": "https://www.rfc-editor.org/rfc/rfc6265#section-6.1"
+    },
+    {
+      "title": "What is Amazon ElastiCache?",
+      "url": "https://docs.aws.amazon.com/AmazonElastiCache/latest/dg/WhatIs.html"
+    },
+    {
+      "title": "Comparing node-based Valkey, Memcached, and Redis OSS clusters (replication and failover)",
+      "url": "https://docs.aws.amazon.com/AmazonElastiCache/latest/dg/SelectEngine.html"
+    },
+    {
+      "title": "ElastiCache caching strategies (lazy loading, write-through, TTL)",
+      "url": "https://docs.aws.amazon.com/AmazonElastiCache/latest/dg/Strategies.html"
+    },
+    {
+      "title": "Using time to live (TTL) in DynamoDB",
+      "url": "https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/TTL.html"
+    },
+    {
+      "title": "Working with DB instance read replicas (Amazon RDS)",
+      "url": "https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/USER_ReadRepl.html"
+    },
+    {
+      "title": "Differences between read replicas for DB engines",
+      "url": "https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/USER_ReadRepl.Overview.Differences.html"
+    },
+    {
+      "title": "RDS for MySQL, MariaDB and PostgreSQL support up to 15 read replicas (What's New, Oct 2022)",
+      "url": "https://aws.amazon.com/about-aws/whats-new/2022/10/amazon-rds-mysql-mariadb-postgre-sql-support-15-read-replicas-3x-read-capacity"
+    },
+    {
+      "title": "Configuring and managing a Multi-AZ deployment for Amazon RDS",
+      "url": "https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/Concepts.MultiAZ.html"
+    },
+    {
+      "title": "Restoring to a DB instance from a DB snapshot",
+      "url": "https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/USER_RestoreFromSnapshot.html"
+    },
+    {
+      "title": "Replication with Amazon Aurora",
+      "url": "https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/Aurora.Replication.html"
+    },
+    {
+      "title": "Amazon Aurora storage (cluster volume across three AZs)",
+      "url": "https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/Aurora.Overview.StorageReliability.html"
+    },
+    {
+      "title": "Amazon Aurora FAQ",
+      "url": "https://docs.aws.amazon.com/rds/latest/auroraextendedcontent/aurora-faq.html"
+    },
+    {
+      "title": "How Amazon EFS works",
+      "url": "https://docs.aws.amazon.com/efs/latest/ug/how-it-works.html"
+    },
+    {
+      "title": "Creating EFS file systems (Quick create and Customize)",
+      "url": "https://docs.aws.amazon.com/efs/latest/ug/creating-using-create-fs.html"
+    },
+    {
+      "title": "Enabling automatic mounting on existing EC2 Linux instances (EFS fstab entry)",
+      "url": "https://docs.aws.amazon.com/efs/latest/ug/mount-fs-auto-mount-update-fstab.html"
+    },
+    {
+      "title": "Manually installing the Amazon EFS client",
+      "url": "https://docs.aws.amazon.com/efs/latest/ug/installing-amazon-efs-utils.html"
+    },
+    {
+      "title": "Use Amazon EFS with Amazon EC2 Linux instances",
+      "url": "https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/AmazonEFS.html"
+    },
+    {
+      "title": "Amazon EFS pricing",
+      "url": "https://aws.amazon.com/efs/pricing/"
+    },
+    {
+      "title": "Attach an EBS volume to multiple instances using Multi-Attach",
+      "url": "https://docs.aws.amazon.com/ebs/latest/userguide/ebs-volumes-multi.html"
+    },
+    {
+      "title": "Initialize Amazon EBS volumes (lazy loading, fast snapshot restore, provisioned initialization rate)",
+      "url": "https://docs.aws.amazon.com/ebs/latest/userguide/ebs-initialize.html"
+    },
+    {
+      "title": "Run commands when you launch an EC2 instance with user data input",
+      "url": "https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/user-data.html"
+    },
+    {
+      "title": "What is EC2 Image Builder?",
+      "url": "https://docs.aws.amazon.com/imagebuilder/latest/userguide/what-is-image-builder.html"
+    },
+    {
+      "title": "Savings Plans types (Compute up to 66%, EC2 Instance up to 72%)",
+      "url": "https://docs.aws.amazon.com/savingsplans/latest/userguide/plan-types.html"
+    },
+    {
+      "title": "Elastic Load Balancing pricing (ALB hourly and legacy Free Tier hours)",
+      "url": "https://aws.amazon.com/elasticloadbalancing/pricing/"
+    },
+    {
+      "title": "Viewing logs from Amazon EC2 instances in your Elastic Beanstalk environment",
+      "url": "https://docs.aws.amazon.com/elasticbeanstalk/latest/dg/using-features.logging.html"
+    },
+    {
+      "title": "AWS CLI reference: ec2 describe-instance-type-offerings",
+      "url": "https://docs.aws.amazon.com/cli/latest/reference/ec2/describe-instance-type-offerings.html"
+    }
+  ],
+  "newServices": []
+}

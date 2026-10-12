@@ -1,0 +1,4 @@
+# Content and code are authored with LF; keep LF in every checkout (worktrees, Vercel).
+* text=auto eol=lf
+*.png binary
+*.svg text eol=lf

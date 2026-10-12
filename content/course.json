@@ -1,0 +1,31 @@
+{
+  "title": "AWS Certified Solutions Architect – Associate",
+  "code": "SAA-C03",
+  "exam": {
+    "questions": 65,
+    "minutes": 130,
+    "passScore": 720,
+    "maxScore": 1000,
+    "domains": [
+      { "id": "secure", "title": "Design Secure Architectures", "weight": 30 },
+      { "id": "resilient", "title": "Design Resilient Architectures", "weight": 26 },
+      { "id": "performant", "title": "Design High-Performing Architectures", "weight": 24 },
+      { "id": "cost", "title": "Design Cost-Optimized Architectures", "weight": 20 }
+    ]
+  },
+  "parts": [
+    { "id": "foundations", "title": "Foundations", "sections": ["01-getting-started", "02-iam"] },
+    { "id": "compute", "title": "Compute with EC2", "sections": ["03-ec2-basics", "04-ec2-purchasing", "05-ec2-associate", "06-ec2-storage"] },
+    { "id": "scaling", "title": "High Availability & Scalability", "sections": ["07-elb", "08-asg"] },
+    { "id": "db-dns", "title": "Databases, DNS & Architecture", "sections": ["09-rds-aurora-elasticache", "10-route53", "11-classic-architectures"] },
+    { "id": "s3", "title": "Amazon S3 & Content Delivery", "sections": ["12-s3-fundamentals", "13-s3-advanced", "14-s3-security", "15-cloudfront-global-accelerator"] },
+    { "id": "storage-messaging", "title": "Hybrid Storage & Messaging", "sections": ["16-storage-extras", "17-sqs-sns", "18-kinesis-mq"] },
+    { "id": "serverless", "title": "Containers & Serverless", "sections": ["19-containers", "20-lambda", "21-dynamodb-apigw-cognito", "22-serverless-architectures"] },
+    { "id": "data", "title": "Databases, Analytics & ML", "sections": ["23-databases", "24-data-analytics", "25-machine-learning"] },
+    { "id": "monitoring", "title": "Monitoring & Audit", "sections": ["26-cloudwatch-eventbridge", "27-cloudtrail-config"] },
+    { "id": "security", "title": "Identity & Security", "sections": ["28-advanced-identity", "29-encryption-secrets", "30-threat-protection"] },
+    { "id": "networking", "title": "Networking with VPC", "sections": ["31-vpc-fundamentals", "32-vpc-connectivity"] },
+    { "id": "operations", "title": "Migration, Architecture & Operations", "sections": ["33-disaster-recovery-migrations", "34-more-architectures", "35-other-services"] },
+    { "id": "exam", "title": "Well-Architected & Exam", "sections": ["36-well-architected-exam"] }
+  ]
+}

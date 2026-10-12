@@ -1,0 +1,233 @@
+{
+  "section": "12-s3-fundamentals",
+  "questions": [
+    {
+      "id": "12-s3-fundamentals-q01",
+      "type": "single",
+      "domain": "secure",
+      "difficulty": "easy",
+      "question": "An application running on Amazon EC2 instances must read configuration files from an S3 bucket in the same AWS account. The security team forbids long-term credentials on the instances. Which solution meets these requirements?",
+      "options": [
+        { "id": "A", "text": "Create an IAM user with read access to the bucket and store its access keys in the application's configuration file.", "correct": false, "explanation": "Access keys on disk are exactly the long-term credentials the security team forbids, and they must be rotated manually." },
+        { "id": "B", "text": "Add a bucket policy that allows s3:GetObject to Principal \"*\" so the instances can read without credentials.", "correct": false, "explanation": "This makes the files readable by anyone on the internet, which is a data leak rather than access control for the instances." },
+        { "id": "C", "text": "Attach an IAM role with an s3:GetObject policy for the bucket to the instances through an instance profile.", "correct": true, "explanation": "An instance role delivers short-lived, automatically rotated credentials to the instance, and its IAM policy grants only the read access needed." },
+        { "id": "D", "text": "Enable ACLs on the bucket and grant the EC2 service read permission on each object.", "correct": false, "explanation": "ACLs are disabled by default, cannot target an EC2 instance's identity this way, and policies are the recommended mechanism." }
+      ],
+      "explanation": "For AWS compute that calls S3, use an IAM role (instance profile), never stored access keys.",
+      "tags": ["iam-roles", "ec2", "s3-security"]
+    },
+    {
+      "id": "12-s3-fundamentals-q02",
+      "type": "single",
+      "domain": "secure",
+      "difficulty": "medium",
+      "question": "Company A stores monthly reports in an S3 bucket. An IAM role in Company B's AWS account must be able to download the reports. Company A must keep control over which external principals can access the bucket. What should a solutions architect do?",
+      "options": [
+        { "id": "A", "text": "Add a bucket policy in Company A that allows s3:GetObject to Company B's role ARN, and have Company B attach an IAM policy to the role that allows s3:GetObject on the bucket.", "correct": true, "explanation": "Cross-account access needs both sides to allow the request: the resource-based bucket policy in the owning account and the identity policy in the caller's account." },
+        { "id": "B", "text": "Add only an IAM policy to Company B's role that allows s3:GetObject on Company A's bucket ARN.", "correct": false, "explanation": "An identity policy in the other account is not enough; without a bucket policy naming Company B, Company A's bucket denies the request." },
+        { "id": "C", "text": "Create IAM users for Company B's staff inside Company A's account and share the passwords.", "correct": false, "explanation": "This works technically but duplicates identities, shares credentials and is far more operational overhead than a bucket policy." },
+        { "id": "D", "text": "Turn off Block Public Access and make the reports prefix public so Company B can read it.", "correct": false, "explanation": "Making data public exposes it to everyone, not just Company B, and removes Company A's control over who can read it." }
+      ],
+      "explanation": "Same account: IAM or bucket policy is enough. Cross-account: the bucket policy and the caller's IAM policy must both allow the action.",
+      "tags": ["cross-account", "bucket-policy", "iam-policies"]
+    },
+    {
+      "id": "12-s3-fundamentals-q03",
+      "type": "single",
+      "domain": "secure",
+      "difficulty": "medium",
+      "question": "A developer uploads index.html to a new S3 bucket, enables static website hosting with index.html as the index document, and opens the bucket website endpoint. The browser shows 403 Forbidden. What must the developer do to make the site load?",
+      "options": [
+        { "id": "A", "text": "Rename the object to Index.html, because website endpoints are not case-sensitive.", "correct": false, "explanation": "Keys and the index document name are case-sensitive, so renaming the file to Index.html would break the match with the configured index.html; the 403 is a permissions problem, not a naming one." },
+        { "id": "B", "text": "Change the website endpoint URL from http to https.", "correct": false, "explanation": "S3 website endpoints do not support HTTPS at all, so switching protocol fails rather than fixing the 403." },
+        { "id": "C", "text": "Enable versioning on the bucket so the website configuration takes effect.", "correct": false, "explanation": "Versioning protects object versions and has no effect on whether anonymous visitors may read website content." },
+        { "id": "D", "text": "Relax the bucket's Block Public Access settings for bucket policies and add a bucket policy that allows s3:GetObject on the bucket's objects to all principals.", "correct": true, "explanation": "Website hosting does not grant access; anonymous reads need a public-read bucket policy, which Block Public Access would otherwise reject." }
+      ],
+      "explanation": "A 403 from an S3 website endpoint means public read is not allowed yet: adjust Block Public Access, then add a public-read bucket policy.",
+      "tags": ["static-website", "block-public-access", "bucket-policy"]
+    },
+    {
+      "id": "12-s3-fundamentals-q04",
+      "type": "single",
+      "domain": "secure",
+      "difficulty": "medium",
+      "question": "A company with 60 AWS accounts in AWS Organizations wants to guarantee that no S3 bucket in any member account can be made public, including buckets created in the future, with the LEAST operational overhead. Which solution meets this requirement?",
+      "options": [
+        { "id": "A", "text": "Deploy an AWS Config rule in every account that detects public buckets and triggers a Lambda function to remove public policies.", "correct": false, "explanation": "Detect-and-fix leaves a window of exposure and requires deploying and maintaining rules and functions in all 60 accounts." },
+        { "id": "B", "text": "Use an AWS Organizations S3 policy to enforce S3 Block Public Access for the member accounts.", "correct": true, "explanation": "Organization-level Block Public Access applies all four settings centrally, overrides account settings and covers current and future buckets." },
+        { "id": "C", "text": "Ask each account owner to enable Block Public Access on every existing bucket.", "correct": false, "explanation": "Bucket-level settings rely on people, miss future buckets and can be changed later by anyone with the right permission." },
+        { "id": "D", "text": "Enable Amazon Macie in all accounts to find sensitive data in public buckets.", "correct": false, "explanation": "Macie discovers and reports sensitive data but does not prevent a bucket from becoming public." }
+      ],
+      "explanation": "Block Public Access at the organization (or at least account) level is the preventive control for 'never public' requirements.",
+      "tags": ["block-public-access", "organizations"],
+      "updated": "Organization-level Block Public Access through AWS Organizations S3 policies is newer than the slides."
+    },
+    {
+      "id": "12-s3-fundamentals-q05",
+      "type": "single",
+      "domain": "resilient",
+      "difficulty": "easy",
+      "question": "Users of a document management system sometimes overwrite files with the wrong content or delete them by mistake. The company needs to be able to restore any earlier copy of a file stored in Amazon S3. Which feature should be enabled?",
+      "options": [
+        { "id": "A", "text": "S3 Same-Region Replication to a second bucket.", "correct": false, "explanation": "Replication copies the bad overwrite to the destination too and requires versioning anyway, so on its own it does not restore earlier copies." },
+        { "id": "B", "text": "S3 Versioning on the bucket.", "correct": true, "explanation": "Versioning keeps every version; overwrites create new versions and deletes only add a delete marker that can be removed." },
+        { "id": "C", "text": "S3 Intelligent-Tiering as the default storage class.", "correct": false, "explanation": "Intelligent-Tiering optimizes storage cost by access pattern and keeps no history of previous object contents." },
+        { "id": "D", "text": "S3 Transfer Acceleration on the bucket.", "correct": false, "explanation": "Transfer Acceleration speeds up long-distance uploads and downloads; it does not retain old versions." }
+      ],
+      "explanation": "Protection against accidental overwrite and delete in S3 means versioning.",
+      "tags": ["versioning"]
+    },
+    {
+      "id": "12-s3-fundamentals-q06",
+      "type": "single",
+      "domain": "resilient",
+      "difficulty": "medium",
+      "question": "A company configured Cross-Region Replication from a bucket in eu-west-1 to a bucket in us-east-2. New uploads appear in the destination, but the 4 million objects that were in the source before the rule was created are missing. What is the MOST efficient way to copy them?",
+      "options": [
+        { "id": "A", "text": "Delete and recreate the replication rule so that it rescans the source bucket.", "correct": false, "explanation": "Live replication never processes objects that existed before the rule, no matter how often the rule is recreated." },
+        { "id": "B", "text": "Write a script that downloads each object and uploads it to the destination bucket.", "correct": false, "explanation": "This is slow, costly to run and loses replication metadata such as original version IDs; a managed option exists." },
+        { "id": "C", "text": "Run an S3 Batch Replication job on the source bucket for the existing objects.", "correct": true, "explanation": "Batch Replication is the on-demand job for existing objects and for objects whose replication previously failed." },
+        { "id": "D", "text": "Enable S3 Replication Time Control on the rule.", "correct": false, "explanation": "RTC adds a 15-minute SLA for new objects only; it does not backfill objects that existed earlier." }
+      ],
+      "explanation": "Live replication handles new writes only; use S3 Batch Replication for existing or failed objects.",
+      "tags": ["replication", "s3-batch-operations"]
+    },
+    {
+      "id": "12-s3-fundamentals-q07",
+      "type": "single",
+      "domain": "resilient",
+      "difficulty": "hard",
+      "question": "Bucket A replicates to bucket B, and bucket B has its own rule replicating to bucket C. Auditors discover that objects uploaded to bucket A never reach bucket C. All buckets have versioning enabled and the IAM roles are correct. How should the architect fix this for future uploads?",
+      "options": [
+        { "id": "A", "text": "Add bucket C as an additional destination in bucket A's replication configuration.", "correct": true, "explanation": "Replicas are not replicated again, so A must send to C directly; a source bucket can have several destinations." },
+        { "id": "B", "text": "Enable delete marker replication on bucket B's rule.", "correct": false, "explanation": "Delete marker replication only controls whether delete markers are copied; it does not make replicas eligible for chaining." },
+        { "id": "C", "text": "Suspend versioning on bucket B so its objects are treated as originals.", "correct": false, "explanation": "Versioning is required on replication buckets; suspending it on B breaks replication into B instead of fixing it." },
+        { "id": "D", "text": "Change bucket B's storage class to S3 Standard so replicas are re-replicated.", "correct": false, "explanation": "The storage class has nothing to do with it; replicas created by another rule are never picked up by live replication." }
+      ],
+      "explanation": "S3 replication is not transitive. Point the source at every bucket that needs a copy, or use Batch Replication for replicas.",
+      "tags": ["replication"]
+    },
+    {
+      "id": "12-s3-fundamentals-q08",
+      "type": "multi",
+      "domain": "resilient",
+      "difficulty": "medium",
+      "question": "A solutions architect is designing S3 Cross-Region Replication for a compliance copy of financial records. Which statements about S3 replication are correct? (Select TWO.)",
+      "options": [
+        { "id": "A", "text": "Versioning must be enabled on both the source and the destination bucket.", "correct": true, "explanation": "Replication depends on version IDs, so S3 requires versioning on the source and every destination bucket." },
+        { "id": "B", "text": "Replication is synchronous, so a PUT succeeds only after the copy exists in the destination Region.", "correct": false, "explanation": "Replication is asynchronous; objects usually arrive within seconds to minutes, or within 15 minutes with RTC." },
+        { "id": "C", "text": "A DELETE request that specifies an object version ID is not replicated to the destination.", "correct": true, "explanation": "Permanent version deletes stay in the source, which protects the compliance copy from malicious or accidental deletion." },
+        { "id": "D", "text": "The source and destination buckets must belong to the same AWS account.", "correct": false, "explanation": "Cross-account replication is supported; the destination owner grants permission with a bucket policy." },
+        { "id": "E", "text": "Objects already in the source bucket are replicated automatically when the rule is created.", "correct": false, "explanation": "Only new objects replicate; existing objects need an S3 Batch Replication job." }
+      ],
+      "explanation": "Replication needs versioning on both sides, is asynchronous, supports cross-account, only handles new writes, and never replicates version-specific deletes.",
+      "tags": ["replication", "versioning"]
+    },
+    {
+      "id": "12-s3-fundamentals-q09",
+      "type": "single",
+      "domain": "cost",
+      "difficulty": "medium",
+      "question": "A photo-sharing app stores original images in S3 Standard and generates web-sized preview images of about 500 KB each from them. Previews are viewed often during their first month and rarely afterwards, but must still load in milliseconds when requested. A lost preview can be regenerated from its original. A lifecycle rule will move previews out of S3 Standard when they are 30 days old. Which target storage class is MOST cost-effective for the rule?",
+      "options": [
+        { "id": "A", "text": "S3 Standard", "correct": false, "explanation": "Keeping the previews in Standard works, but it charges the highest storage price for data that is rarely read after 30 days and easy to recreate." },
+        { "id": "B", "text": "S3 Glacier Flexible Retrieval", "correct": false, "explanation": "Objects must be restored first, taking minutes to hours, which breaks the millisecond requirement." },
+        { "id": "C", "text": "S3 Standard-IA", "correct": false, "explanation": "Standard-IA gives instant access, but it costs about 25% more than One Zone-IA to buy multi-AZ resilience that recreatable previews do not need." },
+        { "id": "D", "text": "S3 One Zone-IA", "correct": true, "explanation": "One Zone-IA is the cheapest millisecond-access class for infrequent reads, the 500 KB previews are above its 128 KB minimum billable size, and losing the AZ only means regenerating them." }
+      ],
+      "explanation": "Recreatable, infrequently accessed objects of at least 128 KB that still need instant access fit S3 One Zone-IA; for tiny objects the 128 KB minimum would make Standard cheaper.",
+      "tags": ["storage-classes", "one-zone-ia"]
+    },
+    {
+      "id": "12-s3-fundamentals-q10",
+      "type": "single",
+      "domain": "cost",
+      "difficulty": "medium",
+      "question": "A bank must keep scanned loan documents for 10 years to satisfy regulators. The documents are almost never read; when an audit requests one, retrieval within two days is acceptable. Which storage option has the LOWEST cost?",
+      "options": [
+        { "id": "A", "text": "S3 Glacier Instant Retrieval", "correct": false, "explanation": "It offers millisecond access the bank does not need, at roughly four times the storage price of Deep Archive." },
+        { "id": "B", "text": "S3 Glacier Deep Archive", "correct": true, "explanation": "Deep Archive is the cheapest S3 class, and Bulk restores within about 48 hours satisfy the two-day requirement." },
+        { "id": "C", "text": "S3 One Zone-IA", "correct": false, "explanation": "It costs far more per GB than the Glacier archive classes and risks loss of the only copy if its AZ fails." },
+        { "id": "D", "text": "S3 Intelligent-Tiering without the optional archive tiers", "correct": false, "explanation": "Without archive tiers activated, cold objects stop at the Archive Instant Access tier, which costs more than Deep Archive." }
+      ],
+      "explanation": "Long-term compliance archives that tolerate hours to two days of retrieval belong in S3 Glacier Deep Archive.",
+      "tags": ["storage-classes", "s3-glacier"]
+    },
+    {
+      "id": "12-s3-fundamentals-q11",
+      "type": "single",
+      "domain": "cost",
+      "difficulty": "hard",
+      "question": "A media company stores 400 TB of video clips averaging 50 MB each. Some clips go viral unpredictably and others are never watched again, and nobody can predict which. The company wants to lower storage costs without retrieval fees, performance impact or building any analysis process. Which solution meets these requirements?",
+      "options": [
+        { "id": "A", "text": "Store all clips in S3 Standard-IA.", "correct": false, "explanation": "Viral clips would generate large per-GB retrieval fees, which the company wants to avoid." },
+        { "id": "B", "text": "Write a nightly job that reads access logs and moves cold clips to S3 Glacier Flexible Retrieval.", "correct": false, "explanation": "This is the analysis process they want to avoid, and archived clips would need restores before anyone can watch them." },
+        { "id": "C", "text": "Store the clips in S3 Intelligent-Tiering.", "correct": true, "explanation": "Intelligent-Tiering moves each object between tiers by its own access history, with no retrieval fees and no operational work." },
+        { "id": "D", "text": "Store all clips in S3 One Zone-IA.", "correct": false, "explanation": "It still charges retrieval fees and puts the only copy of valuable content in a single AZ." }
+      ],
+      "explanation": "Unknown or changing access patterns with no retrieval fees and no ops effort point to S3 Intelligent-Tiering (objects here are well above the 128 KB monitoring threshold).",
+      "tags": ["s3-intelligent-tiering", "storage-classes"]
+    },
+    {
+      "id": "12-s3-fundamentals-q12",
+      "type": "single",
+      "domain": "cost",
+      "difficulty": "hard",
+      "question": "To save money, a team transitioned 50 million application log files of about 8 KB each from S3 Standard to S3 Standard-IA. The next bill for that bucket went up instead of down, although the files are almost never read. What is the MOST likely reason?",
+      "options": [
+        { "id": "A", "text": "Standard-IA bills each object as at least 128 KB, so the small files are charged for many times their real size.", "correct": true, "explanation": "At 8 KB each, every file is billed as 128 KB, which outweighs the lower per-GB price of Standard-IA." },
+        { "id": "B", "text": "Standard-IA charges a retrieval fee every time S3 checks object durability.", "correct": false, "explanation": "Internal durability checks are not billed; retrieval fees apply only when you read data." },
+        { "id": "C", "text": "Standard-IA stores data in only one Availability Zone and charges for cross-AZ copies.", "correct": false, "explanation": "Standard-IA is a multi-AZ class like Standard, and S3 does not bill you for the copies it keeps across AZs internally." },
+        { "id": "D", "text": "Objects in Standard-IA must be restored before they can be listed, which adds request charges.", "correct": false, "explanation": "Standard-IA objects are available in milliseconds; restores apply only to the archival Glacier classes." }
+      ],
+      "explanation": "Standard-IA, One Zone-IA and Glacier Instant Retrieval bill a 128 KB minimum per object and a 30 or 90 day minimum duration; tiny or short-lived objects belong in Standard.",
+      "tags": ["storage-classes", "cost"]
+    },
+    {
+      "id": "12-s3-fundamentals-q13",
+      "type": "single",
+      "domain": "performant",
+      "difficulty": "medium",
+      "question": "A machine learning team trains models on Amazon EC2 instances in a single Availability Zone. Training reads millions of small files and is slowed by storage latency. They need consistent single-digit millisecond access and very high request rates, and they keep a master copy of the dataset elsewhere. Which storage choice meets these needs?",
+      "options": [
+        { "id": "A", "text": "S3 Standard with S3 Transfer Acceleration enabled", "correct": false, "explanation": "Transfer Acceleration speeds up long-distance internet transfers through edge locations; it does not cut in-Region request latency." },
+        { "id": "B", "text": "S3 Glacier Instant Retrieval", "correct": false, "explanation": "It gives millisecond access for rarely read archives at high request prices, not low-latency high-rate training access." },
+        { "id": "C", "text": "S3 One Zone-IA in the same Region", "correct": false, "explanation": "One Zone-IA lowers storage cost for infrequent access and charges retrieval fees; it is not a performance class." },
+        { "id": "D", "text": "S3 Express One Zone in a directory bucket in the same Availability Zone as the instances", "correct": true, "explanation": "Express One Zone co-locates storage with compute and delivers single-digit millisecond latency for request-heavy workloads." }
+      ],
+      "explanation": "Latency-sensitive, request-intensive workloads next to compute in one AZ point to S3 Express One Zone directory buckets.",
+      "tags": ["s3-express", "performance"]
+    },
+    {
+      "id": "12-s3-fundamentals-q14",
+      "type": "single",
+      "domain": "performant",
+      "difficulty": "easy",
+      "question": "Field engineers upload 30 GB survey files to Amazon S3 over unreliable connections. Uploads with a single PUT request fail and must restart from the beginning. What should the application use?",
+      "options": [
+        { "id": "A", "text": "S3 Versioning so failed uploads can be resumed from the previous version.", "correct": false, "explanation": "Versioning keeps completed object versions; it cannot resume a partially transferred upload." },
+        { "id": "B", "text": "A larger EC2 instance type for the upload client.", "correct": false, "explanation": "The problem is the 5 GB single-PUT limit and restarting whole transfers, not client CPU or memory." },
+        { "id": "C", "text": "Multipart upload, sending the file in parallel parts that can be retried individually.", "correct": true, "explanation": "Multipart upload is required above 5 GB and lets failed parts be retried without resending the whole file." },
+        { "id": "D", "text": "S3 Same-Region Replication to a second bucket.", "correct": false, "explanation": "Replication copies objects after they are uploaded; it does nothing for the upload itself." }
+      ],
+      "explanation": "A single PUT tops out at 5 GB; large or unreliable uploads use multipart upload.",
+      "tags": ["multipart", "objects"]
+    },
+    {
+      "id": "12-s3-fundamentals-q15",
+      "type": "multi",
+      "domain": "resilient",
+      "difficulty": "medium",
+      "question": "A company needs a storage class for infrequently accessed records that must be readable in milliseconds and must survive the complete loss of an Availability Zone. Which S3 storage classes meet both requirements? (Select TWO.)",
+      "options": [
+        { "id": "A", "text": "S3 One Zone-IA", "correct": false, "explanation": "Data lives in a single AZ, so destroying that AZ loses the data." },
+        { "id": "B", "text": "S3 Standard-IA", "correct": true, "explanation": "It stores data across at least three AZs and returns objects in milliseconds, with a retrieval fee." },
+        { "id": "C", "text": "S3 Glacier Instant Retrieval", "correct": true, "explanation": "It is multi-AZ and gives millisecond access, suited to data read about once a quarter." },
+        { "id": "D", "text": "S3 Express One Zone", "correct": false, "explanation": "Express One Zone keeps data in one chosen AZ, so it does not survive the loss of that AZ." },
+        { "id": "E", "text": "S3 Glacier Flexible Retrieval", "correct": false, "explanation": "It is multi-AZ but archived objects must be restored first, taking minutes to hours." }
+      ],
+      "explanation": "Multi-AZ plus millisecond access for infrequent data: Standard-IA or Glacier Instant Retrieval. The One Zone classes fail the AZ test; Glacier Flexible fails the latency test.",
+      "tags": ["storage-classes", "availability"]
+    }
+  ]
+}

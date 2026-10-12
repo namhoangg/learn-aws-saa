@@ -1,0 +1,218 @@
+{
+  "section": "27-cloudtrail-config",
+  "questions": [
+    {
+      "id": "27-cloudtrail-config-q01",
+      "type": "single",
+      "domain": "secure",
+      "difficulty": "easy",
+      "question": "A production EC2 instance was terminated yesterday afternoon. The operations manager needs to know which IAM identity terminated it and from which IP address. No additional logging was configured in the account. What should a solutions architect do?",
+      "options": [
+        { "id": "A", "text": "Open the instance's CloudWatch metrics and look at the last data point before the instance stopped reporting.", "correct": false, "explanation": "CloudWatch metrics show utilization, not who made an API call. The metrics only reveal when the instance stopped, not the caller." },
+        { "id": "B", "text": "Turn on AWS Config now and look at the instance's configuration timeline.", "correct": false, "explanation": "Config records only from the moment it is enabled, so it cannot show yesterday's change, and the identity of the caller comes from CloudTrail anyway." },
+        { "id": "C", "text": "Search CloudTrail Event history for the TerminateInstances event in that Region and read the event's user identity and source IP address.", "correct": true, "explanation": "Event history is on by default and keeps 90 days of management events. The TerminateInstances event records the userIdentity, sourceIPAddress, time and request parameters." },
+        { "id": "D", "text": "Enable VPC Flow Logs on the instance's subnet and filter for traffic to the EC2 API endpoint.", "correct": false, "explanation": "Flow logs are not retroactive and capture IP traffic metadata, not API calls or IAM identities; console and CLI calls to the EC2 API do not even pass through the instance's subnet." }
+      ],
+      "explanation": "Who did what and when, for a recent change, is answered by CloudTrail Event history, which needs no setup and keeps 90 days of management events.",
+      "tags": ["cloudtrail", "event-history", "investigation"]
+    },
+    {
+      "id": "27-cloudtrail-config-q02",
+      "type": "single",
+      "domain": "secure",
+      "difficulty": "medium",
+      "question": "A company uses AWS Organizations with 40 accounts in several Regions. Regulators require that all management API activity from every account and Region be retained for 7 years in a central location that member account administrators cannot modify. Auditors must be able to run SQL queries over the data. Which solution meets these requirements with the LEAST operational overhead?",
+      "options": [
+        { "id": "A", "text": "From the management account, create a multi-Region organization trail that delivers to an S3 bucket in a dedicated log-archive account, apply lifecycle rules for 7-year retention, and query the logs with Amazon Athena.", "correct": true, "explanation": "An organization trail covers every member account and Region automatically, member accounts cannot change or delete it, S3 provides durable long-term storage with lifecycle tiering, and Athena queries the files in place with SQL." },
+        { "id": "B", "text": "Ask each account owner to download the CloudTrail Event history as CSV every 90 days and upload the files to a shared S3 bucket.", "correct": false, "explanation": "This is manual and error-prone: Event history downloads cover one account and one Region at a time, a missed 90-day window loses events for good, and the same administrators who must not modify the data produce and upload the files." },
+        { "id": "C", "text": "Enable AWS Config in every account and Region and create an aggregator in the management account.", "correct": false, "explanation": "Config records resource configurations and compliance, not every management API call, so it does not satisfy an API activity retention requirement." },
+        { "id": "D", "text": "Create a single-Region trail in each account that sends events to CloudWatch Logs with a retention of 7 years.", "correct": false, "explanation": "Single-Region trails miss activity in other Regions, each account's administrators could change their own trail, and managing 40 trails and log groups is far more overhead than one organization trail." }
+      ],
+      "explanation": "Long-term, tamper-resistant, organization-wide API history points to a multi-Region organization trail to a central S3 bucket, queried with Athena.",
+      "tags": ["cloudtrail", "organization-trail", "s3", "athena", "retention"]
+    },
+    {
+      "id": "27-cloudtrail-config-q03",
+      "type": "single",
+      "domain": "secure",
+      "difficulty": "medium",
+      "question": "The security team must receive an email within a few minutes whenever anyone in the account adds an inbound rule to any security group. The email must include who made the change and the rule that was added. A multi-Region CloudTrail trail is already logging. Which solution meets these requirements?",
+      "options": [
+        { "id": "A", "text": "Create a CloudWatch alarm on the EC2 security group metric for rule count and send the alarm to an SNS topic.", "correct": false, "explanation": "EC2 publishes no security group rule-count metric to CloudWatch, and an alarm would not include the identity or the rule details." },
+        { "id": "B", "text": "Add the AWS Config managed rule restricted-ssh with a 24-hour periodic trigger and an SNS delivery channel.", "correct": false, "explanation": "restricted-ssh only flags SSH open to the world, not every new inbound rule, and the SNS delivery channel sends all Config notifications without the CloudTrail caller details the team asked for." },
+        { "id": "C", "text": "Enable Amazon Inspector and subscribe the security team to its findings.", "correct": false, "explanation": "Inspector scans workloads for software vulnerabilities and network reachability; it does not notify on individual security group API calls." },
+        { "id": "D", "text": "Create an EventBridge rule on the default event bus that matches AWS API Call via CloudTrail events with eventName AuthorizeSecurityGroupIngress, and set an SNS topic with an email subscription as the target.", "correct": true, "explanation": "CloudTrail emits the API call to EventBridge in near real time; the event contains userIdentity and requestParameters, and the SNS target emails the full event to the team." }
+      ],
+      "explanation": "Reacting to a specific API call within minutes is an EventBridge rule on 'AWS API Call via CloudTrail' events with an SNS or Lambda target.",
+      "tags": ["cloudtrail", "eventbridge", "sns", "security-groups"]
+    },
+    {
+      "id": "27-cloudtrail-config-q04",
+      "type": "single",
+      "domain": "secure",
+      "difficulty": "medium",
+      "question": "A company's policy states that no security group may allow SSH (port 22) from 0.0.0.0/0. Violations must be detected and corrected automatically, and the company wants to avoid writing and maintaining custom code. Which solution meets these requirements with the LEAST operational overhead?",
+      "options": [
+        { "id": "A", "text": "Write a Lambda function that runs every hour, lists all security groups and revokes any SSH rule open to the world.", "correct": false, "explanation": "This works but is custom code the team must write, secure and maintain, and violations can stay open for up to an hour between runs." },
+        { "id": "B", "text": "Enable AWS Config with the managed rule restricted-ssh and configure automatic remediation with the AWS-DisableIncomingSSHOnPort22 Systems Manager Automation runbook and retries.", "correct": true, "explanation": "The managed rule detects the violation on every security group change, and the AWS managed runbook removes the open SSH rule automatically; no custom code is needed and retries handle transient failures." },
+        { "id": "C", "text": "Enable CloudTrail Insights so that unusual AuthorizeSecurityGroupIngress activity is flagged.", "correct": false, "explanation": "Insights flags unusual volumes of API calls compared with a baseline; a single bad rule is normal volume, and Insights does not remediate anything." },
+        { "id": "D", "text": "Attach a CloudWatch Logs metric filter to the trail for AuthorizeSecurityGroupIngress and alarm to an SNS topic for the operations team.", "correct": false, "explanation": "This only notifies people; someone still has to fix every violation by hand, so it is not automatic correction." }
+      ],
+      "explanation": "Detect plus auto-correct a configuration policy with minimal effort is an AWS Config managed rule with automatic SSM Automation remediation.",
+      "tags": ["config", "remediation", "restricted-ssh", "systems-manager"]
+    },
+    {
+      "id": "27-cloudtrail-config-q05",
+      "type": "single",
+      "domain": "secure",
+      "difficulty": "hard",
+      "question": "A company uses AWS Organizations. Security requires that developers in member accounts must be unable to create unencrypted EBS volumes: the API call itself must fail. Which solution meets this requirement?",
+      "options": [
+        { "id": "A", "text": "Deploy the AWS Config managed rule encrypted-volumes to all accounts with automatic remediation that deletes non-compliant volumes.", "correct": false, "explanation": "Config is detective: the unencrypted volume is created first and only flagged and removed afterwards, so the API call does not fail." },
+        { "id": "B", "text": "Create an EventBridge rule on CreateVolume CloudTrail events that invokes a Lambda function to delete unencrypted volumes.", "correct": false, "explanation": "EventBridge reacts after CloudTrail records the successful call, so the volume briefly exists and the requirement that the call fails is not met." },
+        { "id": "C", "text": "Attach a service control policy to the organizational units that denies ec2:CreateVolume when the ec2:Encrypted condition key is false.", "correct": true, "explanation": "An SCP sets a permission guardrail evaluated before the request is allowed, so the CreateVolume call is denied outright when encryption is not requested." },
+        { "id": "D", "text": "Turn on proactive evaluation for the encrypted-volumes Config rule in every account.", "correct": false, "explanation": "Proactive evaluation only reports whether a proposed configuration would be compliant when a pipeline or hook asks for it; it never blocks API calls made directly by developers. (encrypted-volumes does not even offer proactive mode; only a couple of managed rules do.)" }
+      ],
+      "explanation": "Config rules and EventBridge reactions detect and correct after the fact; preventing an action requires IAM policies or SCPs.",
+      "tags": ["config", "scp", "prevention", "trap"]
+    },
+    {
+      "id": "27-cloudtrail-config-q06",
+      "type": "multi",
+      "domain": "secure",
+      "difficulty": "medium",
+      "question": "An auditor requires the company to prove that its CloudTrail log files have not been modified after delivery and to ensure that the stored log files cannot be deleted, even by administrators of the workload accounts. Which actions should a solutions architect take? (Select TWO.)",
+      "options": [
+        { "id": "A", "text": "Enable log file integrity validation on the trail and use the digest files to validate the logs.", "correct": true, "explanation": "CloudTrail writes hourly signed digest files with SHA-256 hashes of each log file, and validate-logs detects any modified or deleted file, which is the proof the auditor wants." },
+        { "id": "B", "text": "Enable CloudTrail Insights on the trail.", "correct": false, "explanation": "Insights detects unusual API call or error rates; it says nothing about whether log files were altered and does not protect them." },
+        { "id": "C", "text": "Deliver the logs to an S3 bucket in a separate log-archive account with S3 Object Lock in compliance mode and a restrictive bucket policy.", "correct": true, "explanation": "A separate account removes workload administrators' access, and Object Lock in compliance mode prevents anyone from deleting or overwriting the objects during the retention period." },
+        { "id": "D", "text": "Download the Event history as JSON every week and store it on an on-premises file server.", "correct": false, "explanation": "Event history covers only management events, manual downloads are not proof of integrity, and the copies are not protected by anything AWS can attest to." },
+        { "id": "E", "text": "Add the AWS Config managed rule cloudtrail-enabled.", "correct": false, "explanation": "This rule only reports whether a trail exists and is logging; it neither proves file integrity nor prevents deletion of log files." }
+      ],
+      "explanation": "Integrity proof comes from log file validation; protection from deletion comes from where and how the bucket is stored (separate account, Object Lock or MFA Delete, tight policies).",
+      "tags": ["cloudtrail", "integrity", "s3-object-lock", "security"]
+    },
+    {
+      "id": "27-cloudtrail-config-q07",
+      "type": "single",
+      "domain": "secure",
+      "difficulty": "medium",
+      "question": "A healthcare company stores patient documents in one S3 bucket. Compliance now requires a record of every IAM principal that reads or deletes objects in that bucket. The account has a multi-Region trail with default settings. What should the solutions architect do?",
+      "options": [
+        { "id": "A", "text": "Nothing; the default trail already records GetObject and DeleteObject calls as management events.", "correct": false, "explanation": "Object-level calls such as GetObject and DeleteObject are data events, which trails do not log by default." },
+        { "id": "B", "text": "Enable CloudTrail Insights on the trail for API call rate.", "correct": false, "explanation": "Insights summarises unusual volumes of activity; it does not record each individual read or delete by principal." },
+        { "id": "C", "text": "Enable AWS Config recording for AWS::S3::Bucket resources.", "correct": false, "explanation": "Config records the bucket's configuration (policy, encryption, versioning), not the individual object reads and deletes." },
+        { "id": "D", "text": "Configure the trail to log S3 data events for that bucket, using an advanced event selector limited to the bucket's ARN for read and write events.", "correct": true, "explanation": "S3 data events capture GetObject, PutObject and DeleteObject with the caller identity. Limiting the selector to one bucket keeps the per-event charges down." }
+      ],
+      "explanation": "Who read or deleted specific objects requires CloudTrail data events, which are off by default and should be scoped narrowly because they are billed per event.",
+      "tags": ["cloudtrail", "data-events", "s3"]
+    },
+    {
+      "id": "27-cloudtrail-config-q08",
+      "type": "single",
+      "domain": "secure",
+      "difficulty": "medium",
+      "question": "A company wants to be alerted automatically when its account suddenly makes far more TerminateInstances calls or IAM API calls than usual, or when API error rates spike, for example because leaked credentials are being misused. The team does not want to define or maintain thresholds. Which solution meets these requirements?",
+      "options": [
+        { "id": "A", "text": "Create CloudWatch Logs metric filters on the trail for each API and set static alarm thresholds based on last month's peak.", "correct": false, "explanation": "Static thresholds must be chosen and maintained per API, which the team explicitly wants to avoid, and they go stale as normal usage changes." },
+        { "id": "B", "text": "Enable CloudTrail Insights for API call rate and API error rate on the trail, and create an EventBridge rule for Insights events that notifies the team.", "correct": true, "explanation": "Insights learns the account's normal baseline and raises Insights events when call volumes or error rates deviate, with no thresholds to manage; EventBridge receives those events for notification." },
+        { "id": "C", "text": "Add AWS Config periodic rules that count EC2 instances and IAM users every hour.", "correct": false, "explanation": "Config evaluates resource configurations, not the rate of API calls or errors, and counting resources hourly would miss bursts and error spikes." },
+        { "id": "D", "text": "Enable S3 server access logging on the trail's bucket and review the logs weekly.", "correct": false, "explanation": "Access logs record requests to the log bucket itself, not the account's API activity, and weekly reviews are not automatic alerting." }
+      ],
+      "explanation": "Unusual API call volumes or error rates without manual thresholds is the job of CloudTrail Insights, with EventBridge for automation.",
+      "tags": ["cloudtrail", "insights", "eventbridge"]
+    },
+    {
+      "id": "27-cloudtrail-config-q09",
+      "type": "single",
+      "domain": "secure",
+      "difficulty": "easy",
+      "question": "A company has 30 AWS accounts in AWS Organizations and uses four Regions. AWS Config is enabled in every account and Region. The security team wants a single place to view resource inventory and rule compliance for all accounts and Regions. What should the solutions architect do?",
+      "options": [
+        { "id": "A", "text": "Create an AWS Config aggregator in a central account, using AWS Organizations as the source.", "correct": true, "explanation": "An organization aggregator collects configuration and compliance data from all member accounts and Regions into one account and Region; no per-account authorization is needed for organization accounts." },
+        { "id": "B", "text": "Create a multi-Region CloudTrail organization trail.", "correct": false, "explanation": "An organization trail centralises API call logs, not Config's resource inventory and compliance results." },
+        { "id": "C", "text": "Enable Config in only one Region and record global resources there.", "correct": false, "explanation": "Config is regional, so turning it off elsewhere would stop recording resources in the other three Regions." },
+        { "id": "D", "text": "Copy each account's Config snapshots to a shared S3 bucket every day with a Lambda function.", "correct": false, "explanation": "This is custom work that rebuilds what an aggregator provides for free and would still lack a compliance dashboard." }
+      ],
+      "explanation": "Multi-account, multi-Region Config visibility is an aggregator. Remember it is read-only and does not deploy rules.",
+      "tags": ["config", "aggregator", "organizations"]
+    },
+    {
+      "id": "27-cloudtrail-config-q10",
+      "type": "multi",
+      "domain": "resilient",
+      "difficulty": "medium",
+      "question": "An Application Load Balancer fronts a critical web application. The team needs (1) a dashboard showing request counts and the percentage of 5xx responses over time, with an alarm when errors rise, and (2) a history of the load balancer's listener and security group configuration, plus a continuous check that every HTTPS listener uses a certificate from AWS Certificate Manager. Which services should the solutions architect use? (Select TWO.)",
+      "options": [
+        { "id": "A", "text": "Amazon CloudWatch metrics, dashboards and alarms for the load balancer.", "correct": true, "explanation": "ALB publishes request counts and HTTP 5xx counts to CloudWatch, where a dashboard can show error percentages and an alarm can notify on increases." },
+        { "id": "B", "text": "AWS CloudTrail Insights for the load balancer's request rate.", "correct": false, "explanation": "Insights analyses API call rates against AWS APIs, not the HTTP traffic that clients send through the load balancer." },
+        { "id": "C", "text": "AWS Config recording for the load balancer with a managed rule that checks for ACM certificates on HTTPS listeners.", "correct": true, "explanation": "Config keeps a configuration history of the load balancer and related security groups, and a managed rule such as elbv2-acm-certificate-required continuously evaluates the certificate requirement." },
+        { "id": "D", "text": "AWS CloudTrail Event history filtered on the load balancer name.", "correct": false, "explanation": "Event history shows who called the load balancer's API in the last 90 days but not its full configuration over time or continuous compliance." },
+        { "id": "E", "text": "AWS Trusted Advisor checks for Elastic Load Balancing.", "correct": false, "explanation": "Trusted Advisor gives periodic best-practice recommendations, not per-listener configuration history or a custom compliance rule for certificates." }
+      ],
+      "explanation": "Performance and alarms come from CloudWatch; configuration history and compliance come from Config; CloudTrail would add who changed it.",
+      "tags": ["comparison", "cloudwatch", "config", "alb"]
+    },
+    {
+      "id": "27-cloudtrail-config-q11",
+      "type": "single",
+      "domain": "secure",
+      "difficulty": "medium",
+      "question": "AWS Config currently sends all notifications to an SNS topic through its delivery channel, and the security team's inbox is flooded with configuration change messages. The team only wants an email when the restricted-ssh rule marks a resource as NON_COMPLIANT. What is the MOST efficient way to achieve this?",
+      "options": [
+        { "id": "A", "text": "Change the restricted-ssh rule to a periodic trigger of 24 hours so that fewer messages are sent.", "correct": false, "explanation": "The delivery channel still sends every configuration change notification regardless of the rule trigger, and violations would be reported later." },
+        { "id": "B", "text": "Stop the configuration recorder outside office hours.", "correct": false, "explanation": "Changes made while the recorder is stopped would not be recorded or evaluated at all, which weakens compliance instead of filtering notifications." },
+        { "id": "C", "text": "Configure the restricted-ssh rule to publish its own evaluation results to a separate SNS topic that only the security team subscribes to.", "correct": false, "explanation": "Config rules have no per-rule notification target. The Region's single delivery channel sends every notification type to one SNS topic, so per-rule filtering has to happen in EventBridge (or in an SNS subscription filter policy)." },
+        { "id": "D", "text": "Create an EventBridge rule that matches Config Rules Compliance Change events for the restricted-ssh rule with a new compliance type of NON_COMPLIANT, and target an SNS topic that emails the team.", "correct": true, "explanation": "EventBridge event patterns filter on rule name and compliance type, so the team receives only the events it cares about while the delivery channel can keep its full feed for archiving." }
+      ],
+      "explanation": "Filtered, targeted Config alerts use EventBridge; the SNS delivery channel is an unfiltered stream of everything.",
+      "tags": ["config", "eventbridge", "sns", "notifications"]
+    },
+    {
+      "id": "27-cloudtrail-config-q12",
+      "type": "single",
+      "domain": "secure",
+      "difficulty": "hard",
+      "question": "A company's workloads run in eu-west-1. An engineer created an EventBridge rule in eu-west-1 that matches AWS API Call via CloudTrail events with eventSource iam.amazonaws.com and eventName CreateUser, targeting an SNS topic. A multi-Region trail is logging, but the rule never fires when IAM users are created. What should the solutions architect do?",
+      "options": [
+        { "id": "A", "text": "Create the same rule and an SNS topic in us-east-1, because CloudTrail records IAM events in US East (N. Virginia) and delivers them to EventBridge there.", "correct": true, "explanation": "IAM is a global service whose events are recorded in us-east-1, so they reach the default event bus in us-east-1, not eu-west-1." },
+        { "id": "B", "text": "Change the rule state to ENABLED_WITH_ALL_CLOUDTRAIL_MANAGEMENT_EVENTS.", "correct": false, "explanation": "That state is needed only for read-only management events; CreateUser is a write event that a normally enabled rule would match in the right Region." },
+        { "id": "C", "text": "Enable data events for IAM on the trail.", "correct": false, "explanation": "CreateUser is a management event, which the trail already logs; data events are unrelated to this problem." },
+        { "id": "D", "text": "Convert the trail to a single-Region trail in eu-west-1.", "correct": false, "explanation": "A single-Region trail outside us-east-1 would capture even fewer global service events, making the problem worse." }
+      ],
+      "explanation": "EventBridge receives CloudTrail events in the Region where they are recorded, and IAM events are recorded in us-east-1.",
+      "tags": ["eventbridge", "cloudtrail", "global-services", "iam"]
+    },
+    {
+      "id": "27-cloudtrail-config-q13",
+      "type": "single",
+      "domain": "cost",
+      "difficulty": "medium",
+      "question": "A finance team notices a large CloudTrail charge. Investigation shows three trails in the account, each logging all read and write management events in all Regions, and most events are AWS KMS Decrypt and GenerateDataKey calls. The security team needs only one complete copy of management events. Which change reduces cost the MOST while still meeting the requirement?",
+      "options": [
+        { "id": "A", "text": "Move the trails' S3 buckets to the S3 Glacier Flexible Retrieval storage class.", "correct": false, "explanation": "Storage class affects S3 storage cost only; the CloudTrail charge comes from the extra copies of management events delivered by the additional trails." },
+        { "id": "B", "text": "Turn on Exclude AWS KMS events on all three trails and keep all three trails.", "correct": false, "explanation": "This shrinks every copy, but the two extra copies of the remaining management events are still billed, and with KMS events gone from every trail the security team no longer has a complete copy of management events." },
+        { "id": "C", "text": "Keep a single multi-Region trail that logs all read and write management events, and delete the other two trails.", "correct": true, "explanation": "The first copy of management events delivered by a trail is free; each additional copy costs USD 2.00 per 100,000 events. Deleting the two duplicate trails removes all of those charges, including the large KMS share, while the remaining trail is still a complete, free copy." },
+        { "id": "D", "text": "Convert all three trails to single-Region trails.", "correct": false, "explanation": "This would stop recording activity in other Regions, breaking the complete-copy requirement, while the duplicate copies in the remaining Region would still be billed." }
+      ],
+      "explanation": "Only one copy of management events is free. Duplicate trails are the usual cause of an unexpected CloudTrail bill, and high-volume KMS events make each extra copy expensive; excluding KMS events helps only on trails that do not need to be complete.",
+      "tags": ["cloudtrail", "pricing", "kms"]
+    },
+    {
+      "id": "27-cloudtrail-config-q14",
+      "type": "multi",
+      "domain": "secure",
+      "difficulty": "medium",
+      "question": "During an incident review, a security team must determine exactly which inbound rules a specific security group had on a date three weeks ago, and which IAM principal changed them afterwards. AWS Config has been recording security groups for six months and the account has the default CloudTrail setup. Which sources provide this information? (Select TWO.)",
+      "options": [
+        { "id": "A", "text": "The AWS Config configuration history (Resource Timeline) of the security group.", "correct": true, "explanation": "Config keeps configuration items for each change, so the timeline shows the exact inbound rules in effect on any date while recording was on." },
+        { "id": "B", "text": "CloudTrail events for the security group, such as AuthorizeSecurityGroupIngress and RevokeSecurityGroupIngress, in Event history or on the Config timeline.", "correct": true, "explanation": "The changes happened within the last 90 days, so Event history (also linked from the Config timeline) shows who made each call and when." },
+        { "id": "C", "text": "VPC Flow Logs for the security group's network interfaces.", "correct": false, "explanation": "Flow logs record accepted and rejected traffic, not the rule definitions or the identity of whoever changed them." },
+        { "id": "D", "text": "CloudWatch metrics for the EC2 instances that use the security group.", "correct": false, "explanation": "Instance metrics show utilization and have nothing to do with security group rules or API callers." },
+        { "id": "E", "text": "CloudTrail Insights events for the account.", "correct": false, "explanation": "Insights only appears for unusual API volumes or error rates and was not enabled; it would not list the rule contents or each change." }
+      ],
+      "explanation": "Config answers what the configuration was at a point in time; CloudTrail answers who changed it. The Config resource timeline shows both side by side.",
+      "tags": ["config", "cloudtrail", "timeline", "investigation"]
+    }
+  ]
+}
