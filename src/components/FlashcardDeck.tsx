@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { Check, CircleCheck, Info, RotateCcw, Shuffle } from 'lucide-react';
 import type { Flashcard, WithSection } from '../content/types';
 import { setCard, useProgress } from '../state/store';
-import { cardStatus, describeInterval, HARD_REQUEUE_GAP, schedule, type CardStatus, type Rating } from '../lib/srs';
+import { cardStatus, describeInterval, HARD_REQUEUE_GAP, isLearned, schedule, type CardStatus, type Rating } from '../lib/srs';
 import { shuffle } from '../lib/quiz';
 import { getSection } from '../content/load';
 import { InlineMarkdown } from './Markdown';
@@ -42,10 +42,17 @@ export function FlashcardDeck({ cards, title, showSection, startCardId, initialM
   const byId = useMemo(() => new Map(cards.map((c) => [c.id, c])), [cards]);
   const cardRef = useRef<HTMLButtonElement>(null);
 
+  // New, Learning and Learned add up to the deck; Due counts the cards among them waiting for review.
   const counts = useMemo(() => {
     const now = new Date();
     const c = { new: 0, due: 0, learning: 0, learned: 0 };
-    for (const card of cards) c[cardStatus(progress.cards[card.id], now)]++;
+    for (const card of cards) {
+      const saved = progress.cards[card.id];
+      if (!saved) c.new++;
+      else if (isLearned(saved)) c.learned++;
+      else c.learning++;
+      if (cardStatus(saved, now) === 'due') c.due++;
+    }
     return c;
   }, [cards, progress.cards]);
 
@@ -106,6 +113,11 @@ export function FlashcardDeck({ cards, title, showSection, startCardId, initialM
         setFlipped((f) => !f);
       } else if (e.key === '1') rate('hard');
       else if (e.key === '2') rate('easy');
+      // A focused deck selector moves with the arrow keys itself and marks them handled.
+      else if ((e.key === 'ArrowLeft' || e.key === 'ArrowRight') && flipped && !e.defaultPrevented) {
+        e.preventDefault();
+        rate(e.key === 'ArrowLeft' ? 'hard' : 'easy');
+      }
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
@@ -132,6 +144,7 @@ export function FlashcardDeck({ cards, title, showSection, startCardId, initialM
         <div className="deck__counts" aria-label="Deck status">
           <span className="chip chip--accent">New {counts.new}</span>
           <span className="chip chip--verify">Due {counts.due}</span>
+          <span className="chip chip--neutral">Learning {counts.learning}</span>
           <span className="chip chip--free">Learned {counts.learned}</span>
         </div>
       </div>
@@ -197,7 +210,10 @@ export function FlashcardDeck({ cards, title, showSection, startCardId, initialM
                     <strong>Hard</strong>
                     <small>Again in {describeInterval(progress.cards[current.id], 'hard')}</small>
                   </span>
-                  <kbd className="kbd">1</kbd>
+                  <span className="rate-btn__keys">
+                    <kbd className="kbd">←</kbd>
+                    <kbd className="kbd">1</kbd>
+                  </span>
                 </button>
                 <button type="button" className="rate-btn rate-btn--easy" onClick={() => rate('easy')}>
                   <Check size={22} strokeWidth={2} aria-hidden />
@@ -205,7 +221,10 @@ export function FlashcardDeck({ cards, title, showSection, startCardId, initialM
                     <strong>Easy</strong>
                     <small>Next in {describeInterval(progress.cards[current.id], 'easy')}</small>
                   </span>
-                  <kbd className="kbd">2</kbd>
+                  <span className="rate-btn__keys">
+                    <kbd className="kbd">→</kbd>
+                    <kbd className="kbd">2</kbd>
+                  </span>
                 </button>
               </>
             ) : (
@@ -215,7 +234,7 @@ export function FlashcardDeck({ cards, title, showSection, startCardId, initialM
             )}
           </div>
           <span id="flashcard-hint" className="sr-only">
-            {flipped ? 'Press Space to flip back, 1 for Hard, 2 for Easy.' : 'Press Space to show the answer.'}
+            {flipped ? 'Press Space to flip back, 1 or Left arrow for Hard, 2 or Right arrow for Easy.' : 'Press Space to show the answer.'}
           </span>
           <p className="hint-box">
             <Info size={18} aria-hidden />

@@ -2,7 +2,7 @@
 import { useEffect, useState } from 'react';
 import { availableSections, loadCounts, sections } from '../content/load';
 import type { ProgressState } from '../state/store';
-import { cardStatus, isWeakCard } from './srs';
+import { cardStatus, isLearned, isWeakCard } from './srs';
 import { isWeakQuestion } from './quiz';
 
 export type Counts = Record<string, { cards: number; questions: number; labs: number }>;
@@ -31,7 +31,7 @@ export interface SectionProgress {
   /** Best per-section quiz score, 0–1, or null when never attempted. */
   bestQuiz: number | null;
   cardsTotal: number;
-  /** Cards last rated Easy. */
+  /** Learned cards: last rated Easy. */
   cardsKnown: number;
   labsTotal: number;
   labsDone: number;
@@ -45,7 +45,7 @@ export function sectionProgress(id: string, p: ProgressState, counts: Counts | n
   const quizAttempts = p.attempts.filter((a) => a.mode === 'section' && !a.retry && a.sectionIds.length === 1 && a.sectionIds[0] === id && a.total > 0);
   const bestQuiz = quizAttempts.length ? Math.max(...quizAttempts.map((a) => a.correct / a.total)) : null;
   let cardsKnown = 0;
-  for (const [cid, card] of Object.entries(p.cards)) if (sectionOfCard(cid) === id && card.lastRating === 'easy') cardsKnown++;
+  for (const [cid, card] of Object.entries(p.cards)) if (sectionOfCard(cid) === id && isLearned(card)) cardsKnown++;
   cardsKnown = Math.min(cardsKnown, c.cards || cardsKnown);
   const labsDone = Object.entries(p.labs).filter(([lid, l]) => lid.startsWith(`${id}-lab-`) && l.completedAt).length;
   const cardPart = c.cards ? cardsKnown / c.cards : 0;
@@ -60,6 +60,8 @@ export interface Overall {
   sectionsTotal: number;
   cardsDue: number;
   cardsNew: number;
+  /** Last rated Hard: not new, not learned yet. */
+  cardsLearning: number;
   cardsLearned: number;
   cardsTotal: number;
   avgQuiz: number | null;
@@ -93,9 +95,8 @@ export function overallProgress(p: ProgressState, counts: Counts | null): Overal
   let seenCards = 0;
   for (const card of Object.values(p.cards)) {
     seenCards++;
-    const st = cardStatus(card, now);
-    if (st === 'due') cardsDue++;
-    if (st === 'learned') cardsLearned++;
+    if (cardStatus(card, now) === 'due') cardsDue++;
+    if (isLearned(card)) cardsLearned++;
     if (isWeakCard(card)) weakCards++;
   }
   const practice = p.attempts.filter((a) => a.mode !== 'exam' && a.total > 0);
@@ -107,6 +108,7 @@ export function overallProgress(p: ProgressState, counts: Counts | null): Overal
     sectionsTotal: sections.length,
     cardsDue,
     cardsNew: Math.max(0, cardsTotal - seenCards),
+    cardsLearning: seenCards - cardsLearned,
     cardsLearned,
     cardsTotal,
     avgQuiz: practice.length ? practice.reduce((n, a) => n + a.correct / a.total, 0) / practice.length : null,

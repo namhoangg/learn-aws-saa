@@ -22,8 +22,6 @@ const MAX_EASE = 3.0;
 const START_EASE = 2.5;
 const HARD_DELAY_MIN = 10;
 const DAY_MS = 86_400_000;
-/** Cards with an interval at least this long count as learned. */
-export const LEARNED_DAYS = 21;
 /** A card rated Hard comes back after this many other cards in the same session. */
 export const HARD_REQUEUE_GAP = 3;
 
@@ -60,10 +58,15 @@ export function schedule(card: SrsCard | undefined, rating: Rating, now = new Da
 
 export type CardStatus = 'new' | 'due' | 'learning' | 'learned';
 
+/** One Easy is enough: a card is learned while its last rating is Easy, due for review or not. */
+export function isLearned(card: SrsCard | undefined): boolean {
+  return card?.lastRating === 'easy';
+}
+
 export function cardStatus(card: SrsCard | undefined, now = new Date()): CardStatus {
   if (!card) return 'new';
   if (new Date(card.due) <= now) return 'due';
-  return card.interval >= LEARNED_DAYS ? 'learned' : 'learning';
+  return isLearned(card) ? 'learned' : 'learning';
 }
 
 /** Cards the learner keeps finding hard: rated Hard at least twice and not yet mastered. */

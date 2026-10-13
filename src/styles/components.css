@@ -1531,6 +1531,10 @@ a.stat-tile:hover {
   font-size: 13px;
   color: var(--text-subtle);
 }
+.rate-btn__keys {
+  display: inline-flex;
+  gap: 4px;
+}
 
 .deck__done {
   display: flex;

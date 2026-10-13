@@ -10,7 +10,7 @@ const SHORTCUTS: [string, string][] = [
   ['Ctrl / ⌘ + K', 'Open search (always on)'],
   ['/', 'Open search'],
   ['Space', 'Flip a flashcard'],
-  ['1 / 2', 'Rate a flashcard Hard / Easy'],
+  ['1 / 2 or ← / →', 'Rate a flashcard Hard / Easy'],
   ['A–F or 1–6', 'Choose a quiz option'],
   ['Enter', 'Check the answer, then go to the next question'],
   ['N / P', 'Exam: next / previous question'],

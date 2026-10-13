@@ -55,7 +55,8 @@ export function HomePage() {
           <Layers size={18} className="stat-tile__icon" aria-hidden />
           <strong>{o.cardsDue}</strong>
           <span className="stat-tile__sub">
-            {o.cardsNew} new · {o.cardsLearned} learned
+            {o.cardsNew} new · {o.cardsLearning > 0 && `${o.cardsLearning} learning · `}
+            {o.cardsLearned} learned
           </span>
         </Link>
         <Link to="/practice" className="stat-tile">
